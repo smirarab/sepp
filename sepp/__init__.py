@@ -11,6 +11,11 @@ def sortByValue(d,reverse=False):
 _LOGGING_LEVEL_ENVAR = "SATE_LOGGING_LEVEL"
 _LOGGING_FORMAT_ENVAR = "SATE_LOGGING_FORMAT"
 
+_INSTALL_PATH = __path__[0]
+
+def get_setup_path():
+    return _INSTALL_PATH
+
 def get_logging_level():    
     return logging.DEBUG
 

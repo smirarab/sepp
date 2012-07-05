@@ -18,13 +18,14 @@
 ##    along with ReUP.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name = "sepp",
       version = "1.0",
       description = "SATe enabled phylogenetic placement.",
-      packages = ["sepp", "satelib"],
-      package_data = {'sepp' : ["sepp/*.py", "sepp/tools/merge.*"] },
+      packages = find_packages(),
+      package_data = {'sepp' : ["*.py", "lib/merge.jar"] },
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",

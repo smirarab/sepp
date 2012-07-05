@@ -471,10 +471,10 @@ def parseConfig(options):
 # MAIN
 if __name__ == '__main__':
     #Check to see if environment variable properly set
-    path = os.getenv("MERGE_JAR")	    
-    if (path is None or not os.path.isfile(path)):
-	print "$MERGE_JAR variable must be defined and point to directory containing merge.jar"
-	exit()
+    #path = os.getenv("MERGE_JAR")	    
+    #if (path is None or not os.path.isfile(path)):
+    #   print "$MERGE_JAR variable must be defined and point to directory containing merge.jar"
+    #   exit()
 	
     #Increase recursion limit, can hit on very large datasets
     os.sys.setrecursionlimit(1000000)

@@ -16,9 +16,13 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from sepp.alignment import Alignment
 from sepp.utilities import read_sto_alignment
+from sepp import get_setup_path
+
+MERGE_JAR_FILE = "%s/lib/merge.jar" %get_setup_path()
+print MERGE_JAR_FILE
 
 def merge_trees(directory, tree, output):    
-    os.system("java -jar $MERGE_JAR %s %s %s" % (directory, tree, output));	
+    os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output));	
 
 def write_newick(tree, out):
     """
