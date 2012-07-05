@@ -1,0 +1,73 @@
+SEPP is SATé-enabled phylogenetic placement, and so is a method for the following problem:
+
+Input: tree T and alignment A for a set of full-length gene sequences, and set X of fragmentary sequences for the same gene
+Output: placement of each fragment in X into the tree T, and alignment of each fragment in X to the alignment A.
+
+SEPP operates by using a divide-and-conquer strategy to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen). Our study shows that SEPP provides improved accuracy for quickly evolving genes as compared to other methods.
+
+Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
+
+Publication:
+S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATé-enabled phylogenetic placement, To appear, PSB 2012. (PDF).
+
+
+Instalation:
+-------------------------------
+This section details steps for installing and running SEPP. We ran SEPP on a machine running Linux release 2.6.32-33-server. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
+
+0. Installing HMMER package.
+Download the HMMER binaries from the HMMER website. Modify your PATH environment variable to include the directory of the HMMER binaries.
+
+1. Installing pplacer.
+Download the pplacer binary from the pplacer webiste. Modify your PATH environment variable to include the location of the pplacer binary.
+
+2. Installing python packages.
+The software packages listed below are Python source distributions. To use them, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. We used Python version 2.6.
+
+To uncompress and inflate each distribution file, run "tar -xzf <package>.tar.gz". To install each package, run "python setup.py install" from inside the uncompressed package directory; this step requires root access to the system. 
+
+If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
+
+More instructions on installing Python packages can be found on this Python page.
+
+3. Install the DendroPy 3 package.
+DendroPy-3.9.0.tar.gz
+
+4. Install the NumPy package.
+numpy-1.6.1.tar.gz
+
+5. Install the Biopython package.
+biopython-1.58.tar.gz
+
+6. Install the SEPP package.
+sepp-1.0.tar.gz
+
+7. Add an environment variable MERGE_JAR with the absolute path to the the location of merge.jar. This jarfile is included in the gzip in the folder location sepp-1.0/sepp/tools/merge.jar.
+
+A README file for running SEPP can be found in sepp-1.0/.
+
+
+
+Running SEPP
+---------------------------------------------
+To run SEPP, invoke the "run_sepp.py" script from the "bin" subdirectory of the location in which you installed the Python packages. To see options for running the script, using the command 
+"python <bin>/run_sepp.py -h"
+
+The general command for running sepp is: 
+
+"python <bin>/run_sepp.py -t <tree_file> -a <alignment_file> -f <fragment_file> -r <raxml_info_file> -A <alignment_set_size> -P <placement_set_size> "
+
+SEPP can also be run using a configuration file. Sample configuration files and input files can be found in the folder location sepp-1.0/sample/. Change to that directory to run SEPP on the sample files. To run using command options, run 
+
+"python <bin>/run_sepp.py -t test.tree -a test.fasta -f test.fas -r test.RAxML_info -A 250 -P 250"
+
+and to run using a configuration file, run 
+
+"python <bin>/run_sepp.py -c sample.config"
+
+The output of SEPP is a .json file, created according to pplacer format. Please refer to here for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+Data
+
+
+SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen).
+

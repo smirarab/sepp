@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: sepp
+Version: 1.0
+Summary: SATe enabled phylogenetic placement.
+Home-page: http://www.cs.utexas.edu/~phylo/software/sepp
+Author: Siavash Mirarab and Nam Nguyen
+Author-email: smirarab@gmail.com, namphuon@cs.utexas.edu
+License: General Public License (GPL)
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Requires: dendropy (>= 3.4)
+Requires: bio (>= 1.0)
+Provides: sepp
