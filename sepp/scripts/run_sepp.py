@@ -472,7 +472,7 @@ def parseConfig(options):
 if __name__ == '__main__':
     #Check to see if environment variable properly set
     path = os.getenv("MERGE_JAR")	    
-    if (not os.path.isfile(path)):
+    if (path is None or not os.path.isfile(path)):
 	print "$MERGE_JAR variable must be defined and point to directory containing merge.jar"
 	exit()
 	
