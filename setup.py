@@ -21,6 +21,10 @@
 #from distutils.core import setup
 from setuptools import setup, find_packages
 
+from distribute_setup import use_setuptools
+use_setuptools(version="0.6.24")
+
+
 setup(name = "sepp",
       version = "1.0",
       description = "SATe enabled phylogenetic placement.",
@@ -32,7 +36,7 @@ setup(name = "sepp",
       author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
 
       license="General Public License (GPL)",
-      install_requires = ["dendropy >= 3.4"],
+      install_requires = ["dendropy >= 3.4", "numpy >= 1.6","biopython >= 1.58"],
       provides = ["sepp"],
       scripts = ["sepp/scripts/run_sepp.py"],
 
