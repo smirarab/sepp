@@ -19,7 +19,6 @@ from sepp.utilities import read_sto_alignment
 from sepp import get_setup_path
 
 MERGE_JAR_FILE = "%s/lib/merge.jar" %get_setup_path()
-print MERGE_JAR_FILE
 
 def merge_trees(directory, tree, output):    
     os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output));	

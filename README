@@ -42,10 +42,6 @@ biopython-1.58.tar.gz
 6. Install the SEPP package.
 sepp-1.0.tar.gz
 
-7. Add an environment variable MERGE_JAR with the absolute path to the the location of merge.jar. This jarfile is included in the gzip in the folder location sepp-1.0/sepp/tools/merge.jar.
-
-A README file for running SEPP can be found in sepp-1.0/.
-
 
 
 Running SEPP

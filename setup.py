@@ -32,7 +32,7 @@ setup(name = "sepp",
       author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
 
       license="General Public License (GPL)",
-      requires = ["dendropy (>= 3.4)", "bio (>= 1.0)"],
+      install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
       scripts = ["sepp/scripts/run_sepp.py"],
 
