@@ -49,10 +49,10 @@ def read_sto_alignment(fn, keep_original = False):
         ioA = AlignIO.read(fn, 'stockholm')
         alignment = Alignment()
         for row in ioA:
-          if (keep_original == True):
-            alignment[row.id]=row.seq.data
-          else:
-            alignment[row.id]=row.seq.data.upper().replace(".","-")
+            if (keep_original == True):
+                alignment[row.id]=row.seq.data
+            else:
+                alignment[row.id]=row.seq.data.upper().replace(".","-")
     except Exception as inst:
         print type(inst)   
         print inst.args    

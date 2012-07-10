@@ -124,7 +124,7 @@ class TempFS(object):
             self._directories_created.add(self._top_level_temp_real)
             return self._top_level_temp_real
         finally:
-             self._directories_created_lock.release()
+            self._directories_created_lock.release()
 
 
     def create_temp_subdir(self, parent, prefix='temp'):
@@ -170,7 +170,7 @@ class TempFS(object):
             else:
                 raise ValueError("'%s' is not registered as a temporary directory that was created by this process!" % real_path)
         finally:
-             self._directories_created_lock.release()
+            self._directories_created_lock.release()
         _LOG.debug("Removing temp dir: '%s'" % real_path)
         # Because we raise an exception if real_path is not in _directories_created,
         #   we only get down here if real_path was in self._directories_created
