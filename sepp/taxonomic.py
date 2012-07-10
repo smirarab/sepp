@@ -7,9 +7,9 @@
 """
 
 import math, sys, re, os, tempfile, array
-import dendropy
+from dendropy import Tree
 from satelib.satealignerjob import bisect_tree
-from satelib.tree import *
+from satelib.tree import PhylogeneticTree
 from Bio import SeqIO
 from Bio import AlignIO
 from Bio.Seq import Seq
@@ -18,10 +18,10 @@ from sepp.alignment import Alignment
 from sepp.utilities import read_sto_alignment
 from sepp import get_setup_path
 
-MERGE_JAR_FILE = "%s/lib/merge.jar" %get_setup_path()
+MERGE_JAR_FILE = "%s/lib/merge.jar" % get_setup_path()
 
 def merge_trees(directory, tree, output):    
-    os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output));	
+    os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output));    
 
 def write_newick(tree, out):
     """
@@ -32,7 +32,7 @@ def write_newick(tree, out):
     elif type(tree) is Tree:
         t = tree
     else: 
-        raise "Object type %s not recognized." %str(type(tree))
+        raise "Object type %s not recognized." % str(type(tree))
         
     node = t.seed_node
     write_newick_node(node, out)
@@ -45,7 +45,7 @@ def write_newick_node(node, out):
         for child in child_nodes:
             if child is not f_child:
                 out.write(',')
-            write_newick_node(child,out)
+            write_newick_node(child, out)
         out.write(')')
 
     out.write(node.get_node_str())
@@ -60,7 +60,7 @@ def write_newick_node(node, out):
             except ValueError:
                 s = str(sel)
             if s:
-                out.write(":%s[%s]" % (s ,e.label)) 
+                out.write(":%s[%s]" % (s , e.label)) 
 
 
 def read_membership(membership_file):
@@ -89,10 +89,10 @@ def write_membership(output_stream, local_sets, tree_map):
       output_stream.write("Splits\n")
       for tree_idx in tree_map.keys():
          subset = [i.taxon.label for i in tree_map[tree_idx]._tree.leaf_nodes()]
-         output_stream.write("%s: %s\n" %(str(tree_idx), " ".join(subset)))
+         output_stream.write("%s: %s\n" % (str(tree_idx), " ".join(subset)))
       output_stream.write("Fragment assignments\n")
       for item in local_sets.keys():
-         output_stream.write("%s: %s\n" %(str(item), " ".join(local_sets[item])))
+         output_stream.write("%s: %s\n" % (str(item), " ".join(local_sets[item])))
 
 """
     This function returns the file name, minus the extension.
@@ -103,7 +103,7 @@ def get_filename(file_name):
      if (file_name.rfind(".") != -1):
          end_idx = file_name.rfind(".")
      if (file_name.rfind("/") != -1):    
-         start_idx = file_name.rfind("/")+1
+         start_idx = file_name.rfind("/") + 1
      return file_name[start_idx:end_idx]
 
 
@@ -112,14 +112,14 @@ def get_filename(file_name):
     possible decompositions strategies can used: "centroid" and "longest".  Returns a
     map containing the subtrees, in an ordered fashion.
 """
-def decompose_tree(tree, maxSize = 25, tree_map = {}, strategy = "centroid"):          
+def decompose_tree(tree, maxSize=25, tree_map={}, strategy="centroid"):          
      tree._tree.deroot()
      if (tree.count_leaves() > maxSize):     
           (t1, t2) = bisect_tree(tree, strategy)
           decompose_tree(t1, maxSize, tree_map, strategy)
           decompose_tree(t2, maxSize, tree_map, strategy)
      else:
-          tree_map[len(tree_map)]=tree          
+          tree_map[len(tree_map)] = tree          
      return tree_map
      
 """
@@ -127,7 +127,7 @@ def decompose_tree(tree, maxSize = 25, tree_map = {}, strategy = "centroid"):
     full and fragmentary sequences, a raxml info file.  the output is a json file.
     TODO Fix input arguments
 """
-def run_pplacer(tree="", alignment="", raxml="", output="", tempdir = None, pckg="", version="pplacer", options=""):
+def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="", version="pplacer", options=""):
      ##Get full path to files
     if (tempdir is None):
         temp_directory = tempfile.tempdir         
@@ -160,7 +160,7 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir = None, pckg
     new_temp = tempfile.mkdtemp()
     os.chdir(new_temp)
         
-    print("%s --out-dir %s %s %s %s %s %s" % (version, new_temp ,pckg, tree, raxml, options, full_alignment_path));
+    print("%s --out-dir %s %s %s %s %s %s" % (version, new_temp , pckg, tree, raxml, options, full_alignment_path));
     os.system("%s --out-dir %s %s %s %s %s %s" % (version, new_temp, pckg, tree, raxml, options, full_alignment_path));
     if (os.path.exists("%s.json" % get_filename(alignment))):
         print "%s.json to be moved to %s " % (get_filename(alignment), full_output_path)
@@ -175,7 +175,7 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir = None, pckg
     This function runs papara on a newick tree , fasta reference alignment, fasta fragment file.  The output
     is a fasta file containing reference and fragment alignments
 """
-def run_papara(tree, alignment, fragments, output, tempdir = "/scratch/cluster/namphuon/tmp2/", threads = 2, file_format="fasta"):
+def run_papara(tree, alignment, fragments, output, tempdir="/scratch/cluster/namphuon/tmp2/", threads=2, file_format="fasta"):
     #Get full path to files
     full_tree_path = os.path.abspath(tree)
     full_temp_path = os.path.abspath(tempdir)
@@ -214,7 +214,7 @@ def read_alignment(fn, format="fasta"):
         ioA = AlignIO.read(fn, format)
         alignment = Alignment()
         for row in ioA:
-            alignment[row.id]=row.seq.data.upper()
+            alignment[row.id] = row.seq.data.upper()
     except Exception as inst:
         print type(inst)   
         print inst.args    
@@ -228,7 +228,7 @@ def read_alignment(fn, format="fasta"):
     a dictionary containing the alignment
 """
 def read_fasta(input_file):
-     file =  open(input_file, 'r')
+     file = open(input_file, 'r')
      alignment = {}
      counter = 0;
      name_pattern = re.compile(r">([^\n\r\f]*)")     
@@ -242,7 +242,7 @@ def read_fasta(input_file):
                line = line.strip()
                dna = dna + re.sub("\s+", "", line)
                line = file.readline()
-          alignment[name]=dna
+          alignment[name] = dna
      return alignment
 
 """
@@ -250,7 +250,7 @@ def read_fasta(input_file):
     a dictionary containing the alignment
 """     
 def read_phylip(input_file):         
-     file =  open(input_file, 'r')
+     file = open(input_file, 'r')
      alignment = {}
      counter = 0;
      pattern = re.compile(r"([^\s]*)\s+([^\s]*)")     
@@ -260,7 +260,7 @@ def read_phylip(input_file):
      line = file.readline()
      while (not (line == "" or line is None)):          
           m = pattern.search(line)
-          alignment[m.group(1).strip()]=m.group(2).strip()
+          alignment[m.group(1).strip()] = m.group(2).strip()
           assert len(m.group(2)) == num_sites
           line = file.readline()
      assert len(alignment.keys()) == num_taxa
@@ -281,7 +281,7 @@ def write_phylip(output_file, alignment):
      fid = open(output_file, 'w')
      for (key, value) in alignment.items():
          if (not header):
-            fid.write("%d %d\n" %(len(alignment.items()), len(value)))
+            fid.write("%d %d\n" % (len(alignment.items()), len(value)))
             header = True
          fid.write("%s\t%s\n" % (key, value))
      fid.flush()
@@ -337,7 +337,7 @@ def hmmr_search(input_file, hmmr_file, output_file, elim=None, filters=True):
     is the aligned fragments against the reference alignment, in stockholm format
     input_file is in fasta format, original_file is in stockholm format
 """
-def hmmr_align(input_file, hmmr_file, output_file, original_file = None, trim = None):
+def hmmr_align(input_file, hmmr_file, output_file, original_file=None, trim=None):
      options = ""
      if (original_file is not None):
            options = "--mapali %s" % original_file
@@ -355,7 +355,7 @@ def hmmr_align(input_file, hmmr_file, output_file, original_file = None, trim = 
 """
 def hmmr_profile(input_file, output_file, format="fasta", options=""):
      special = ""
-     if (format=="fasta"):
+     if (format == "fasta"):
            special = "--informat afa"
      os.system("hmmbuild --symfrac 0.0 --dna %s %s %s %s" % (special, options, output_file, input_file))
 
@@ -373,7 +373,7 @@ def temp_filter(item):
          
 def remove_all_gap_columns(alignment):
     w = len(alignment.values()[0])
-    gapcols = set(range(0,w))
+    gapcols = set(range(0, w))
     for line in alignment.values():
         toremove = []
         for p in gapcols:
@@ -381,7 +381,7 @@ def remove_all_gap_columns(alignment):
                 toremove.append(p)
         gapcols = gapcols ^ set(toremove)    
     
-    included = [x for x in range(0,w) if x not in gapcols]
+    included = [x for x in range(0, w) if x not in gapcols]
     
     for s, line in alignment.items():        
         l = [line[i] for i in included]
@@ -402,7 +402,7 @@ def remove_all_gap_columns(alignment):
         hanging files
 """      
 class NammyClass:
-  def __init__(self, tree_map, alignment, fragments, prefix = None, temp_directory = None, logger = None):
+  def __init__(self, tree_map, alignment, fragments, prefix=None, temp_directory=None, logger=None):
      self.tree_map = tree_map
      self.alignment = alignment
      self.fragments = fragments
@@ -424,7 +424,7 @@ class NammyClass:
      self.tempfiles["fragment.alignment"] = (self.prefix + ".fragment.alignment")
           
      #Now keep track of max e-value, and which set gave the max e-value
-     max_evalues = dict([(name,(100000000, -1)) for name in self.fragments.keys()])     
+     max_evalues = dict([(name, (100000000, -1)) for name in self.fragments.keys()])     
      
      #TODO: Very easy to parallelize this step
      #Iterate through all trees to generate profiles
@@ -434,12 +434,12 @@ class NammyClass:
            subset = [i.taxon.label for i in self.tree_map[tree_idx]._tree.leaf_nodes()]
            
            #First generate induced alignment on subset           
-           new_alignment = dict([(name,self.alignment[name]) for name in subset])
-           write_alignment(self.prefix + ".alignment.sto." + str(tree_idx), new_alignment, format = "stockholm")
+           new_alignment = dict([(name, self.alignment[name]) for name in subset])
+           write_alignment(self.prefix + ".alignment.sto." + str(tree_idx), new_alignment, format="stockholm")
            self.tempfiles["alignment.sto." + str(tree_idx)] = self.prefix + ".alignment.sto." + str(tree_idx)
            
            #Profile induced alignmented           
-           hmmr_profile(self.prefix + ".alignment.sto." + str(tree_idx), self.prefix + ".profile." + str(tree_idx), format = "stockholm")
+           hmmr_profile(self.prefix + ".alignment.sto." + str(tree_idx), self.prefix + ".profile." + str(tree_idx), format="stockholm")
            self.tempfiles["profile.%s" % str(tree_idx)] = self.prefix + ".profile." + str(tree_idx)
            
            #Compute e-values of fragments against induced profile
@@ -455,7 +455,7 @@ class NammyClass:
                 max_evalues[key] = (evalues[key][0], tree_idx)
 
      eTimer = os.times()
-     self.logger.write("Time: Find subset membership: %s \n" %  (eTimer[4]-sTimer[4]))
+     self.logger.write("Time: Find subset membership: %s \n" % (eTimer[4] - sTimer[4]))
 
      #print "\n".join([key + ": " + str(max_evalues[key]) for key in max_evalues.keys()])     
      
@@ -469,7 +469,7 @@ class NammyClass:
   #Align the fragments according to the local sets  
   def locally_align(self, local_sets=None, global_align=True):
      initTimer = os.times()
-     if (local_sets==None):
+     if (local_sets == None):
            local_sets = self.find_membership()          
        
      #Write orignal alignment stockholm files
@@ -485,10 +485,10 @@ class NammyClass:
             continue           
            frag_alignment = dict([(frag, self.fragments[frag]) for frag in local_sets[key]])     
            write_alignment(self.prefix + ".fragments.alignment." + str(key), frag_alignment)           
-           self.tempfiles["fragments.alignment." + str(key)]=(self.prefix + ".fragments.alignment." + str(key))
+           self.tempfiles["fragments.alignment." + str(key)] = (self.prefix + ".fragments.alignment." + str(key))
            
-           hmmr_align(self.prefix + ".fragments.alignment." + str(key), self.prefix + ".profile." + str(key), self.prefix + ".fragments.aligned." + str(key), original_file = self.prefix + ".alignment.sto." + str(key), trim=False)
-           self.tempfiles["fragments.aligned." + str(key)]=self.prefix + ".fragments.aligned." + str(key)                      
+           hmmr_align(self.prefix + ".fragments.alignment." + str(key), self.prefix + ".profile." + str(key), self.prefix + ".fragments.aligned." + str(key), original_file=self.prefix + ".alignment.sto." + str(key), trim=False)
+           self.tempfiles["fragments.aligned." + str(key)] = self.prefix + ".fragments.aligned." + str(key)                      
 
      #If we global align, then align fragments that did not match up to any subset against the entire alignment      
      if (global_align and (len(local_sets[-1]) > 0)):
@@ -501,17 +501,17 @@ class NammyClass:
          frag_alignment = dict([(frag, self.fragments[frag]) for frag in local_sets[-1]])
          write_alignment(self.prefix + ".fragments.unmatched", frag_alignment)
          self.tempfiles["fragments.unmatched"] = self.prefix + ".fragments.unmatched"
-         hmmr_align(self.prefix + ".fragments.unmatched", self.prefix + ".profile", self.prefix + ".fragments.unmatched.aligned", original_file = self.prefix + ".original.alignment.stockholm", trim=False)     
+         hmmr_align(self.prefix + ".fragments.unmatched", self.prefix + ".profile", self.prefix + ".fragments.unmatched.aligned", original_file=self.prefix + ".original.alignment.stockholm", trim=False)     
          self.tempfiles["fragments.unmatched.aligned"] = self.prefix + ".fragments.unmatched.aligned"
           
          eTimer = os.times()
-         self.logger.write("Time: Global alignment: %s \n" %  (eTimer[4]-sTimer[4]))
+         self.logger.write("Time: Global alignment: %s \n" % (eTimer[4] - sTimer[4]))
 
      eTimer = os.times()
-     self.logger.write("Time: Total alignment: %s \n" %  (eTimer[4]-initTimer[4]))
+     self.logger.write("Time: Total alignment: %s \n" % (eTimer[4] - initTimer[4]))
      return
 
-  def get_merged_alignments(self, local_sets, global_align = True):
+  def get_merged_alignments(self, local_sets, global_align=True):
      final_alignment = Alignment()     
      final_alignment.set_alignment(self.alignment)
            
@@ -520,7 +520,7 @@ class NammyClass:
            if (len(local_sets[key]) == 0 or key == -1):
             continue
            if (not os.path.isfile(self.prefix + ".fragments.aligned." + str(key))):
-            self.logger.write("ERROR: %s does not exist for merging! \n" %  (self.prefix + ".fragments.aligned." + str(key)))
+            self.logger.write("ERROR: %s does not exist for merging! \n" % (self.prefix + ".fragments.aligned." + str(key)))
            else:
             temp_align = read_sto_alignment(self.prefix + ".fragments.aligned." + str(key))           
             final_alignment.merge_alignment_in(temp_align)
@@ -531,11 +531,11 @@ class NammyClass:
           
      eTimer = os.times()
      remove_all_gap_columns(final_alignment)
-     self.logger.write("Time: Global alignment: %s \n" %  (eTimer[4]-sTimer[4]))
+     self.logger.write("Time: Global alignment: %s \n" % (eTimer[4] - sTimer[4]))
      
      return (final_alignment)
        
-  def subset_align(self, local_sets, super_tree_map, local_to_super_map, output_name = None, ext = "combined.sto"):
+  def subset_align(self, local_sets, super_tree_map, local_to_super_map, output_name=None, ext="combined.sto"):
      #Generate all super tree induced alignments.  These will be merged with the local alignments
      alignment_map = {}
      for tree_idx in super_tree_map.keys():
@@ -554,7 +554,7 @@ class NammyClass:
            if (not os.path.isfile(self.prefix + ".fragments.alignment." + str(key))):
              frag_alignment = dict([(frag, self.fragments[frag]) for frag in local_sets[key]])
              write_alignment(self.prefix + ".fragments.alignment." + str(key), frag_alignment)
-           hmmr_align(self.prefix + ".fragments.alignment." + str(key), self.prefix + ".profile." + str(key), self.prefix + ".fragments.aligned." + str(key), original_file = self.prefix + ".alignment.sto." + str(key), trim=False)
+           hmmr_align(self.prefix + ".fragments.alignment." + str(key), self.prefix + ".profile." + str(key), self.prefix + ".fragments.aligned." + str(key), original_file=self.prefix + ".alignment.sto." + str(key), trim=False)
            temp_align = read_sto_alignment(self.prefix + ".fragments.aligned." + str(key))
            temp_full_length_align = read_sto_alignment(self.prefix + ".alignment.sto." + str(key))
            
@@ -562,7 +562,7 @@ class NammyClass:
            full_length = temp_full_length_align.keys()
            for item in full_length:
             if (not (item in alignment_map[local_to_super_map[key]])):
-             print "%s is not found in tree %s" %(item, str(local_to_super_map[key]))
+             print "%s is not found in tree %s" % (item, str(local_to_super_map[key]))
 
            self.tempfiles["fragments.alignment." + str(key)] = (self.prefix + ".fragments.alignment." + str(key))           
            self.tempfiles["fragments.aligned." + str(key)] = (self.prefix + ".fragments.aligned." + str(key))
@@ -576,13 +576,13 @@ class NammyClass:
           
      for aln_idx in alignment_map.keys():
            remove_all_gap_columns(alignment_map[aln_idx])
-           write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), ext)), alignment_map[aln_idx], 
+           write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), ext)), alignment_map[aln_idx],
             format="stockholm")
            if (output_name is None):
             self.tempfiles[("%s.%s.%s" % (output_name, str(aln_idx), ext))] = ("%s.%s.%s" % (output_name, str(aln_idx)))
 
      eTimer = os.times()
-     self.logger.write("Time: Done subset align and merge: %s \n" %  (eTimer[4]-sTimer[4]))
+     self.logger.write("Time: Done subset align and merge: %s \n" % (eTimer[4] - sTimer[4]))
      
   def clean_files(self):
      for t in self.tempfiles.values():           

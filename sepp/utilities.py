@@ -8,26 +8,19 @@ from sepp import sortByValue
 from Bio import AlignIO
 from sepp.alignment import Alignment
 
-class MyTreeCalc():
-    '''
-    classdocs
-    '''
-
-    def __init__(self):
-        '''
-        Constructor
-        '''
-
-    def branchOut(self,tree,centerTaxon,subsetSize,**kwargs):
-        dist = {}                
-        pdm = treecalc.PatristicDistanceMatrix(tree)
-        for i , s in enumerate(tree.taxon_set): #@UnusedVariable
-            if kwargs.has_key("filterTaxon"):
-                if not kwargs["filterTaxon"](s):
-                    continue;
-            dist [s.label] = pdm(centerTaxon, s);
-        incircle = sortByValue(dist)[0:subsetSize]
-        return [node[0] for node in incircle]       
+'''
+Returns a given number of taxa that are closest to a given leaf
+'''
+def branchOut(self,tree,centerTaxon,subsetSize,**kwargs):
+    dist = {}                
+    pdm = treecalc.PatristicDistanceMatrix(tree)
+    for i , s in enumerate(tree.taxon_set): #@UnusedVariable
+        if kwargs.has_key("filterTaxon"):
+            if not kwargs["filterTaxon"](s):
+                continue;
+        dist [s.label] = pdm(centerTaxon, s);
+    incircle = sortByValue(dist)[0:subsetSize]
+    return [node[0] for node in incircle]       
 
 def convert_fasta_to_stockholm(in_path, out_path):
         in_fmt = 'fasta'
@@ -67,5 +60,3 @@ def read_sto_alignment(fn, keep_original = False):
         raise RuntimeError("Could not read STO alignment")
         
     return alignment
-
-mytreeclac = MyTreeCalc()
