@@ -139,8 +139,8 @@ class Alignment(dict, object):
     datatype = property(get_datatype, set_datatype)
     
     def set_alignment(self, alignment):
-	for name in alignment.keys():
-	    self[name] = alignment[name].upper()
+        for name in alignment.keys():
+          self[name] = alignment[name].upper()
 
     def get_sequence_names(self):
         "returns a list of sequence names"
@@ -229,7 +229,30 @@ class Alignment(dict, object):
             seq = self.get(name)
             seq = seq[:pos] + char + seq[pos:]
             self[name] = seq
-
+    
+    def remove_column(self, pos):
+        for name in self.keys():
+            seq = self.get(name)
+            seq = seq[:pos] + seq[pos+1:]
+            self[name] = seq
+    
+    #Delete all sites that consists of nothing but gaps
+    def delete_all_gap(self):
+        pos = 0
+        name = self.keys()[0]
+        while (pos < len(self[name])):
+          if (self.is_all_gap(pos)):
+            self.remove_column(pos)
+          else:
+            pos = pos + 1
+    
+    #Checks to see if column is all gap column at position x
+    def is_all_gap(self, pos):
+        for name in self.keys():
+            seq = self.get(name)
+            if (seq[pos] != '-'):
+              return False
+        return True
 
     def add_gap_at(self, short_reads, read_i):
         for seq in short_reads.keys():
@@ -245,19 +268,19 @@ class Alignment(dict, object):
             if (not row[0] in self):
                 short_reads[row[0]] = row[1] 
             elif piv_seq is None:
-		if (row[1].replace('-','') == self[row[0]].replace('-','')):	      
-		    piv_name, piv_seq = row
-		    failed = False
-		else:
-		    sys.stderr.write("Sequence %s does not match up, look for another pivot\n" % row[0])		    
-		    
+              if (row[1].replace('-','') == self[row[0]].replace('-','')):           
+                piv_name, piv_seq = row
+                failed = False
+              else:
+                sys.stderr.write("Sequence %s does not match up, look for another pivot\n" % row[0])              
+              
             #else:
-		#if (row[1].replace('-','') !=self[row[0]].replace('-','')):
-		      #sys.stderr.write("ERROR " + str(row[0]) + "\n")
-		      #failed = True
+          #if (row[1].replace('-','') !=self[row[0]].replace('-','')):
+                #sys.stderr.write("ERROR " + str(row[0]) + "\n")
+                #failed = True
         if (failed):
-	      sys.stderr.write("Failed to to find pivot, quitting\n")
-	      exit()
+           sys.stderr.write("Failed to to find pivot, quitting\n")
+           exit()
         #_LOG.debug("Selected pivot is:\n%s" % piv_seq)
         ## The pivot is added to the short reads to enable
         ## easily testing the correctness of results
@@ -270,25 +293,25 @@ class Alignment(dict, object):
             # This case happens if reference alignment has - at the end
             # but pivot lacks them 
             if pivot_i >= len(piv_seq):
-                if ch == '-':		    
-		    #print "Changed 1 %s %s" % (ch, str(len(short_reads[piv_name])))
+              if ch == '-':              
+              #print "Changed 1 %s %s" % (ch, str(len(short_reads[piv_name])))
                     self.add_gap_at(short_reads, read_i)
-                else:
+              else:
                     raise RuntimeError("unalignable:\n%s\n%s" %(new_seq,piv_seq))
             # Pivot and reference are aligned. everything is fine. move on!
             elif (ch == piv_seq[pivot_i]):
-		#print "Aligned %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
+          #print "Aligned %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
                 pivot_i += 1
             # Reference has a gap that pivot lacks. Add a gap to short reads!
-            elif ch == '-':			
-		#print "Changed 2 %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
+            elif ch == '-':               
+          #print "Changed 2 %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
                 self.add_gap_at(short_reads, read_i)
             # Pivot has a gap that reference lacks it. 
             # Add all such gaps to the reference alignment! 
             elif piv_seq[pivot_i] == '-':
                 pc  = piv_seq[pivot_i]
                 while (ch != piv_seq[pivot_i]):
-		    #print "Changed me"
+              #print "Changed me"
                     self.add_column(read_i)
                     pivot_i += 1
                     read_i += 1
@@ -298,10 +321,9 @@ class Alignment(dict, object):
                     raise "error"
             read_i += 1
             #print "(%s %s %s %s)" % (str(new_i), str(ch), str(pivot_i), str(read_i))
-
-	#Take care of last case where adding gaps made short reads longer than original alignment	
-	while (len(short_reads[piv_name]) > len(self[piv_name])):
-	      self.add_column(len(short_reads[piv_name]))
+        #Take care of last case where adding gaps made short reads longer than original alignment     
+        while (len(short_reads[piv_name]) > len(self[piv_name])):
+              self.add_column(len(short_reads[piv_name]))
 
         # Test that pivot is now aligned to reference
         #_LOG.debug("Ref: %s" %self[piv_name])
@@ -311,3 +333,177 @@ class Alignment(dict, object):
         # Add short reads to the reference
         for seq, read in short_reads.items():
             self[seq]=read
+            
+    def merge_alignment_in(self, to_merge_alignment):
+      failed = True    
+        
+      full_sequences = {}
+      induced_sequences = Alignment()
+      short_reads = {}  
+      piv_name = ''
+      piv_seq = ''
+      nogap_piv = ''  
+      
+      #Find full length sequences from original alignment
+      #Select a pivot sequence that contains the most non-gap characters
+      #to speed up merging
+      #NOTE pivot is drawn from the *EXTENDED* alignment!
+      for (name, sequence) in to_merge_alignment.items():
+        #Copy to_merge alignment into short_read in case we need it later
+        short_reads[name]=sequence
+        if (name in self):
+          full_sequences[name]=sequence.replace("-","").upper()
+          induced_sequences[name]=self[name]
+          assert (full_sequences[name] == self[name].replace("-","").upper())
+          
+          #Select longest no-gap pivot
+          if (len(full_sequences[name]) > len(nogap_piv)):
+            nogap_piv = full_sequences[name]
+            piv_name = name
+            piv_seq = sequence
+      
+      #_LOG.debug("Selected pivot is:\n%s" % piv_seq)
+      ## The pivot is added to the short reads to enable
+      ## easily testing the correctness of results  
+      short_reads[piv_name]= piv_seq  
+      new_seq = self[piv_name]
+      
+      pivot_i = 0 #idx of character from original alignment
+      read_i = 0  #current position in to merge in piv sequence
+      
+      #Now iterate through original alignment sequence
+      for new_i, ch in enumerate(new_seq):
+        #No more characters left in pivot, only happen if new_seq contains trailing gaps
+        if (pivot_i >= len(piv_seq) and ch == '-'):
+            not_gap = reduce(lambda x,y: x|y, map(lambda x: x != '-', [self[full][read_i] for full in full_sequences.keys()]))
+            if (not_gap == False):
+              self.add_gap_at(short_reads, read_i)
+              read_i += 1
+            else:
+              raise RuntimeError("Never be here:\n%s\n%s" %(piv_seq,ch))
+        # Pivot and reference are to the correct NT. everything is fine. move on!
+        #NOTE:  Gap characters lining up *DO NOT* mean that it is aligned correctly!  Handle gaps separately          
+        elif (ch == piv_seq[pivot_i] and ch != '-'):
+            #print "Aligned %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
+            pivot_i += 1
+            read_i += 1
+        # Special cases when matching gaps
+        elif ((ch == '-') | (piv_seq[pivot_i] == '-')) :
+            #Check if ch gap is part of all gap column for induced alignment
+            #if so, add it to extended
+            if (induced_sequences.is_all_gap(new_i)):
+              self.add_gap_at(short_reads, read_i)
+              read_i += 1            
+            #Both match gap character, see if a gap needs to be added to original alignment by see if sequences belonging to original full length sequences in short read set have NT at that position (in reality need to only check if all full length sequences are '-' in original to save time
+            elif (piv_seq[pivot_i] == '-'):
+              not_gap = reduce(lambda x,y: x|y, map(lambda x: x != '-', [short_reads[full][read_i] for full in full_sequences.keys()]))            
+              while (not_gap == False):
+                self.add_column(read_i)
+                pivot_i += 1
+                read_i += 1
+                not_gap = reduce(lambda x,y: x|y, map(lambda x: x != '-', [short_reads[full][read_i] for full in full_sequences.keys()]))
+              assert(ch == piv_seq[pivot_i] == short_reads[piv_name][read_i])
+              read_i += 1
+              pivot_i += 1
+            #Passed special cases, gap correctly lines up to gap
+            elif (piv_seq[pivot_i] == ch):
+              read_i += 1
+              pivot_i += 1
+            else:
+              raise RuntimeError("Failed, not sure why:\n%s\n%s" %(piv_seq[pivot_i],ch))
+        #This stuff may never happen, leave commented
+        #elif pivot_i >= len(piv_seq):
+          #if ch == '-':              
+          ##print "Changed 1 %s %s" % (ch, str(len(short_reads[piv_name])))
+                #self.add_gap_at(short_reads, read_i)
+          #else:
+                #raise RuntimeError("unalignable:\n%s\n%s" %(new_seq,piv_seq))
+      #Now take care of case where there's extra gaps added at the end of extended
+      #alignment due to insertions
+      while (len(short_reads[piv_name]) > len(self[piv_name])):
+        self.add_gap_at(self, len(self[piv_name]))
+        
+      for name in full_sequences.keys():
+        if (short_reads[name] != self[name]):
+          print "Failed to merge %s, \nA\n%s\nB\n%s\n" % (name, self[name], short_reads[name]);
+
+      # Add short reads to the reference
+      for seq, read in short_reads.items():
+          self[seq]=read
+      
+
+'''
+    def merge_alignment_in(self, to_merge_alignment):
+        short_reads = {}
+        piv_seq = None
+        failed = True
+        for row in to_merge_alignment.items():
+            if (not row[0] in self):
+                short_reads[row[0]] = row[1] 
+            elif piv_seq is None:
+              if (row[1].replace('-','') == self[row[0]].replace('-','')):           
+                piv_name, piv_seq = row
+                failed = False
+              else:
+                sys.stderr.write("Sequence %s does not match up, look for another pivot\n" % row[0])              
+              
+            #else:
+          #if (row[1].replace('-','') !=self[row[0]].replace('-','')):
+                #sys.stderr.write("ERROR " + str(row[0]) + "\n")
+                #failed = True
+        if (failed):
+           sys.stderr.write("Failed to to find pivot, quitting\n")
+           exit()
+        #_LOG.debug("Selected pivot is:\n%s" % piv_seq)
+        ## The pivot is added to the short reads to enable
+        ## easily testing the correctness of results
+        short_reads[piv_name] = piv_seq
+        new_seq = self[piv_name]                         
+        
+        pivot_i = 0 #Idx of character from original alignment
+        read_i = 0  #current position in to merge in piv sequence
+        for new_i, ch in enumerate(new_seq):
+            # This case happens if reference alignment has - at the end
+            # but pivot lacks them 
+            if pivot_i >= len(piv_seq):
+              if ch == '-':              
+              #print "Changed 1 %s %s" % (ch, str(len(short_reads[piv_name])))
+                    self.add_gap_at(short_reads, read_i)
+              else:
+                    raise RuntimeError("unalignable:\n%s\n%s" %(new_seq,piv_seq))
+            # Pivot and reference are aligned. everything is fine. move on!
+            elif (ch == piv_seq[pivot_i]):
+          #print "Aligned %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
+                pivot_i += 1
+            # Reference has a gap that pivot lacks. Add a gap to short reads!
+            elif ch == '-':               
+          #print "Changed 2 %s %s" % (piv_seq[pivot_i], str(len(short_reads[piv_name])))
+                self.add_gap_at(short_reads, read_i)
+            # Pivot has a gap that reference lacks it. 
+            # Add all such gaps to the reference alignment! 
+            elif piv_seq[pivot_i] == '-':
+                pc  = piv_seq[pivot_i]
+                while (ch != piv_seq[pivot_i]):
+              #print "Changed me"
+                    self.add_column(read_i)
+                    pivot_i += 1
+                    read_i += 1
+                    pc = piv_seq[pivot_i]
+                pivot_i += 1
+            else:
+                    raise "error"
+            read_i += 1
+            #print "(%s %s %s %s)" % (str(new_i), str(ch), str(pivot_i), str(read_i))
+        #Take care of last case where adding gaps made short reads longer than original alignment     
+        while (len(short_reads[piv_name]) > len(self[piv_name])):
+              self.add_column(len(short_reads[piv_name]))
+
+        # Test that pivot is now aligned to reference
+        #_LOG.debug("Ref: %s" %self[piv_name])
+        #_LOG.debug("Piv: %s" %short_reads[piv_name])                    
+        assert self[piv_name] == short_reads[piv_name]
+        
+        # Add short reads to the reference
+        for seq, read in short_reads.items():
+            self[seq]=read
+''' and None            

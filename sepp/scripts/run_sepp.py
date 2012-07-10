@@ -6,7 +6,7 @@
    Author: Nam Nguyen
 """
 
-import sys, copy, os
+import sys, copy, os, math
 import getopt, tempfile
 import ConfigParser
 from optparse import OptionParser, OptionGroup
@@ -354,11 +354,11 @@ def parseOptions (commandLine = None):
                                  "less than the taxon insertion size."])
     group4 = OptionGroup(parser, "Decomposition Options".upper(), group4InfoString)                                 
     
-    group4.add_option("-s", "--alignmentSize", type = "int", 
+    group4.add_option("-A", "--alignmentSize", type = "int", 
                       dest = "size", metavar = "N", 
                       help = "max alignment subset size of N"
                              "[default: %default]")    
-    group4.add_option("-S", "--placementSize", type = "int", 
+    group4.add_option("-P", "--placementSize", type = "int", 
                       dest = "superSize", metavar = "N", 
                       help = "max placement subset size of N"
                              "[default: %default]")    
@@ -382,7 +382,7 @@ def parseOptions (commandLine = None):
     parser.add_option_group(group5)                             
                              
     group6InfoString = ' '.join(["These options control input."])
-    group6 = OptionGroup(parser, "Output Options".upper(), group6InfoString)                                 
+    group6 = OptionGroup(parser, "Input Options".upper(), group6InfoString)                                 
     
     group6.add_option("-c", "--config", 
                       dest = "config_file", metavar = "CONFIG", 
@@ -492,7 +492,7 @@ if __name__ == '__main__':
     #Get taxa sizes, inefficient, can be done differently
     alignment = read_fasta(options.alignment_file);
     total = len(alignment)
-    
+    max_subset = math.log(total, 2)
     options.method = None
     
     
@@ -501,15 +501,17 @@ if __name__ == '__main__':
     if (options.size is None and options.superSize is None):
       options.size = int(total*.10)
       options.superSize = int(total*.10)
-      options.method = "local"            
-    
-    size = options.size
-    superSize = options.superSize
+      options.method = "local"        
+    if (options.superSize is None):
+      options.superSize = total;
+      
+    size = int(options.size)
+    superSize = int(options.superSize)
     #Determine algorithm based on size setting, will recode this since this is silly
     if (options.size > options.superSize):
       print "Alignment size must be smaller than or equal placment size\n"
       exit()
-    elif ((options.size < options.superSize) and (options.superSize >= total)):
+    elif ((options.superSize >= total)):
       options.method = "nammy"
     elif ((options.size < options.superSize)):
       options.method = "combined"
@@ -543,22 +545,30 @@ if __name__ == '__main__':
     strategy = "centroid"
     clean = True
     
-    if (clean):
-	idx = output.rfind("/")
-	outdir = ".";
-	if (idx != -1):
-	    outdir = output[:output.rfind("/")]
-	os.system("rm %s/*merged*json*" % (outdir));  	      			
+    #Getting the output directory
+    idx = output.rfind("/")
+    outdir = "."
+    outfile = output
+    if (idx != -1):
+	outdir = output[:output.rfind("/")]
+	outfile = output[(output.rfind("/")+1):]
 		    
     logger = sys.stderr
     
-    
+    print "Running %s %s %s" % (options.method, options.size, options.superSize)
     #Need to change it from alignment/tree in separate steps back into one, right now a little inefficient
+    #clean the output directory.  This can get very messy, will fix later how files are kept track with later
     if (method == "nammy"):
 	    local_align_global_place_align(tree_file, alignment_file, fragment_file, output, logger, 
 			size=size, strategy=strategy, filters=filters, elim=elim,
 			global_align=global_align, tempdir=tempdir)
 	    global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="alignment.sto")
+	    if (os.path.isfile("%s.meta" % output)):
+		os.remove("%s.meta" % output)
+	    if (options.keep_align == False):
+		if (os.path.isfile("%s.alignment.sto" % output)):
+		    os.remove("%s.alignment.sto" % output)
+	      
     elif (method == "local"):
 	    local_align_local_place_align(tree_file, alignment_file, fragment_file, output, logger, 
 			size=size, strategy=strategy, filters=filters, elim=elim,
@@ -566,10 +576,25 @@ if __name__ == '__main__':
 	    local_align_local_place_tree(tree_file, raxml_file, output, logger, size=size, strategy=strategy, global_align=global_align, merge=merge, clean=clean, pckg=pckg)
     elif (method == "combined"):
 	    local_align_local_place_combined_align(tree_file, alignment_file, fragment_file, output, logger, 
-			size=size, super_size=super_size, strategy=strategy, filters=filters, elim=elim,
+			size=size, super_size=superSize, strategy=strategy, filters=filters, elim=elim,
 			global_align=global_align, tempdir=tempdir)
-	    local_align_local_place_combined_tree(tree_file, raxml_file, output, logger, size=size, super_size=super_size, 
-					  strategy=strategy, global_align=global_align, merge=merge, clean=clean, pckg=pckg)
+	    local_align_local_place_combined_tree(tree_file, raxml_file, output, logger, size=size, super_size=superSize, 
+			strategy=strategy, global_align=global_align, merge=merge, clean=clean, pckg=pckg)
+	    #Now clean files
+	    if (os.path.isfile("%s.meta" % output)):
+		os.remove("%s.meta" % output)
+	    if (os.path.isfile("%s.labeled.tree" % output)):
+		os.remove("%s.labeled.tree" % output)
+		
+	    files = os.listdir(outdir)	    
+	    for f in files:
+		if (re.search(outfile + '\.\d+' + '(\.labeled\.tree|\.merged\.json|\.json)', f) is not None):
+		  os.remove(outdir+"/"+f)
+		elif (re.search(outfile + '\.tree\.' + '\d+', f) is not None):
+		  os.remove(outdir+"/"+f)
+		elif (re.search(outfile + '\.\d+\.combined\.sto', f) is not None and options.keep_align == False):
+		  os.remove(outdir+"/"+f)		  		
+		  
     #elif (method == "papara"):
 	  #if (make_align):		  
 	      #papara_align(tree_file, alignment_file, fragment_file, output, logger, tempdir=tempdir, threads=threads)			      
@@ -578,3 +603,6 @@ if __name__ == '__main__':
     elif (method == "pplacer"):
 	    global_alignment(tree_file, alignment_file, fragment_file, output, logger, tempdir=tempdir)
 	    global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="combined.alignment.sto")
+    
+    
+    

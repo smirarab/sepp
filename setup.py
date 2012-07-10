@@ -19,7 +19,12 @@
 ###########################################################################
 
 #from distutils.core import setup
+from distribute_setup import use_setuptools
+use_setuptools(version="0.6.24")
+
 from setuptools import setup, find_packages
+
+
 
 setup(name = "sepp",
       version = "1.0",
@@ -32,7 +37,7 @@ setup(name = "sepp",
       author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
 
       license="General Public License (GPL)",
-      install_requires = ["dendropy >= 3.4", "biopython >= 1.0"],
+      install_requires = ["dendropy >= 3.4", "numpy >= 1.6","biopython >= 1.58"],
       provides = ["sepp"],
       scripts = ["sepp/scripts/run_sepp.py"],
 

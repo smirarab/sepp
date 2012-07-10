@@ -51,11 +51,14 @@ def convert_stockholm_to_fasta(in_path, out_path):
         assert (in_aligns), '''Alignments at %s not valid''' % (in_path, in_fmt)
         AlignIO.write (in_aligns, out_hndl, out_fmt)
 
-def read_sto_alignment(fn):
+def read_sto_alignment(fn, keep_original = False):
     try:
         ioA = AlignIO.read(fn, 'stockholm')
         alignment = Alignment()
         for row in ioA:
+          if (keep_original == True):
+            alignment[row.id]=row.seq.data
+          else:
             alignment[row.id]=row.seq.data.upper().replace(".","-")
     except Exception as inst:
         print type(inst)   
@@ -63,6 +66,6 @@ def read_sto_alignment(fn):
         print inst
         raise RuntimeError("Could not read STO alignment")
         
-    return alignment        
+    return alignment
 
-mytreeclac = MyTreeCalc()    
+mytreeclac = MyTreeCalc()
