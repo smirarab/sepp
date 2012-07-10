@@ -17,6 +17,7 @@ from Bio.SeqRecord import SeqRecord
 from sepp.alignment import Alignment
 from sepp.utilities import read_sto_alignment
 from sepp import get_setup_path
+import shutil
 
 MERGE_JAR_FILE = "%s/lib/merge.jar" % get_setup_path()
 
@@ -160,12 +161,12 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="
     os.system("%s --out-dir %s %s %s %s %s %s" % (version, new_temp, pckg, tree, raxml, options, full_alignment_path));
     if (os.path.exists("%s.json" % get_filename(alignment))):
         print "%s.json to be moved to %s " % (get_filename(alignment), full_output_path)
-        os.system("mv %s.json %s" % (get_filename(alignment), full_output_path))
+        shutil.move("%s.json" % get_filename(alignment), full_output_path)
     if (os.path.exists("%s.jplace" % get_filename(alignment))):
         print "%s.jplace to be moved to %s " % (get_filename(alignment), full_output_path)
-        os.system("mv %s.jplace %s" % (get_filename(alignment), full_output_path))
+        shutil.move("%s.jplace" % get_filename(alignment), full_output_path)
     os.chdir(current_directory)
-    os.system("rm %s -rf" % (new_temp))
+    shutil.rmtree(new_temp,True)
 
 """
     This function runs papara on a newick tree , fasta reference alignment, fasta fragment file.  The output
@@ -591,7 +592,6 @@ class NammyClass:
             period = ""
         for i in xrange(len(self.tree_map)):
             if (os.path.isfile(self.prefix + (".%s." % alignment_name) + str(i))):          
-                os.system("mv %s %s.%s%s%s" % (self.prefix + (".%s." % alignment_name) + str(i), output, str(i), period, extension))
+                shutil.move(self.prefix + (".%s." % alignment_name) + str(i), "%s.%s%s%s" % (output, str(i), period, extension))
         if (os.path.isfile(self.prefix + ".fragments.unmatched.aligned")):
-            os.system("mv %s %s.unmatched%s%s" % (self.prefix + ".fragments.unmatched.aligned", output, period, extension))
-     
+            shutil.move(self.prefix + ".fragments.unmatched.aligned", "%s.unmatched%s%s" % (output, period, extension))
