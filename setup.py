@@ -1,28 +1,29 @@
 #!/usr/bin/env python
 
 ###########################################################################
-##    Copyright 2010 Rahul Suri and Tandy Warnow.
-##    This file is part of ReUP.
+##    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
+##    This file is part of SEPP.
 ##
-##    ReUP is free software: you can redistribute it and/or modify
+##    SEPP is free software: you can redistribute it and/or modify
 ##    it under the terms of the GNU General Public License as published by
 ##    the Free Software Foundation, either version 3 of the License, or
 ##    (at your option) any later version.
 ##
-##    ReUP is distributed in the hope that it will be useful,
+##    SEPP is distributed in the hope that it will be useful,
 ##    but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ##    GNU General Public License for more details.
 ##
 ##    You should have received a copy of the GNU General Public License
-##    along with ReUP.  If not, see <http://www.gnu.org/licenses/>.
+##    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
 #from distutils.core import setup
-from setuptools import setup, find_packages
-
 from distribute_setup import use_setuptools
 use_setuptools(version="0.6.24")
+
+from setuptools import setup, find_packages
+
 
 
 setup(name = "sepp",
@@ -48,4 +49,3 @@ setup(name = "sepp",
                      "Operating System :: OS Independent",
                      "Programming Language :: Python",
                      "Topic :: Scientific/Engineering :: Bio-Informatics"])
-

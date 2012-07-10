@@ -15,33 +15,32 @@ Instalation:
 -------------------------------
 This section details steps for installing and running SEPP. We ran SEPP on a machine running Linux release 2.6.32-33-server. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
-0. Installing HMMER package.
+1. Installing HMMER package.
 Download the HMMER binaries from the HMMER website. Modify your PATH environment variable to include the directory of the HMMER binaries.
 
-1. Installing pplacer.
+2. Installing pplacer.
 Download the pplacer binary from the pplacer webiste. Modify your PATH environment variable to include the location of the pplacer binary.
 
-2. Installing python packages.
-The software packages listed below are Python source distributions. To use them, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. We used Python version 2.6.
+3. Installing python packages (SEPP and its dependencies).
+SEPP is distributed as Python source code. To use SEPP, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. We used Python version 2.6.
 
-To uncompress and inflate each distribution file, run "tar -xzf <package>.tar.gz". To install each package, run "python setup.py install" from inside the uncompressed package directory; this step requires root access to the system. 
+3.1. Uncompress the distribution file: tar -xzf sepp.<version>.tar.gz
+3.2. Go to distribution directory: cd sepp
+3.3. Install: run "python setup.py install" 
 
-If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
+This last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
-More instructions on installing Python packages can be found on this Python page.
+SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail. In such cases, you can manually download and install those packages. SEPP dependencies and a suggested download address are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
+ 
+Dependencies:
+1- DendroPy 3 package.
+http://pypi.python.org/pypi/DendroPy/3.11.0
 
-3. Install the DendroPy 3 package.
-DendroPy-3.9.0.tar.gz
+2- NumPy package.
+http://pypi.python.org/pypi/numpy/1.6.2
 
-4. Install the NumPy package.
-numpy-1.6.1.tar.gz
-
-5. Install the Biopython package.
-biopython-1.58.tar.gz
-
-6. Install the SEPP package.
-sepp-1.0.tar.gz
-
+3- Biopython package.
+http://pypi.python.org/pypi/biopython/1.60
 
 
 Running SEPP
@@ -67,5 +66,7 @@ The output of SEPP is a .json file, created according to pplacer format. Please 
 Data
 
 
-SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen).
+Bugs and Errors
+---------------------------------------------
+SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
 
