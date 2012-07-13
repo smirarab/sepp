@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -176,14 +177,21 @@ public class PPlacerJSONMerger {
 	}
 
 	public static void main(String[] args) {
+		boolean sorted = false;
+
 		if (args.length < 3) {
 			System.out
-					.println("Usage: merge.jar <json files directory> <base tree file> <output>\n" +
+					.println("Usage: merge.jar <json files directory> <base tree file> <output> [-s]\n" +
 							"\t\t<json files directory>: the directory with all pplacer results (.json files)\n" +
 							"\t\t<base tree file>: The base tree file\n" +
-							"\t\t<output>: output json file name");
+							"\t\t<output>: output json file name\n" +
+							"\t\t-s: (optional) sort the fragments by name.");
 
 			System.exit(1);
+		}
+		
+		if ( (args.length ==4) && (args[3].equals("-s")) ) {
+			sorted = true;
 		}
 		File[] files = (File[]) null;
 		String mainTree = "";
@@ -268,6 +276,19 @@ public class PPlacerJSONMerger {
 			}
 		}		
 		try {
+			if (sorted) {
+			    TreeSet<JSONObject> sortedPlacements = new TreeSet<JSONObject>(new Comparator<JSONObject>() {
+					@Override
+					public int compare(JSONObject o1, JSONObject o2) {					
+						String name1 = o1.optString("n") + o1.optString("nm");
+						String name2 = o2.optString("n") + o2.optString("nm");
+						return name1.compareTo(name2);
+					}
+				});
+			    sortedPlacements.addAll(resultsPlacements);
+			    resultsPlacements = new JSONArray();
+			    resultsPlacements.addAll(sortedPlacements);
+			}
 			resultsJson.put("placements", resultsPlacements);
 			resultsJson.put("metadata", JSONObject.fromObject("{\"invocation\":" +
 					"\"SEPP-generated json file.\"}"));

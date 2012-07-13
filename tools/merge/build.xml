@@ -16,7 +16,24 @@
   <!-- The base directory for all libraries (jar) files -->  
   <property name="lib.home" value="lib" />  
   
-  <target name="jar" description="Create jar and MANIFEST.MF">  
+  <target name="clean">
+        <delete dir="${build.home}/classes"/>
+  </target>
+
+  <path id="classpath">
+       <fileset dir="lib">
+        <include name="*.jar"/>
+      </fileset>
+  </path>
+
+  <target name="compile">
+        <mkdir dir="${build.home}/classes"/>
+        <javac srcdir="src" destdir="${build.home}/classes">
+	        <classpath refid="classpath"/>
+        </javac>
+  </target>
+
+  <target name="jar" description="Create jar and MANIFEST.MF" depends="clean,compile">  
   
     <pathconvert property="libs.project" pathsep=" ">  
       <mapper>  
@@ -32,7 +49,7 @@
         <!-- lib.home contains all jar files,   
                                         in several subdirectories -->  
         <fileset dir="${lib.home}">  
-          <include name="**/*.jar" />  
+          <include name="*.jar" />  
         </fileset>  
       </path>  
   
