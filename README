@@ -22,7 +22,10 @@ Download the HMMER binaries from the HMMER website. Modify your PATH environment
 Download the pplacer binary from the pplacer webiste. Modify your PATH environment variable to include the location of the pplacer binary.
 
 3. Installing python packages (SEPP and its dependencies).
-SEPP is distributed as Python source code. To use SEPP, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. We used Python version 2.6.
+SEPP is distributed as Python source code. To use SEPP, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. Python version 2.6 or higher is required.
+NOTE: on Linux machines you also need to have python-dev (or python-devel for Fedora) installed befor you can install many ptyhon packages, including those that we use. 
+
+Once you have pyton installed, do the following. 
 
 3.1. Uncompress the distribution file: tar -xzf sepp.<version>.tar.gz
 3.2. Go to distribution directory: cd sepp
@@ -30,7 +33,7 @@ SEPP is distributed as Python source code. To use SEPP, you must first have Pyth
 
 This last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
-SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail. In such cases, you can manually download and install those packages. SEPP dependencies and a suggested download address are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
+SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail (usually because python-dev is not installed). In such cases, you can manually download and install those packages. SEPP dependencies and a suggested download address are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
  
 Dependencies:
 1- DendroPy 3 package.
