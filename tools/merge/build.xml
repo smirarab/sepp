@@ -34,27 +34,7 @@
   </target>
 
   <target name="jar" description="Create jar and MANIFEST.MF" depends="clean,compile">  
-  
-    <pathconvert property="libs.project" pathsep=" ">  
-      <mapper>  
-        <chainedmapper>  
-          <!-- remove absolute path -->  
-          <flattenmapper />  
-  
-          <!-- add lib/ prefix -->  
-          <globmapper from="*" to="lib/*" />  
-        </chainedmapper>  
-      </mapper>  
-      <path>  
-        <!-- lib.home contains all jar files,   
-                                        in several subdirectories -->  
-        <fileset dir="${lib.home}">  
-          <include name="*.jar" />  
-        </fileset>  
-      </path>  
-  
-    </pathconvert>  
-  
+
     <!-- create the jar -->  
     <jar jarfile="${deploy.home}/${jar.name}" basedir="${build.home}/classes">  
   
@@ -63,8 +43,11 @@
         <attribute name="Main-Class" value="${main.class}" />  
   
         <!-- Finally, use the generated libs path -->  
-        <attribute name="Class-Path" value="${libs.project}" />  
+        <attribute name="Class-Path" value="lib/*.jar" />  
       </manifest>  
+      
+      <zipgroupfileset dir="lib" includes="*.jar" />
+      <!--<fileset dir="lib" includes="*.jar"/>  -->
   
     </jar>  
   </target>  
