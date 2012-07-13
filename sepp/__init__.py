@@ -1,3 +1,21 @@
+###########################################################################
+##    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
+##    This file is part of SEPP.
+##
+##    SEPP is free software: you can redistribute it and/or modify
+##    it under the terms of the GNU General Public License as published by
+##    the Free Software Foundation, either version 3 of the License, or
+##    (at your option) any later version.
+##
+##    SEPP is distributed in the hope that it will be useful,
+##    but WITHOUT ANY WARRANTY; without even the implied warranty of
+##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##    GNU General Public License for more details.
+##
+##    You should have received a copy of the GNU General Public License
+##    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
 from operator import itemgetter    
 import logging
 import os
@@ -10,8 +28,11 @@ def sortByValue(d,reverse=False):
 
 _LOGGING_LEVEL_ENVAR = "SATE_LOGGING_LEVEL"
 _LOGGING_FORMAT_ENVAR = "SATE_LOGGING_FORMAT"
-
+_DEBUG = True
 _INSTALL_PATH = __path__[0]
+
+def is_temp_kept():
+    return not _DEBUG
 
 def get_setup_path():
     return _INSTALL_PATH

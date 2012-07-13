@@ -6,7 +6,7 @@
    Author: Nam Nguyen
 """
 
-import math, sys, re, os, tempfile, array
+import sys, re, os, tempfile, array
 from dendropy import Tree
 from satelib.satealignerjob import bisect_tree
 from satelib.tree import PhylogeneticTree
@@ -18,11 +18,14 @@ from sepp.alignment import Alignment
 from sepp.utilities import read_sto_alignment
 from sepp import get_setup_path
 import shutil
+from sepp.filemgr import remove_temp
 
-MERGE_JAR_FILE = "%s/lib/merge.jar" % get_setup_path()
+LIB_PATH = os.path.join(get_setup_path(), "lib")
+MERGE_JAR_FILE = os.path.join(LIB_PATH, "merge.jar")
 
 def merge_trees(directory, tree, output):    
-    os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output));    
+    print ("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output))
+    os.system("java -jar %s %s %s %s" % (MERGE_JAR_FILE, directory, tree, output))    
 
 def write_newick(tree, out):
     """
@@ -124,15 +127,17 @@ def decompose_tree(tree, maxSize=25, tree_map={}, strategy="centroid"):
     full and fragmentary sequences, a raxml info file.  the output is a json file.
     TODO Fix input arguments
 """
-def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="", version="pplacer", options=""):
+def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tempdir=None, pckg="", version="pplacer", options=""):
+
+    executalbe = version #os.path.join(LIB_PATH,version)
     ##Get full path to files
     if (tempdir is None):
         temp_directory = tempfile.tempdir         
         
     full_tree_path = os.path.abspath(tree)
-    full_temp_path = os.path.abspath(temp_directory)
     full_raxml_path = os.path.abspath(raxml)
-    full_alignment_path = os.path.abspath(alignment)                         
+    full_alignment_path = os.path.abspath(alignment)
+    full_ref_alignment_path = os.path.abspath(ref_alignment)                          
 
     full_output_path = os.path.abspath(output)        
 
@@ -147,6 +152,8 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="
         raxml = "-s %s" % full_raxml_path
     elif (raxml is None):
         raxml = ""         
+    if (ref_alignment != ""):
+        ref_alignment = "-r %s" % full_ref_alignment_path
     if (pckg is None):
         pckg = ""
     elif (pckg != ""):
@@ -157,8 +164,8 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="
     new_temp = tempfile.mkdtemp()
     os.chdir(new_temp)
         
-    print("%s --out-dir %s %s %s %s %s %s" % (version, new_temp , pckg, tree, raxml, options, full_alignment_path));
-    os.system("%s --out-dir %s %s %s %s %s %s" % (version, new_temp, pckg, tree, raxml, options, full_alignment_path));
+    print("%s --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp , pckg, tree, raxml, ref_alignment, options, full_alignment_path));
+    os.system("%s --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp, pckg, tree, raxml, ref_alignment, options, full_alignment_path));
     if (os.path.exists("%s.json" % get_filename(alignment))):
         print "%s.json to be moved to %s " % (get_filename(alignment), full_output_path)
         shutil.move("%s.json" % get_filename(alignment), full_output_path)
@@ -166,45 +173,8 @@ def run_pplacer(tree="", alignment="", raxml="", output="", tempdir=None, pckg="
         print "%s.jplace to be moved to %s " % (get_filename(alignment), full_output_path)
         shutil.move("%s.jplace" % get_filename(alignment), full_output_path)
     os.chdir(current_directory)
-    shutil.rmtree(new_temp,True)
+    remove_temp(new_temp)
 
-"""
-    This function runs papara on a newick tree , fasta reference alignment, fasta fragment file.  The output
-    is a fasta file containing reference and fragment alignments
-"""
-def run_papara(tree, alignment, fragments, output, tempdir="/scratch/cluster/namphuon/tmp2/", threads=2, file_format="fasta"):
-    #Get full path to files
-    full_tree_path = os.path.abspath(tree)
-    full_temp_path = os.path.abspath(tempdir)
-    full_fragment_path = os.path.abspath(fragments)        
-        
-    #Read alignment file
-    alignment = read_fasta(alignment);
-
-    #Change to temporary directory to make sure no name collision crash occurs
-    current_directory = os.getcwd()
-    tempfile.tempdir = tempdir
-    f = tempfile.NamedTemporaryFile()
-    os.chdir(tempdir)
-    prefix = f.name
-    name = get_filename(prefix)
-      
-    #Convert the fasta file to phylip format, run the ruby script to get it to work on papara
-    #write_alignment("%s.phylip" % name, alignment, format="phylip")
-    write_phylip("%s.phylip" % name, alignment)        
-    os.system("ruby /projects/sate3/namphuon/bin/phy_deleaf.rb < %s.phylip > %s.phylip.fixed" % (name, name))
-              
-    #Run papara
-    os.system("papapara -m GTRGAMMA -f X -n %s -t %s -s %s.phylip.fixed -X %s -T %d" % (name, full_tree_path, name, full_fragment_path, threads));
-        
-    #Read phylip output
-    alignment = read_phylip("RAxML_palign.%s" % (name));          
-    
-    #Convert phylip back to whatever format, move files
-    os.chdir(current_directory)
-    write_alignment("%s" % output, alignment, format=file_format)
-    os.system("rm %s.phylip %s.phylip.fixed %s/RAxML_palign.%s %s/RAxML_palignCand.%s" % (prefix, prefix, full_temp_path, name, full_temp_path, name))
-    os.system("mv %s/RAxML_info.%s %s.RAXML_info" % (full_temp_path, name, output))
 
 def read_alignment(fn, format="fasta"):
     try:
@@ -319,14 +289,15 @@ def hmmr_read_search(hmmr_file):
     input_file in fasta format    
 """
 def hmmr_search(input_file, hmmr_file, output_file, elim=None, filters=True):
+    executalbe = "hmmsearch" # os.path.join(LIB_PATH,"hmmsearch")
     elim_str = ""    
     filter_string = ""
     if (elim is not None):
         elim_str = "-E %s" % str(elim)        
     if (not filters):
         filter_string = "--max"
-    print "hmmsearch %s --noali %s -o %s %s %s" % (filter_string, elim_str, output_file, hmmr_file, input_file)
-    os.system("hmmsearch %s --noali %s -o %s %s %s" % (filter_string, elim_str, output_file, hmmr_file, input_file));
+    print "%s %s --noali %s -o %s %s %s" % (executalbe, filter_string, elim_str, output_file, hmmr_file, input_file)
+    os.system("%s %s --noali %s -o %s %s %s" % (executalbe, filter_string, elim_str, output_file, hmmr_file, input_file));
     
 """
     This function aligns fragments against an alignment.  input_file is the fragment file in
@@ -335,13 +306,14 @@ def hmmr_search(input_file, hmmr_file, output_file, elim=None, filters=True):
     input_file is in fasta format, original_file is in stockholm format
 """
 def hmmr_align(input_file, hmmr_file, output_file, original_file=None, trim=None):
+    executalbe = "hmmalign" #os.path.join(LIB_PATH,"hmmalign")
     options = ""
     if (original_file is not None):
         options = "--mapali %s" % original_file
     if (trim):
         options = options + " --trim";
-    print("hmmalign %s -o %s %s %s" % (options, output_file, hmmr_file, input_file));
-    os.system("hmmalign %s -o %s %s %s" % (options, output_file, hmmr_file, input_file));
+    print("%s %s -o %s %s %s" % (executalbe, options, output_file, hmmr_file, input_file));
+    os.system("%s %s -o %s %s %s" % (executalbe, options, output_file, hmmr_file, input_file));
     
 """
     This function generates hmmr profile for an alignment
@@ -351,10 +323,11 @@ def hmmr_align(input_file, hmmr_file, output_file, original_file=None, trim=None
     Or $format = "--informat afa";
 """
 def hmmr_profile(input_file, output_file, format="fasta", options=""):
+    executable =  "hmmbuild" # os.path.join(LIB_PATH,"hmmbuild")
     special = ""
     if (format == "fasta"):
         special = "--informat afa"
-    os.system("hmmbuild --symfrac 0.0 --dna %s %s %s %s" % (special, options, output_file, input_file))
+    os.system("%s --symfrac 0.0 --dna %s %s %s %s" % (executable, special, options, output_file, input_file))
 
 
 """
@@ -539,8 +512,9 @@ class NammyClass:
             subset = [i.taxon.label for i in super_tree_map[tree_idx]._tree.leaf_nodes()]
             a = Alignment()
             a.set_alignment(dict([(s, self.alignment[s]) for s in subset]))
-            alignment_map[tree_idx] = a           
-                         
+            alignment_map[tree_idx] = a
+
+        
       
         #First generate fragment alignment against profile/induced alignment of tree set
         #Align to just the induced alignment, merge into the global set
@@ -575,6 +549,8 @@ class NammyClass:
             remove_all_gap_columns(alignment_map[aln_idx])
             write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), ext)), alignment_map[aln_idx],
                format="stockholm")
+            write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), "ref.fasta")), alignment_map[aln_idx],
+               format="fasta")            
             if (output_name is None):
                 self.tempfiles[("%s.%s.%s" % (output_name, str(aln_idx), ext))] = ("%s.%s.%s" % (output_name, str(aln_idx)))
     
@@ -584,7 +560,7 @@ class NammyClass:
     def clean_files(self):
         for t in self.tempfiles.values():           
             if (os.path.isfile(t)):
-                os.remove(t)
+                remove_temp(t)
             
     def move_alignments(self, output, extension=None, alignment_name="fragments.aligned"):
         period = "."

@@ -18,19 +18,46 @@
 ##    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
 
+import os, platform, sys
+
 #from distutils.core import setup
 from distribute_setup import use_setuptools
+import shutil
 use_setuptools(version="0.6.24")
 
 from setuptools import setup, find_packages
 
+def get_tools_dir():    
+    platform_name = platform.system()
+    path = os.path.join(os.getcwd(),"tools","bundled",platform_name)
+    if not os.path.exists(path):
+        raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
+    return path
 
+def get_tool_name(tool):
+    is_64bits = sys.maxsize > 2**32
+    if platform.system() == "Darwin":
+        return tool
+    return "%s-%s" %(tool,"64" if is_64bits else "32")
 
+def copy_tool_to_lib(tool):    
+    shutil.copy2(os.path.join(get_tools_dir(),get_tool_name(tool)), 
+                os.path.join(os.getcwd(),"sepp","lib",tool))
+
+copy_tool_to_lib("pplacer")
+copy_tool_to_lib("hmmalign")
+copy_tool_to_lib("hmmsearch")
+copy_tool_to_lib("hmmbuild")
+#TODO: should we compile and build merge.jar?
+shutil.copy2(os.path.join(os.getcwd(),"tools","merge","merge.jar"),
+             os.path.join(os.getcwd(),"sepp","lib","merge.jar"))
+
+print find_packages()
 setup(name = "sepp",
       version = "1.0",
       description = "SATe enabled phylogenetic placement.",
       packages = find_packages(),
-      package_data = {'sepp' : ["*.py", "lib/merge.jar"] },
+      package_data = { "sepp" : ["lib/merge.jar"]},
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
@@ -39,7 +66,9 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4", "biopython >= 1.58"],
       provides = ["sepp"],
-      scripts = ["sepp/scripts/run_sepp.py"],
+      scripts = ["sepp/scripts/run_sepp.py" ,"sepp/lib/hmmalign",
+                 "sepp/lib/hmmbuild", "sepp/lib/hmmsearch", 
+                 "sepp/lib/pplacer"],
 
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",

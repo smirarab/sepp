@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<project name="merge" default="jar">  
+  
+  <!-- Name of the output .jar file -->  
+  <property name="jar.name" value="merge.jar" />  
+  
+  <!-- Base directory for distribution target -->  
+  <property name="deploy.home" value="." />  
+  
+  <!-- Base directory for compilation targets -->  
+  <property name="build.home" value="src" />  
+  
+  <!-- Main class -->  
+  <property name="main.class" value="phylolab.taxonamic.PPlacerJSONMerger" />  
+   
+  <!-- The base directory for all libraries (jar) files -->  
+  <property name="lib.home" value="lib" />  
+  
+  <target name="jar" description="Create jar and MANIFEST.MF">  
+  
+    <pathconvert property="libs.project" pathsep=" ">  
+      <mapper>  
+        <chainedmapper>  
+          <!-- remove absolute path -->  
+          <flattenmapper />  
+  
+          <!-- add lib/ prefix -->  
+          <globmapper from="*" to="lib/*" />  
+        </chainedmapper>  
+      </mapper>  
+      <path>  
+        <!-- lib.home contains all jar files,   
+                                        in several subdirectories -->  
+        <fileset dir="${lib.home}">  
+          <include name="**/*.jar" />  
+        </fileset>  
+      </path>  
+  
+    </pathconvert>  
+  
+    <!-- create the jar -->  
+    <jar jarfile="${deploy.home}/${jar.name}" basedir="${build.home}/classes">  
+  
+      <manifest>  
+        <attribute name="Built-By" value="${user.name}" />  
+        <attribute name="Main-Class" value="${main.class}" />  
+  
+        <!-- Finally, use the generated libs path -->  
+        <attribute name="Class-Path" value="${libs.project}" />  
+      </manifest>  
+  
+    </jar>  
+  </target>  
+  
+</project>  
