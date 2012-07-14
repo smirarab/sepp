@@ -193,7 +193,7 @@ def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,
     logger.write("Time: Total time: %s \n" %  (eTimer[4]-initTime[4]))
 
 def local_align_local_place_align(tree_file, alignment_file, fragment_file, output, logger,
-                 tempdir=None, merge_tem_dir = None, 
+                  merge_tem_dir = None,tempdir=None, 
                  size=100, strategy="centroid", filters=True, elim=0.01,
                  global_align=True):
                    
@@ -258,7 +258,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         e.label = en
         en += 1
     
-    labeled_tree_path = os.path.join(merge_temp, output + ".labeled.tree", "w")
+    labeled_tree_path = os.path.join(merge_temp, output + ".labeled.tree")
     handle = open(labeled_tree_path)
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
     write_newick(tree._tree, handle)
@@ -291,7 +291,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
     
     if (merge):
         sTimer = os.times() 
-        merge_trees(merge_temp, os.path.join(merge_temp,labeled_tree_path), "%s.json" % output)            
+        merge_trees(merge_temp, labeled_tree_path, "%s.json" % output)            
         eTimer = os.times()
         logger.write("Time: Total merge: %s \n" %  (eTimer[4]-sTimer[4]))
     logger.write("Time: Total tree: %s \n" %  (eTimer[4]-initTime[4]))
@@ -335,7 +335,7 @@ def local_align_global_place_align(tree_file, alignment_file, fragment_file, out
     logger.write("Time: Total local align: %s \n" %  (eTimer[4]-initTime[4]))
 
     write_alignment("%s.alignment.sto" % output, final_alignment, "stockholm")
-    write_alignment("%s.ref.sto" % output, final_alignment, "fasta")
+    write_alignment("%s.ref.fasta" % output, final_alignment, "fasta")
     nammy.clean_files()
     logger.flush()
     
@@ -542,6 +542,7 @@ def run_with_arguments():
     pckg = options.package
 
     tempdir = options.tempdir
+    print tempdir
     #Hard coded filter e cutoff so that all fragments are scored
     elim = "99999999"
     #Filters are off by default
