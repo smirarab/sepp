@@ -1,2 +1,4 @@
 *.pyc
+sepp/lib/hmm*
+sepp/lib/ppla*
 .pydevproject
