@@ -155,8 +155,7 @@ def local_align_local_place_combined_align(tree_file, alignment_file, fragment_f
 def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,merge_temp, 
                 size=100, super_size=1000, strategy="centroid", global_align=True, merge=True, clean=False,
                  pckg=""):
-    print "AT: "+ os.getcwd()
-    
+
     initTime = os.times()
     tree = PhylogeneticTree(dendropy.Tree(stream=open(tree_file), schema="newick"))
     en = 0
@@ -183,7 +182,6 @@ def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,
     eTimer = os.times()    
     
     logger.write("Time: Total Pplacer: %s \n" %  (eTimer[4]-sTimer[4]))
-    print "AT: " + os.getcwd()
         
     if (merge):
         sTimer = os.times()        
