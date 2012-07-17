@@ -13,13 +13,13 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATé-enabled phylogenetic placement
 
 Instalation:
 -------------------------------------
-This section details steps for installing and running SEPP. We have rus SEPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
+This section details steps for installing and running SEPP. We have run SEPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
 Requirements: Before installing the software you need to make sure the following programs are installed on your machine.
 
 1. Python: Version > 2.6. 
-  1.1 Linux: on many linux distributions, it seems you need to have python-dev (or python-devel for Fedora) installed before you can install many commonly-used ptyhon packages, including those biopython and numpy that are used by SEPP.
-  1.2 On some releases of MAC, you might need Xcode and command line tools installed on your machine (see common problems section for more info).
+  1.1 Linux: on many linux distributions, it seems you need to have python-dev (or python-devel for Fedora) installed before you can install many commonly-used ptyhon packages, including biopython and numpy that are used by SEPP.
+  1.2 On some releases of MAC, you might need Xcode and its command line tools component installed on your machine (see common problems section for more info).
 2. Java: Version > 1.5
 
 
