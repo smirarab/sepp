@@ -12,28 +12,34 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATé-enabled phylogenetic placement
 
 
 Instalation:
--------------------------------
-This section details steps for installing and running SEPP. We ran SEPP on a machine running Linux release 2.6.32-33-server. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
+-------------------------------------
+This section details steps for installing and running SEPP. We have rus SEPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
-1. Installing HMMER package.
-Download the HMMER binaries from the HMMER website. Modify your PATH environment variable to include the directory of the HMMER binaries.
+Requirements: Before installing the software you need to make sure the following programs are installed on your machine.
 
-2. Installing pplacer.
-Download the pplacer binary from the pplacer webiste. Modify your PATH environment variable to include the location of the pplacer binary.
+1. Python: Version > 2.6. 
+  1.1 Linux: on many linux distributions, it seems you need to have python-dev (or python-devel for Fedora) installed before you can install many commonly-used ptyhon packages, including those biopython and numpy that are used by SEPP.
+  1.2 On some releases of MAC, you might need Xcode and command line tools installed on your machine (see common problems section for more info).
+2. Java: Version > 1.5
 
-3. Installing python packages (SEPP and its dependencies).
-SEPP is distributed as Python source code. To use SEPP, you must first have Python installed on your system; for details on obtaining and installing Python, please visit the Python home page. Python version 2.6 or higher is required.
-NOTE: on Linux machines you also need to have python-dev (or python-devel for Fedora) installed befor you can install many ptyhon packages, including those that we use. 
 
-Once you have pyton installed, do the following. 
+SEPP is distributed as Python source code. Once you have the above requirements installed, do the following. 
 
+3.0 Obtain the latest sepp distribution from git repository 
 3.1. Uncompress the distribution file: tar -xzf sepp.<version>.tar.gz
 3.2. Go to distribution directory: cd sepp
-3.3. Install: run "python setup.py install" 
+3.3. Install: run "sudo python setup.py install" 
 
-This last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
+Common Problems:
+-- The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
-SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail (usually because python-dev is not installed). In such cases, you can manually download and install those packages. SEPP dependencies and a suggested download address are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
+-- SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail. The following errors are commonly observed. 
+
+---- Linux: Python.h cannot be found. This error is usually because python-dev is not installed. Try installing python-dev (for Debian)  or python-devel (for Fedora), and try again.   
+
+---- Mac: "unable to execute llvm-gcc-4.2: No such file or directory". Refer to: http://stackoverflow.com/q/9398142. In short, you need to install Xcode, and the download "Command line Tools". For a lighter alternative you can try this solution too: http://waqasshabbir.tumblr.com/post/19073648382/llvm-gcc-4-2-exe-error-on-mac-osx-lion-when-building
+
+---- In general, when installation of dependencies (bippython, numpy, or dendropy) fail, you can manually download and install those packages. Suggested download links for these dependencies are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
  
 Dependencies:
 1- DendroPy 3 package.
@@ -44,6 +50,7 @@ http://pypi.python.org/pypi/numpy/1.6.2
 
 3- Biopython package.
 http://pypi.python.org/pypi/biopython/1.60
+
 
 
 Running SEPP
