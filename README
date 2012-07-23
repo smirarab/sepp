@@ -81,7 +81,7 @@ The main output of SEPP is a .json file, created according to pplacer format. Pl
 
 In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
-By setting SEPP_DEBUG enviromental variable to "True", you can instruct SEPP to leave behind temp files. 
+By setting SEPP_DEBUG environmental variable to "True", you can instruct SEPP to leave behind temp files. 
 
 ---------------------------------------------
 Bugs and Errors
