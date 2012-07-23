@@ -41,7 +41,7 @@ def open_with_intermediates(filepath, mode):
     return open(filepath, mode)
 
 def remove_temp(path):
-    if is_temp_kept():
+    if not is_temp_kept():
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:

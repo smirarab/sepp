@@ -26,13 +26,13 @@ def sortByValue(d,reverse=False):
     return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
 
 
-_LOGGING_LEVEL_ENVAR = "SATE_LOGGING_LEVEL"
-_LOGGING_FORMAT_ENVAR = "SATE_LOGGING_FORMAT"
-_DEBUG = True
+_LOGGING_LEVEL_ENVAR = "SEPP_LOGGING_LEVEL"
+_LOGGING_FORMAT_ENVAR = "SEPP_LOGGING_FORMAT"
+_DEBUG = False
 _INSTALL_PATH = __path__[0]
 
 def is_temp_kept():
-    return not _DEBUG
+    return _DEBUG
 
 def get_setup_path():
     return _INSTALL_PATH

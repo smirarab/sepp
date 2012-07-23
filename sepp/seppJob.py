@@ -257,7 +257,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         en += 1
     
     labeled_tree_path = os.path.join(merge_temp, output + ".labeled.tree")
-    handle = open(labeled_tree_path)
+    handle = open(labeled_tree_path,"w")
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
     write_newick(tree._tree, handle)
     handle.write(";\n")    
@@ -276,6 +276,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         tree_handle.close()
                   
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)),
+                    "%s.%s.ref.fasta" % (output, str(tree_idx)),
             raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
 
     
