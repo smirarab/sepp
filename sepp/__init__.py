@@ -26,9 +26,9 @@ def sortByValue(d,reverse=False):
     return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
 
 
-_LOGGING_LEVEL_ENVAR = "SEPP_LOGGING_LEVEL"
-_LOGGING_FORMAT_ENVAR = "SEPP_LOGGING_FORMAT"
-_DEBUG = False
+_DEBUG = os.environ.has_key("SEPP_DEBUG") and os.environ["SEPP_DEBUG"].lower() == "true"
+#print "Debug mode is %s." %("on" if _DEBUG else "off")
+
 _INSTALL_PATH = __path__[0]
 
 def is_temp_kept():
