@@ -549,7 +549,7 @@ class NammyClass:
             remove_all_gap_columns(alignment_map[aln_idx])
             write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), ext)), alignment_map[aln_idx],
                format="stockholm")
-            write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), "ref.fasta")), alignment_map[aln_idx],
+            write_alignment(("%s.%s.%s" % (output_name, str(aln_idx), "aligned.fasta")), alignment_map[aln_idx],
                format="fasta")            
             if (output_name is None):
                 self.tempfiles[("%s.%s.%s" % (output_name, str(aln_idx), ext))] = ("%s.%s.%s" % (output_name, str(aln_idx)))
@@ -570,8 +570,8 @@ class NammyClass:
             if (os.path.isfile(self.prefix + (".%s." % alignment_name) + str(i))):          
                 shutil.move(self.prefix + (".%s." % alignment_name) + str(i), "%s.%s%s%s" % (output, str(i), period, extension))
                 a = read_alignment( "%s.%s%s%s" % (output, str(i), period, extension), "stockholm" )
-                write_alignment( "%s.%s%s%s" % (output, str(i), period, "ref.fasta"), a)
+                write_alignment( "%s.%s%s%s" % (output, str(i), period, "aligned.fasta"), a)
         if (os.path.isfile(self.prefix + ".fragments.unmatched.aligned")):
             shutil.move(self.prefix + ".fragments.unmatched.aligned", "%s.unmatched%s%s" % (output, period, extension))
             a = read_alignment ("%s.unmatched%s%s" % (output, period, extension), "stockholm")
-            write_alignment( "%s.unmatched%s%s" % (output, period, "ref.fasta"), a)
+            write_alignment( "%s.unmatched%s%s" % (output, period, "aligned.fasta"), a)

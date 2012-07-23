@@ -67,7 +67,7 @@ def global_alignment(tree_file, alignment_file, fragment_file, output, logger, t
     sTimer = os.times()
     hmmr_align(fragment_file, prefix + ".full.profile", 
            "%s.combined.alignment.sto" % output, original_file = prefix + ".original.alignment.stockholm", trim=True)
-    write_alignment("%s.ref.fasta" % output, alignment, "fasta")               
+    write_alignment("%s.aligned.fasta" % output, alignment, "fasta")               
     tempfiles.append(prefix + ".original.alignment.stockholm")    
     eTimer = os.times()
     logger.write("Time: Global alignment: %s \n" %  (eTimer[4]-sTimer[4]))
@@ -175,7 +175,7 @@ def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,
         tree_handle.close()
 
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)), 
-                    "%s.%s.ref.fasta" % (output, str(tree_idx)),
+                    "%s.%s.aligned.fasta" % (output, str(tree_idx)),
             raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
 
 
@@ -278,14 +278,14 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         temp_files.append("%s.tree.%s" % (output, str(tree_idx)))
         temp_files.append("%s.%s.combined.sto" % (output, str(tree_idx)))
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)),
-                    "%s.%s.ref.fasta" % (output, str(tree_idx)),
+                    "%s.%s.aligned.fasta" % (output, str(tree_idx)),
             raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
 
     
     if (global_align and os.path.isfile("%s.unmatched.combined.sto" % output)):
         print "Run Pplacer globally on all remaining fragmnets"
-        run_pplacer(tree_file, "%s.unmatched.ref.fasta" % output,
-                    "%s.unmatched.ref.fasta" % output,
+        run_pplacer(tree_file, "%s.unmatched.aligned.fasta" % output,
+                    "%s.unmatched.aligned.fasta" % output,
                      raxml_file, os.path.join(merge_temp,"%s.json.unmatched" % (output)), pckg=pckg)
     eTimer = os.times()
     logger.write("Time: Total Pplacer: %s \n" %  (eTimer[4]-sTimer[4]))
@@ -339,7 +339,7 @@ def local_align_global_place_align(tree_file, alignment_file, fragment_file, out
     logger.write("Time: Total local align: %s \n" %  (eTimer[4]-initTime[4]))
 
     write_alignment("%s.alignment.sto" % output, final_alignment, "stockholm")
-    write_alignment("%s.ref.fasta" % output, final_alignment, "fasta")
+    write_alignment("%s.aligned.fasta" % output, final_alignment, "fasta")
     nammy.clean_files()
     logger.flush()
     
@@ -578,7 +578,7 @@ def run_with_arguments():
         local_align_global_place_align(tree_file, alignment_file, fragment_file, output, logger, 
             size=size, strategy=strategy, filters=filters, elim=elim,
             global_align=global_align, tempdir=tempdir)
-        global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="alignment.sto", ref_suffix="ref.fasta")
+        global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="alignment.sto", ref_suffix="aligned.fasta")
         if (os.path.isfile("%s.meta" % output)):
             remove_temp("%s.meta" % output)
         if (options.keep_align == False):
@@ -593,6 +593,9 @@ def run_with_arguments():
         local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_temp,
             size=size, strategy=strategy, global_align=global_align, merge=merge, 
             clean=clean, pckg=pckg)
+        if (os.path.isfile("%s.meta" % output)):
+            remove_temp("%s.meta" % output)
+
     elif (method == "combined"):
         merge_temp = tempfile.mkdtemp()
         local_align_local_place_combined_align(tree_file, alignment_file, fragment_file, output, logger, merge_temp,
@@ -622,5 +625,5 @@ def run_with_arguments():
             #global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="combined.alignment.sto")          
     elif (method == "pplacer"):
         global_alignment(tree_file, alignment_file, fragment_file, output, logger, tempdir=tempdir)
-        global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="combined.alignment.sto", ref_suffix="ref.fasta")
+        global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="combined.alignment.sto", ref_suffix="aligned.fasta")
     
