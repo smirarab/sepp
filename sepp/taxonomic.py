@@ -459,8 +459,6 @@ class NammyClass:
             
             hmmr_align(self.prefix + ".fragments.alignment." + str(key), self.prefix + ".profile." + str(key), self.prefix + ".fragments.aligned." + str(key), original_file=self.prefix + ".alignment.sto." + str(key), trim=False)
             self.tempfiles["fragments.aligned." + str(key)] = self.prefix + ".fragments.aligned." + str(key)                      
-            write_alignment(self.prefix + "." + str(key) + ".ref.fasta" , frag_alignment)           
-            self.tempfiles[str(key) + ".ref.fasta"] = (self.prefix + str(key) + ".ref.fasta")
     
         #If we global align, then align fragments that did not match up to any subset against the entire alignment      
         if (global_align and (len(local_sets[-1]) > 0)):
@@ -572,6 +570,8 @@ class NammyClass:
             if (os.path.isfile(self.prefix + (".%s." % alignment_name) + str(i))):          
                 shutil.move(self.prefix + (".%s." % alignment_name) + str(i), "%s.%s%s%s" % (output, str(i), period, extension))
                 a = read_alignment( "%s.%s%s%s" % (output, str(i), period, extension), "stockholm" )
-                write_alignment( "%s.%s%s%s" % (output, str(i), period, "ref.fasta"), a) 
+                write_alignment( "%s.%s%s%s" % (output, str(i), period, "ref.fasta"), a)
         if (os.path.isfile(self.prefix + ".fragments.unmatched.aligned")):
             shutil.move(self.prefix + ".fragments.unmatched.aligned", "%s.unmatched%s%s" % (output, period, extension))
+            a = read_alignment ("%s.unmatched%s%s" % (output, period, extension), "stockholm")
+            write_alignment( "%s.unmatched%s%s" % (output, period, "ref.fasta"), a)

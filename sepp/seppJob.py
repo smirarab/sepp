@@ -1,4 +1,4 @@
-###########################################################################
+##########################################################################, a#
 ##    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
 ##    This file is part of SEPP.
 ##
@@ -252,6 +252,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
     initTime = os.times()
     tree = PhylogeneticTree(dendropy.Tree(stream=open(tree_file), schema="newick"))
     en = 0
+    temp_files = []
     for e in tree._tree.postorder_edge_iter():
         e.label = en
         en += 1
@@ -274,7 +275,8 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         tree_handle = open("%s.tree.%s" % (output, str(tree_idx)), "w")
         tree_handle.write(tree_map[tree_idx].compose_newick() + ";")
         tree_handle.close()
-                  
+        temp_files.append("%s.tree.%s" % (output, str(tree_idx)))
+        temp_files.append("%s.%s.combined.sto" % (output, str(tree_idx)))
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)),
                     "%s.%s.ref.fasta" % (output, str(tree_idx)),
             raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
@@ -293,8 +295,11 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         merge_trees(merge_temp, labeled_tree_path, "%s.json" % output)            
         eTimer = os.times()
         logger.write("Time: Total merge: %s \n" %  (eTimer[4]-sTimer[4]))
+    
+    for x in temp_files:
+        remove_temp(x)
     logger.write("Time: Total tree: %s \n" %  (eTimer[4]-initTime[4]))
-  
+
 def local_align_global_place_align(tree_file, alignment_file, fragment_file, output, logger, 
                  size=100, strategy="centroid", filters=True, elim=0.01,
                  global_align=True, tempdir=""):
