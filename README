@@ -72,9 +72,9 @@ and to run using a configuration file, run
 
 WARNING: Don't use same output name within the same output folder, things will get over-written.  
 
-The output of SEPP is a .json file, created according to pplacer format. Please refer to here for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
-Data
+The main output of SEPP is a .json file, created according to pplacer format. Please refer to here for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
 
+In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
 Bugs and Errors
 ---------------------------------------------

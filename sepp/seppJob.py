@@ -365,7 +365,7 @@ def parseOptions (commandLine = None):
     parser.set_defaults(size = None,
                         superSize = None,
                         output = "output",
-                        keep_align = False,
+                        #keep_align = False,
                         tempdir = tempfile.tempdir)    
 
     group4InfoString = ' '.join(["These options determine the alignment decomposition size and", 
@@ -395,11 +395,11 @@ def parseOptions (commandLine = None):
                       dest = "output", metavar = "OUTPUT", 
                       help = "output with prefix OUTPUT"
                              "[default: %default]")    
-    group5.add_option("-k", "--keep_align", 
-                      dest = "keep_align", 
-                      help = "Flag to keep alignment files"                      
-                             "[default: %default]")
-    parser.add_option_group(group5)                             
+    #group5.add_option("-k", "--keep_align", 
+    #                  dest = "keep_align", 
+    #                  help = "Flag to keep alignment files"                      
+    #                         "[default: %default]")
+    #parser.add_option_group(group5)                             
                              
     group6InfoString = ' '.join(["These options control input."])
     group6 = OptionGroup(parser, "Input Options".upper(), group6InfoString)                                 
@@ -581,7 +581,7 @@ def run_with_arguments():
         global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="alignment.sto", ref_suffix="aligned.fasta")
         if (os.path.isfile("%s.meta" % output)):
             remove_temp("%s.meta" % output)
-        if (options.keep_align == False):
+        if (True):# options.keep_align == False):
             if (os.path.isfile("%s.alignment.sto" % output)):
                 remove_temp("%s.alignment.sto" % output)
           
@@ -615,7 +615,7 @@ def run_with_arguments():
                 remove_temp(outdir+"/"+f)
             elif (re.search(outfile + '\.tree\.' + '\d+', f) is not None):
                 remove_temp(outdir+"/"+f)
-            elif (re.search(outfile + '\.\d+\.combined\.sto', f) is not None and options.keep_align == False):
+            elif (re.search(outfile + '\.\d+\.combined\.sto', f) is not None and True): # options.keep_align == False):
                 remove_temp(outdir+"/"+f)                  
           
     #elif (method == "papara"):
