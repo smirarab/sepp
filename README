@@ -1,3 +1,7 @@
+------------------------------------
+Summary
+------------------------------------
+
 SEPP is SATé-enabled phylogenetic placement, and so is a method for the following problem:
 
 Input: tree T and alignment A for a set of full-length gene sequences, and set X of fragmentary sequences for the same gene
@@ -8,29 +12,34 @@ SEPP operates by using a divide-and-conquer strategy to improve the alignment pr
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
 Publication:
-S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATé-enabled phylogenetic placement, To appear, PSB 2012. (PDF).
+S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATé-enabled phylogenetic placement, PSB 2012. Pages: 247-58 (http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
 
 
-Instalation:
+-------------------------------------
+Installation
 -------------------------------------
 This section details steps for installing and running SEPP. We have run SEPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
-Requirements: Before installing the software you need to make sure the following programs are installed on your machine.
+Requirements:
+-------------------
+Before installing the software you need to make sure the following programs are installed on your machine.
 
 1. Python: Version > 2.6. 
   1.1 Linux: on many linux distributions, it seems you need to have python-dev (or python-devel for Fedora) installed before you can install many commonly-used ptyhon packages, including biopython and numpy that are used by SEPP.
   1.2 On some releases of MAC, you might need Xcode and its command line tools component installed on your machine (see common problems section for more info).
 2. Java: Version > 1.5
 
-
+Installation Steps:
+-------------------
 SEPP is distributed as Python source code. Once you have the above requirements installed, do the following. 
 
-1. Obtain the latest sepp distribution from git repository 
+1. Obtain the latest SEPP distribution from git repository 
 2. Uncompress the distribution file: tar -xzf sepp.<version>.tar.gz
 3. Go to distribution directory: cd sepp
 4. Install: run "sudo python setup.py install" 
 
 Common Problems:
+-------------------
 1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: "python setup.py install --prefix=/some/path/on/your/system", where "/some/path/on/your/system" is the path to a directory on your system to which you do have read and write access. If you use the "--prefix" option, you must ensure that the "lib/python2.x/site-packages" subdirectory (where "x" denotes the minor version number of your Python install) of the directory you specify following "--prefix=" is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
 2. SEPP relies on a few external python libraries. The setup.py script tries to download and install all those dependencies. We have observed that in some platforms, automatic installation of those required packages can fail. The following errors are commonly observed. 
@@ -39,22 +48,24 @@ Common Problems:
 
    2.2 Mac: "unable to execute llvm-gcc-4.2: No such file or directory". Refer to: http://stackoverflow.com/q/9398142. In short, you need to install Xcode, and the download "Command line Tools". For a lighter alternative you can try this solution too: http://waqasshabbir.tumblr.com/post/19073648382/llvm-gcc-4-2-exe-error-on-mac-osx-lion-when-building
 
-   2.3 In general, when installation of dependencies (bippython, numpy, or dendropy) fail, you can manually download and install those packages. Suggested download links for these dependencies are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
+   2.3 In general, when installation of dependencies (biopython, jumpy, or dendropy) fail, you can manually download and install those packages. Suggested download links for these dependencies are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
        Python Dependencies:
        DendroPy 3 package: http://pypi.python.org/pypi/DendroPy/3.11.0
        NumPy package: http://pypi.python.org/pypi/numpy/1.6.2
        Biopython package: http://pypi.python.org/pypi/biopython/1.60
 
-3. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with sepp. If for some reason the packaged version of HMMER and pplacer do not run on your environment, you need to download and build those programs for your system (see below for links), and point sepp to them. To point sepp to your installations, you need to make a link to them inside sepp/lib/ directory before running setup.py.
-   HMMER: http://matsen.fhcrc.org/pplacer/
-   pplacer:http://hmmer.janelia.org/
+3. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run on your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them. To point SEPP to your installations, you need to make a link to them inside sepp/lib/ directory before running setup.py.
+   pplacer: http://matsen.fhcrc.org/pplacer/
+   hmmer://hmmer.janelia.org/
 
+
+---------------------------------------------
 Running SEPP
 ---------------------------------------------
-To run SEPP, invoke the "run_sepp.py" script from the "bin" subdirectory of the location in which you installed the Python packages. To see options for running the script, using the command 
+To run SEPP, invoke the "run_sepp.py" script from the "bin" sub-directory of the location in which you installed the Python packages. To see options for running the script, using the command 
 "python <bin>/run_sepp.py -h"
 
-The general command for running sepp is:
+The general command for running SEPP is:
 
 "python <bin>/run_sepp.py -t <tree_file> -a <alignment_file> -f <fragment_file> -r <raxml_info_file> -A <alignment_set_size> -P <placement_set_size> "
 
@@ -72,6 +83,8 @@ The main output of SEPP is a .json file, created according to pplacer format. Pl
 
 In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
+
+---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
 SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
