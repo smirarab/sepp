@@ -1,0 +1,69 @@
+
+
+This is RAxML version 7.2.8 released by Alexandros Stamatakis in October 2010.
+
+With greatly appreciated code contributions by:
+Andre Aberer (TUM)
+Simon Berger (TUM)
+John Cazes (TACC)
+Michael Ott (TUM)
+Nick Pattengale (UNM)
+Wayne Pfeiffer (SDSC)
+Akifumi S. Tanabe (Univ. Tsukuba)
+
+
+Alignment has 1601 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 21.23%
+
+RAxML rapid hill-climbing mode
+
+Using 1 distinct models/data partitions with joint branch length optimization
+
+
+Executing 1 inferences on the original alignment using 1 user-specifed trees
+
+All free model parameters will be estimated by RAxML
+ML estimate of 25 per site rate categories
+
+Likelihood of final tree will be evaluated and optimized under GAMMA
+
+GAMMA Model parameters will be estimated up to an accuracy of 0.1000000000 Log Likelihood units
+
+Partition: 0
+Alignment Patterns: 1601
+Name: No Name Provided
+DataType: DNA
+Substitution Matrix: GTR
+
+
+
+
+RAxML was called as follows:
+
+/projects/sate3/namphuon/bin/raxmlHPC -m GTRCAT -n tree -s temp.phylip -g /projects/sate5/metagen//data/genes/pyrg/pyrg.taxonomy 
+
+
+Inference[0]: Time 64.678567 CAT-based likelihood -61656.864644, best rearrangement setting 10
+alpha[0]: 1.000000 rates[0] ac ag at cg ct gt: 1.829294 3.722672 1.581134 1.915262 5.116302 1.000000 
+
+
+Conducting final model optimizations on all 1 trees under GAMMA-based models ....
+
+Testing which likelihood implementation to use
+Standard Implementation full tree traversal time: 0.158725
+Subtree Equality Vectors for gap columns full tree traversal time: 0.163439
+... using standard implementation
+
+Inference[0] final GAMMA-based Likelihood: -64640.366646 tree written to file /scratch/cluster/namphuon/tmp/temp330625/RAxML_result.tree
+
+
+Starting final GAMMA-based thorough Optimization on tree 0 likelihood -64640.366646 .... 
+
+Final GAMMA-based Score of best tree -64639.113741
+
+Program execution info written to /scratch/cluster/namphuon/tmp/temp330625/RAxML_info.tree
+Best-scoring ML tree written to: /scratch/cluster/namphuon/tmp/temp330625/RAxML_bestTree.tree
+
+Overall execution time: 128.361458 secs or 0.035656 hours or 0.001486 days
+
