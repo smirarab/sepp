@@ -202,13 +202,13 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
     alignment = read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
-    logger.write("Alignment keys:\n %s\n" %alignment.keys())   
+    #logger.write("Alignment keys:\n %s\n" %alignment.keys())   
 
     sTimer = os.times()
     fragments = read_fasta(fragment_file);
     eTimer = os.times()
     logger.write("Time: Reading fragments: %s \n" %  (eTimer[4]-sTimer[4]))
-    logger.write("Fragment keys:\n %s\n" %fragments.keys())   
+    #logger.write("Fragment keys:\n %s\n" %fragments.keys())   
                 
     sTimer = os.times()
     tree = PhylogeneticTree(dendropy.Tree(stream=open(tree_file), schema="newick", preserve_underscores=True))
@@ -216,7 +216,7 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
     for e in tree._tree.postorder_edge_iter():
         e.label = en
         en += 1
-    logger.write("Tree :\n %s\n" %[x.taxon.label for x in tree._tree.leaf_nodes()])   
+    #logger.write("Tree :\n %s\n" %[x.taxon.label for x in tree._tree.leaf_nodes()])   
     
     handle = open(os.path.join(merge_tem_dir,output + ".labeled.tree"), "w")
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
