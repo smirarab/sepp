@@ -52,7 +52,7 @@ def global_alignment(tree_file, alignment_file, fragment_file, output, logger, t
     alignment = read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
-    print alignment.keys()
+    #print alignment.keys()
     
     sTimer = os.times()
     fragments = read_fasta(fragment_file);
@@ -79,6 +79,8 @@ def global_alignment(tree_file, alignment_file, fragment_file, output, logger, t
 def local_align_local_place_combined_align(tree_file, alignment_file, fragment_file, output, logger, merge_tem_dir,
                  size=100, super_size=1000, strategy="centroid", filters=True, elim=0.01,
                  global_align=True, tempdir="/scratch/cluster/namphuon/test2/"):
+    prefix = os.path.basename(output)
+
     initTime = os.times()
     sTimer = os.times()
     alignment = read_fasta(alignment_file);
@@ -98,7 +100,7 @@ def local_align_local_place_combined_align(tree_file, alignment_file, fragment_f
         e.label = en
         en += 1
 
-    handle = open(os.path.join(merge_tem_dir,output + ".labeled.tree"), "w")
+    handle = open(os.path.join(merge_tem_dir,prefix + ".labeled.tree"), "w")
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
     write_newick(tree._tree, handle)
     handle.write(";\n")    
@@ -113,7 +115,7 @@ def local_align_local_place_combined_align(tree_file, alignment_file, fragment_f
     super_tree_map = (decompose_tree(tree, super_size, {}, strategy=strategy))
     
     for key in super_tree_map.keys(): 
-        handle = open(os.path.join(merge_tem_dir,output + "." + str(key) + ".labeled.tree"), "w")
+        handle = open(os.path.join(merge_tem_dir,prefix + "." + str(key) + ".labeled.tree"), "w")
         write_newick(super_tree_map[key]._tree, handle)
         handle.write(";\n")
         handle.close()
@@ -157,7 +159,8 @@ def local_align_local_place_combined_align(tree_file, alignment_file, fragment_f
 def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,merge_temp, 
                 size=100, super_size=1000, strategy="centroid", global_align=True, merge=True, clean=False,
                  pckg=""):
-
+    
+    prefix = os.path.basename(output)
     initTime = os.times()
     tree = PhylogeneticTree(dendropy.Tree(stream=open(tree_file), schema="newick", preserve_underscores=True))
     en = 0
@@ -178,7 +181,7 @@ def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,
 
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)), 
                     "%s.%s.aligned.fasta" % (output, str(tree_idx)),
-            raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
+            raxml_file, os.path.join(merge_temp,"%s.%s.json" % (prefix, str(tree_idx))), pckg=pckg)
 
 
     eTimer = os.times()    
@@ -187,7 +190,7 @@ def local_align_local_place_combined_tree(tree_file, raxml_file, output, logger,
         
     if (merge):
         sTimer = os.times()        
-        merge_trees(merge_temp, os.path.join(merge_temp,output + ".labeled.tree"), "%s.json" % output)
+        merge_trees(merge_temp, os.path.join(merge_temp,prefix + ".labeled.tree"), "%s.json" % output)
         eTimer = os.times()
         logger.write("Time: Total merge: %s \n" %  (eTimer[4]-sTimer[4]))
     logger.write("Time: Total time: %s \n" %  (eTimer[4]-initTime[4]))
@@ -197,6 +200,8 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
                  size=100, strategy="centroid", filters=True, elim=0.01,
                  global_align=True):
                    
+    prefix = os.path.basename(output)
+    
     initTime = os.times()
     sTimer = os.times()
     alignment = read_fasta(alignment_file);
@@ -218,7 +223,7 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
         en += 1
     #logger.write("Tree :\n %s\n" %[x.taxon.label for x in tree._tree.leaf_nodes()])   
     
-    handle = open(os.path.join(merge_tem_dir,output + ".labeled.tree"), "w")
+    handle = open(os.path.join(merge_tem_dir,prefix + ".labeled.tree"), "w")
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
     write_newick(tree._tree, handle)
     handle.write(";\n")    
@@ -230,7 +235,7 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
     tree_map = (decompose_tree(tree, size, {}, strategy=strategy))
     
     for key in tree_map.keys(): 
-        handle = open(os.path.join(merge_tem_dir,output + "." + str(key) + ".labeled.tree"), "w")
+        handle = open(os.path.join(merge_tem_dir,prefix + "." + str(key) + ".labeled.tree"), "w")
         write_newick(tree_map[key]._tree, handle)
         handle.write(";\n")
         handle.close()    
@@ -254,6 +259,7 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
 def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_temp, 
                  size=100, strategy="centroid", global_align=True, 
                  merge=True, clean=False, pckg=""):
+    prefix = os.path.basename(output)
     initTime = os.times()
     tree = PhylogeneticTree(dendropy.Tree(stream=open(tree_file), schema="newick", preserve_underscores=True))
     en = 0
@@ -262,7 +268,7 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         e.label = en
         en += 1
     
-    labeled_tree_path = os.path.join(merge_temp, output + ".labeled.tree")
+    labeled_tree_path = os.path.join(merge_temp, prefix + ".labeled.tree")
     handle = open(labeled_tree_path,"w")
     #print tree._tree.as_ascii_plot(show_internal_node_labels=True)
     write_newick(tree._tree, handle)
@@ -284,14 +290,14 @@ def local_align_local_place_tree(tree_file, raxml_file, output, logger, merge_te
         temp_files.append("%s.%s.combined.sto" % (output, str(tree_idx)))
         run_pplacer("%s.tree.%s" % (output, str(tree_idx)), "%s.%s.combined.sto" % (output, str(tree_idx)),
                     "%s.%s.aligned.fasta" % (output, str(tree_idx)),
-            raxml_file, os.path.join(merge_temp,"%s.%s.json" % (output, str(tree_idx))), pckg=pckg)
+            raxml_file, os.path.join(merge_temp,"%s.%s.json" % (prefix, str(tree_idx))), pckg=pckg)
 
     
     if (global_align and os.path.isfile("%s.unmatched.combined.sto" % output)):
         print "Run Pplacer globally on all remaining fragmnets"
         run_pplacer(tree_file, "%s.unmatched.aligned.fasta" % output,
                     "%s.unmatched.aligned.fasta" % output,
-                     raxml_file, os.path.join(merge_temp,"%s.json.unmatched" % (output)), pckg=pckg)
+                     raxml_file, os.path.join(merge_temp,"%s.json.unmatched" % (prefix)), pckg=pckg)
     eTimer = os.times()
     logger.write("Time: Total Pplacer: %s \n" %  (eTimer[4]-sTimer[4]))
     
@@ -582,9 +588,10 @@ def run_with_arguments():
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     else:
-        files = os.listdir(outdir)        
+        files = os.listdir(outdir)
+        #print files 
         for f in files:
-            if (re.search(outfile + '.*', f) is not None):
+            if (re.search('^' + outfile + '.*', f) is not None):
                 print >>sys.stderr, "Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (outdir,outfile)
                 exit(1)
     
