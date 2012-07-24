@@ -56,7 +56,7 @@ Common Problems:
 
 3. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run on your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them. To point SEPP to your installations, you need to make a link to them inside sepp/lib/ directory before running setup.py.
    pplacer: http://matsen.fhcrc.org/pplacer/
-   hmmer://hmmer.janelia.org/
+   hmmer:http//hmmer.janelia.org/
 
 
 ---------------------------------------------
@@ -77,11 +77,18 @@ and to run using a configuration file, run
 
 "python <bin>/run_sepp.py -c sample.config"
 
+Input:
+---------------
+To run SEPP, you need to have 1) a newick backbone tree estimated using RAxML, 2) a fasta backbone alignment, 3) a RAxML info file generated when backbone tree is estimated, 4) a file with fragments.
+To get backbone alignment, we suggest using SATe (http://phylo.bio.ku.edu/software/sate/sate.html). For getting the ML tree, we currently support only RAxML (in future versions FastTree will be supported too).  
+
+Output:
+--------------
 The main output of SEPP is a .json file, created according to pplacer format. Please refer to here for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset.
 
-In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+By setting SEPP_DEBUG environmental variable to "True", you can instruct SEPP to leave behind temp files as well. 
 
-By setting SEPP_DEBUG environmental variable to "True", you can instruct SEPP to leave behind temp files. 
 
 ---------------------------------------------
 Bugs and Errors

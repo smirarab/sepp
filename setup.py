@@ -44,6 +44,7 @@ def copy_tool_to_lib(tool):
     shutil.copy2(os.path.join(get_tools_dir(),get_tool_name(tool)), 
                 os.path.join(os.getcwd(),"sepp","lib",tool))
 
+copy_tool_to_lib("guppy")
 copy_tool_to_lib("pplacer")
 copy_tool_to_lib("hmmalign")
 copy_tool_to_lib("hmmsearch")
@@ -68,7 +69,7 @@ setup(name = "sepp",
       provides = ["sepp"],
       scripts = ["sepp/scripts/run_sepp.py" ,"sepp/lib/hmmalign",
                  "sepp/lib/hmmbuild", "sepp/lib/hmmsearch", 
-                 "sepp/lib/pplacer"],
+                 "sepp/lib/pplacer","sepp/lib/guppy"],
 
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",
