@@ -203,7 +203,7 @@ def read_alignment(fn, format="fasta"):
         print type(inst)   
         print inst.args    
         print inst
-        raise RuntimeError("Could not read %s alignment" % format)
+        raise RuntimeError("Could not read %s alignment:\n %s" % (format,inst))
         
     return alignment  
 

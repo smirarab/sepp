@@ -51,7 +51,7 @@ public class PPlacerJSONMerger {
 
 	public PPlacerJSONMerger() {
 		this.edgeNumPattern = Pattern.compile(".*[\\[\\{]([0-9]*)[\\]\\}]");
-		this.seqNamePattern = Pattern.compile("([^:]*)(:.*)*");
+		this.seqNamePattern = Pattern.compile("'*([^:']*)'*(:.*)*");
 	}
 
 	public HashMap<String, String> readTree(String tree) {
@@ -80,6 +80,7 @@ public class PPlacerJSONMerger {
 				}
 				String seqId = this.seqNamePattern.matcher(token).replaceAll(
 						"$1");
+                                //System.out.println(seqId);
 				if (this.stack.size() > 0) {
 					this.stack.getLast().add(seqId);
 				}
@@ -203,7 +204,8 @@ public class PPlacerJSONMerger {
 					new FileInputStream(baseFn)));
 			mainTree = in.readLine();
 			in.close();
-
+			mainTree = mainTree.replaceAll("'","");
+			//System.out.println(mainTree);
 			Matcher matcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
 					.matcher(mainTree);
 
