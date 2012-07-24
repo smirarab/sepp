@@ -44,6 +44,9 @@ def copy_tool_to_lib(tool):
     shutil.copy2(os.path.join(get_tools_dir(),get_tool_name(tool)), 
                 os.path.join(os.getcwd(),"sepp","lib",tool))
 
+if not os.path.exists(os.path.join(os.getcwd(),"sepp","lib")):
+    os.mkdir(os.path.join(os.getcwd(),"sepp","lib"))
+
 copy_tool_to_lib("guppy")
 copy_tool_to_lib("pplacer")
 copy_tool_to_lib("hmmalign")
