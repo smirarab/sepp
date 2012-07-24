@@ -181,8 +181,8 @@ def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tem
     new_temp = tempfile.mkdtemp()
     os.chdir(new_temp)
         
-    print("%s --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp , pckg, tree, raxml, ref_alignment, options, full_alignment_path));
-    os.system("%s --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp, pckg, tree, raxml, ref_alignment, options, full_alignment_path));
+    print("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp , pckg, tree, raxml, ref_alignment, options, full_alignment_path));
+    os.system("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp, pckg, tree, raxml, ref_alignment, options, full_alignment_path));
     if (os.path.exists("%s.json" % get_filename(alignment))):
         print "%s.json to be moved to %s " % (get_filename(alignment), full_output_path)
         shutil.move("%s.json" % get_filename(alignment), full_output_path)
