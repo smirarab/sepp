@@ -64,7 +64,7 @@ Common Problems:
 ---------------------------------------------
 Running SEPP
 ---------------------------------------------
-To run SEPP, invoke the "run_sepp.py" script from the "bin" sub-directory of the location in which you installed the Python packages. To see options for running the script, using the command:
+To run SEPP, invoke the "run_sepp.py" script from the "bin" sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
 
 "python <bin>/run_sepp.py -h"
 
