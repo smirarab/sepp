@@ -58,7 +58,7 @@ shutil.copy2(os.path.join(os.getcwd(),"tools","merge","merge.jar"),
 
 print find_packages()
 setup(name = "sepp",
-      version = "1.0",
+      version = "1.1",
       description = "SATe enabled phylogenetic placement.",
       packages = find_packages(),
       package_data = { "sepp" : ["lib/merge.jar"]},
