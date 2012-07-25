@@ -8,7 +8,7 @@ Input: tree T and alignment A for a set of full-length gene sequences, and set X
 
 Output: placement of each fragment in X into the tree T, and alignment of each fragment in X to the alignment A.
 
-SEPP operates by using a divide-and-conquer strategy to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen). Our study shows that SEPP provides improved accuracy for quickly evolving genes as compared to other methods.
+SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. al., Science, 2009 (http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen). Our study shows that SEPP provides improved accuracy for quickly evolving genes as compared to other methods.
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
