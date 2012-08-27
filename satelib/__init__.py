@@ -17,6 +17,8 @@
 
 # Jiaye Yu and Mark Holder, University of Kansas
 
+# This file is copied to SEPP and is used as an external library
+
 PROGRAM_NAME = "SATe"
 PROGRAM_AUTHOR = ["Jiaye Yu", "Mark Holder", "Jeet Sukumaran"]
 PROGRAM_LICENSE = "GNU General Public License, version 3"

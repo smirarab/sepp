@@ -20,6 +20,7 @@
 
 # Jiaye Yu and Mark Holder, University of Kansas
 
+# This file is copied to SEPP and is used as an external library
 
 import math
 import os
