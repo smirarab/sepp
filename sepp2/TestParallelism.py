@@ -65,7 +65,7 @@ s = 0
 lock = Lock()
 if __name__ == '__main__':
     global pool
-    pool1 = JobPool(1)
+    pool1 = JobPool(2)
     pool2 = JobPool()
     if pool1 != pool2:
         raise Exception("hmmm, I thought JobPool is 'Singleton'")
@@ -81,11 +81,15 @@ if __name__ == '__main__':
         jobs.append(job)                
         pool.enqueue_job(job)
     
+    
+    sample_job = pool.get_job_asynch_result_object(jobs[3])
+    
+    #pool.terminate()
+    
     pool.wait_for_all_jobs(ignore_error=True)
     
     # Test one of the jobs, to see if it is successful
-    async = pool.get_job_asynch_result_object(jobs[3])    
-    if async.successful():
+    if sample_job.ready() and sample_job.successful():
         assert jobs[3].resultSet == True
     else:
         assert jobs[3].resultSet == False

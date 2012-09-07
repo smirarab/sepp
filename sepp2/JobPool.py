@@ -17,35 +17,40 @@ class Job(object):
     no way of checking whether it has finished (for good reasons).
     AsyncResult object of a job, and more generally checking its status, should
     instead occur through the JobPool object. All job management tasks should
-    occur through JobPool. job.result should be accessed only once one is sure t
-    hat there the job has finished successfully (through JobPool).   
+    occur through JobPool. job.result should be accessed only once one is sure
+    that there the job has finished successfully (through JobPool).   
 
     A Job keeps a list of callback functions, which are called (in the order 
-    they were added) when the job finishes running. Note that for addressing 
+    they were added) when the job finishes running successfully. To address 
     some pickling issues, while a job is running, this list is copied into the
     JobPool object, and is set to None in the Job object. It should be noted
     that a Callback function is expected to never raise an exception. If an 
     exception is raised, it is simply printed out, but is otherwise totally
     ignored. To avoid deadlock, the status of the job is set to successful even
-    if callbacks throw an exception. 
+    if callbacks throw an exception. If a callback error is important, it can
+    ask the pool to terminate.
     
-    In general, if the "run" method of a job modifies the state of the Job object, 
-    these changes will NOT be propagated to other processes, including the parent
-    process that runs the JobPool. The only thing that gets passed to the parent
-    process is the "result" of a job. The result of the job is simply the return
-    value of the "run" method. It gets automatically set to self.result once the
-    job finishes running *successfully*. callback functions are also called only
-    if Job finishes successfully, and therefore can assume that job.result is set.
+    The result of the job is simply the return value of the "run" method. 
+    Return value of the run method gets automatically set to job.result once 
+    the job finishes running *successfully*. callback functions are also called
+    only if Job finishes successfully, and therefore can assume that job.result is set.
+    If "run" raises an exception, its job.result is never set, and job.resultSet
+    is left as False. However, a proper check to see if a job has failed has to
+    happen through the JobPool to which it was submitted.
 
-    If "run" raises an exception, its job.result is never set.  
-    
+    In general, if the "run" method of a job modifies the state of the object, 
+    those changes will NOT be propagated to other processes, including the parent
+    process that runs the JobPool. The only thing that gets passed to the parent
+    process is the "result" of a job.      
     Similarly, if the state of a Job object is modified after it is put in the 
-    queue, the process that runs the Job might not see those changes.  
+    queue, the process that runs the Job might not see those changes.
+    For these reasons, it is not wise to use Job class attributes for saving 
+    state within the run method.  
     
     Callback functions can access global state, but they should do so in a
     thread-safe fashion, because other job's callback functions could be trying 
     to access the same global state at the same time, giving rise to race 
-    conditions. Use of a Lock, a Queue, or Pipe are recommended. 
+    conditions. Usage of a Lock, a Queue, or Pipe is recommended. 
     '''
 
     def __init__(self):
@@ -207,7 +212,7 @@ class _JobPool:
         be used to check status of a job'''
         self.lock.acquire()
         if job not in self._async_restults.keys():
-            raise KeyError("Job %s not in the queue yet." %str(job))
+            raise KeyError("Job %s not in the queue, or pool terminated." %str(job))
         resobj = self._async_restults[job]
         self.lock.release()
         return resobj
@@ -248,3 +253,10 @@ class _JobPool:
                           if x is not None]
         return ret
         
+    def terminate(self):
+        ''' Terminate all jobs in a queue'''
+        self.lock.acquire()
+        self.pool.terminate()
+        self.pool = None
+        self._async_restults = {}
+        self.lock.release()
