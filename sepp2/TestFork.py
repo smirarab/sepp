@@ -3,7 +3,7 @@ Created on Aug 22, 2012
 
 @author: smirarab
 '''
-from JobPool import Job, JobPool
+from scheduler import Job, JobPool
 from random import random
 import sys
 import os
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         pool.enqueue_job(job)
     
     
-    sample_job = pool.get_job_asynch_result_object(jobs[3])
+    sample_job = pool.get_asynch_result_object(jobs[3])
     
     #pool.terminate()
     
@@ -90,9 +90,9 @@ if __name__ == '__main__':
     
     # Test one of the jobs, to see if it is successful
     if sample_job.ready() and sample_job.successful():
-        assert jobs[3].resultSet == True
+        assert jobs[3].callbacks_finished == True
     else:
-        assert jobs[3].resultSet == False
+        assert jobs[3].callbacks_finished == False
     
     errors = pool.get_all_job_errors()
     print "Following job errors were raised:", errors 
