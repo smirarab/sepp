@@ -71,7 +71,7 @@ class BuildModelJob(GenericJob):
     def run(self):
         print >>sys.stderr, "Process [%s]: buildmodel running %s" %(os.getpid(),self.problem_name)                 
         h=0
-        step = random()/1000
+        step = random()/10000
         for i in xrange(0,100000):
             h+=step*i
             #time.sleep(step/100)
@@ -88,7 +88,9 @@ class SearchJob(GenericJob):
         print >>sys.stderr, "Process [%s]: searchfragment running %s with model %d" %(os.getpid(),self.problem_name, self.model)  
         #time.sleep(random()/10)    
         #self.state = step
-        return [abs(self.model-fragment) for fragment in self.fragments]
+        for i in xrange(1,10000):
+            ret = [abs(self.model-fragment) for fragment in self.fragments]
+        return ret
 
 class ApplyModelJob(GenericJob):    
     def __init__(self, problem):
@@ -100,7 +102,9 @@ class ApplyModelJob(GenericJob):
         print >>sys.stderr, "Process [%s]: %s running %s with model %d" %(os.getpid(),self.type,self.problem_name, self.model)  
         #time.sleep(random()/20)    
         #self.state = step
-        return [self.model*fragment for fragment in self.fragments]
+        for i in xrange(1,10000):
+            ret = [self.model*fragment/10000.0 for fragment in self.fragments]
+        return ret
     
     
 class SummarizeJob(GenericJob):
@@ -114,8 +118,10 @@ class SummarizeJob(GenericJob):
         #self.state = step
         all_fragments = []
         for fragments in self.resultsPerTipSubproblem: all_fragments.extend(fragments)
-        fsum=sum(all_fragments)
-        return [(fragment+.0)/fsum for fragment in all_fragments]    
+        for i in xrange(1,100000):
+            fsum=sum(all_fragments)
+            ret = [(fragment+.0)/fsum for fragment in all_fragments]
+        return ret    
 
 
 class Join_BuildModel_SearchFragment(Join):
@@ -196,8 +202,8 @@ def connect_buildmodel_and_searchfragment_jobs(problem):
 def build_subproblems(problem = None):
     if problem is None:
         problem = Problem(None)
-        problem.fragments = [int(random()*10000000) for i in range(1,2000)] 
-    if problem.level < 8:
+        problem.fragments = [int(random()*1000000) for i in range(1,2000)] 
+    if problem.level < 9:
         subproblem = Problem(problem)
         build_subproblems(subproblem)
         problem.add_child(subproblem)
