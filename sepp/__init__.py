@@ -20,7 +20,7 @@ from operator import itemgetter
 import logging
 import os
 
-__all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools"]
+__all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools", "problem"]
 
 def sortByValue(d,reverse=False):
     return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)

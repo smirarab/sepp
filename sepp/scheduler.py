@@ -34,7 +34,7 @@ class Job(object):
     Return value of the run method gets automatically set to job.result once 
     the job finishes running *successfully*. callback functions are also called
     only if Job finishes successfully, and therefore can assume that job.result is set.
-    If "run" raises an exception, its job.result is never set, and job.callbacks_finished
+    If "run" raises an exception, its job.result is never set, and job.result_set
     is left as False. However, a proper check to see if a job has failed has to
     happen through the JobPool to which it was submitted.
 
@@ -60,7 +60,7 @@ class Job(object):
         self.callbacks = []
         self.add_call_Back(self._finished)
         self.result = None
-        self.callbacks_finished = False
+        self.result_set = False
         self.errors = []
 
     def __call__(self):
@@ -98,7 +98,7 @@ class Job(object):
         the result of the job.
         '''
         self.result = results
-        self.callbacks_finished = True
+        self.result_set = True
 
 
 def check_object(job):

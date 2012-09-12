@@ -3,7 +3,7 @@ Created on Aug 22, 2012
 
 @author: smirarab
 '''
-from scheduler import Job, JobPool
+from sepp.scheduler import Job, JobPool
 from random import random
 import sys
 import os
