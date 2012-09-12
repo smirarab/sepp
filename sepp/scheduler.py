@@ -45,12 +45,15 @@ class Job(object):
     Similarly, if the state of a Job object is modified after it is put in the 
     queue, the process that runs the Job might not see those changes.
     For these reasons, it is not wise to use Job class attributes for saving 
-    state within the run method.  
+    state within the run method. 
     
     Callback functions can access global state, but they should do so in a
     thread-safe fashion, because other job's callback functions could be trying 
     to access the same global state at the same time, giving rise to race 
-    conditions. Usage of a Lock, a Queue, or Pipe is recommended. 
+    conditions. Usage of a Lock, a Queue, or Pipe is recommended.
+    
+    In cases when multiple jobs need to finish before another task can start
+    the concept of a Join (see below) is useful. 
     '''
 
     def __init__(self):
@@ -109,12 +112,55 @@ def check_object(job):
        
 
 class Join(object):
+    '''
+    This class allows synchronization between multiple jobs. If a collection of
+    jobs needs to finish before we can perform another task (such as enqueuing
+    more jobs), using callbacks is not sufficient. A Join is helpful in these
+    situations. 
+    
+    A join is basically two things. A set of Jobs that are joined together,
+    and a perform() method that does what the Join needs to do. Subclasses of
+    this abstract Join class need to override perform() and do what they need
+    to do. 
+    
+    A typical use of a Join consists of initializing a new Join object and simply 
+    adding jobs to it (one by one). There is no need to "register" the join with
+    the schedule, as that step is done automatically when jobs are added to the
+    join.
+    
+    When all the jobs added to a join have finished running, the perform() method
+    of the join is automatically called by the scheduler. 
+    
+    Note that it makes sense to build a join and add jobs to it *before* those
+    jobs are enqueued in the pool. The Join may or may not work properly 
+    otherwise (this could be better tested and improved).
+    
+    A typical perform method would read results from the joined jobs, would
+    process the results, prepare inputs for a bunch of downstream jobs, 
+    would set those inputs as attributes of those downstream jobs, and would
+    finally enqueue them.   
+    
+    It is important to note that a Join's perform method is called basically 
+    as the last callback function of the last job in the join. As such, 
+    1) it is run on the main process
+    2) when it is performed, all the jobs have finished, and their results are
+       set in the job objects, but the last job that finished does not yet have 
+       its status set to ready. This is crucial because otherwise the link could 
+       break (i.e. if a wait_for_all_job gets unblocked because there is no more
+       jobs in the queue before this job is run)
+    3) It needs to be relatively fast. In particular, it should not perform 
+       heavy duty tasks, and it should not block or wait on other events. 
+    '''
     def __init__(self):
         self._jobs = set()
         self._lock = Lock()
         self._joined = False
     
     def perform(self):
+        '''
+        Perform the main task of the Join. This method needs to be implemented 
+        by subclasses. 
+        '''
         raise NotImplementedError;
     
     def depends_on (self, job):
@@ -125,18 +171,22 @@ class Join(object):
         self._lock.release()        
         return ret
     
-
+    # internal method for checking join status. 
     def _assert_is_active(self):
         if self._joined:
             raise Exception("Adding a job to a Join object that has already joined.")    
     
     def add_job(self, job):
+        '''
+        Add a new job to this join. The job is ideally not queued yet. 
+        '''
         check_object(job)
         self._lock.acquire()
         self._assert_is_active()
         self._jobs.add(job)
         JobPool()._add_jobs_to_join([job], self)
         self._lock.release()
+        self._tick(None)
         
 #    def add_jobs(self, jobs):
 #        for job in jobs: check_object(job)
@@ -146,20 +196,29 @@ class Join(object):
 #        JobPool()._add_jobs_to_join(job, self)
 #        self._lock.release()                
         
-    def replace_job(self, old_job, new_job):
-        check_object(new_job)        
-        self._lock.acquire()
-        self._assert_is_active()
-        if not self.depends_on(old_job):
-            self._lock.release()
-            raise KeyError("the job to be replaced is not part of this join: %s" %str(old_job))        
-        self._jobs.remove(old_job)
-        self._jobs.add(new_job)
-        JobPool()._del_jobs_from_join([old_job])
-        JobPool()._add_jobs_to_join([new_job], self)
-        self._lock.release()
+#    def replace_job(self, old_job, new_job):
+#        check_object(new_job)        
+#        self._lock.acquire()
+#        self._assert_is_active()
+#        if not self.depends_on(old_job):
+#            self._lock.release()
+#            raise KeyError("the job to be replaced is not part of this join: %s" %str(old_job))        
+#        self._jobs.remove(old_job)
+#        self._jobs.add(new_job)
+#        JobPool()._del_jobs_from_join([old_job])
+#        JobPool()._add_jobs_to_join([new_job], self)
+#        self._lock.release()
         
-    def tick(self, ticking_job):
+    def _tick(self, ticking_job):
+        # internal method for synchronizing with JobPool. Every time a 
+        # job finishes running, the Join is ticked. If all jobs except the 
+        # ticking job have finished running, the join is "performed". 
+        # Note that when join is performed, the status of one of the jobs
+        # (ticking job = the last job that finished running) could still be "not-ready", 
+        # since ticks happens as part of last jobs's callbacks. 
+        # This is necessary; otherwise, wait_for_all_jobs could finish without
+        # waiting for new jobs to be enqueued from the join(). This behavior 
+        # ensures that a DAG is never broken without enqueuing subsequent parts.
         if self._joined:
             # TODO: should this be an error?
             return
@@ -229,7 +288,7 @@ class _JobPool:
                 self._lock.release()                
                 for join in jobJoins:
                     #print "ticking, ", join
-                    join.tick(job)
+                    join._tick(job)
             except Exception as e:
                 # TODO: currently callback exceptions are simply ignored. 
                 # Is there a better solution?
