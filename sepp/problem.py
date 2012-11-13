@@ -147,6 +147,11 @@ class SeppProblem(Problem):
     taxa = property(get_taxa)
     
     def get_subalignment(self):
+        '''
+        If subalignment is not set before, automatically builds a readonly 
+        subalignment for this subproblem, based on the taxa assigned to this subproblem.
+        Otherwise, returns the saves subalignment.  
+        '''
         if self.__subalignment == None:
             if isinstance(self.parent, SeppProblem) or hasattr(self.parent, "subalignment"):
                 self.__subalignment = ReadonlySubalignment(self.taxa, self.parent.subalignment)
@@ -161,6 +166,11 @@ class SeppProblem(Problem):
     subalignment = property(get_subalignment, set_subalignment)
     
     def get_subtree(self):
+        '''
+        If subtree is not assigned before, automatically buils a subtree based
+        on the taxa assigned to this subproblem. Otherwise, returns the saves
+        subtree.
+        '''
         if self.__subtree == None:
             if isinstance(self.parent, SeppProblem) or hasattr(self.parent, "subtree"):
                 self.__subtree = self.parent.subtree.get_subtree(self.taxa)
@@ -175,6 +185,12 @@ class SeppProblem(Problem):
         return self.label
     
     def write_subalignment_without_allgap_columns(self, path):
+        '''
+        Writes out the subalignment associated with this subproblem. 
+        Also keeps track of column names, so that later on column names 
+        could be retrieved for merging step. This is crucial for a correct
+        merge. 
+        '''
         mut_subalg = self.subalignment.get_mutable_alignment()
         remaining_cols = mut_subalg.delete_all_gap()
         mut_subalg.write_to_path(path)
@@ -183,6 +199,11 @@ class SeppProblem(Problem):
         return remaining_cols         
         
     def read_extendend_alignment_and_relabel_columns(self, orig_path, extension_path):
+        '''
+        This goes with write_subalignment_without_allgap_columns method, and enables
+        reading back an alignment that was previously written to disk, and 
+        relabeling its columns with the original lables.  
+        '''
         remaining_cols = self.annotations["ref.alignment.columns"]
         assert remaining_cols is not None and len(remaining_cols) != 0, ("Subproblem"
         " needs to have a proper list of alignment columns associated with it") 
@@ -193,6 +214,4 @@ class SeppProblem(Problem):
         ap_alg.build_extended_alignment(orig_path, extension_path)
         ap_alg.relabel_original_columns(remaining_cols)
         return ap_alg
-        
-        
-            
+                            

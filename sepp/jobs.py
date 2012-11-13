@@ -103,7 +103,10 @@ class ExternalSeppJob(Job):
             traceback.print_exc()
             raise
         
-    def read_stderr(self):        
+    def read_stderr(self):    
+        '''
+        Used for reading standard error when an error is detected. 
+        '''    
         if self.stderrdata is not None:
             return self.stderrdata
         elif self._kwargs.has_key("stderr") and isinstance(self._kwargs["stderr"],file):
@@ -140,23 +143,31 @@ class ExternalSeppJob(Job):
         raise NotImplementedError("read_results should be implemented by subclasses")        
     
     def get_keyword_attribute(self,key):
+        ''' each job maintains a dictionary of free form attributes. 
+        '''
         return self._kwargs[key]
 
     def set_keyword_attribute(self,key,val):
+        ''' each job maintains a dictionary of free form attributes. 
+        '''
         self._kwargs[key] = val
 
 class HMMBuildJob(ExternalSeppJob):
+    '''
+    The Job class that executes a HMM build
+    '''
 
     def __init__(self, **kwargs):
         self.job_type = "hmmbuild"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
-        self.infile = None
-        self.informat = None
-        self.outfile = None
+        self.infile = None #input reference alignment
+        self.informat = None #format of input reference alignment
+        self.outfile = None #location of output file
         
     def setup(self, infile, outfile, informat = "fasta",**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
+        Use setup_for_subproblem when possible. 
         '''
         self.infile = infile
         self.informat = informat
@@ -165,7 +176,8 @@ class HMMBuildJob(ExternalSeppJob):
 
     def setup_for_subproblem(self, subproblem ,**kwargs):
         '''
-        Automatically sets up a job given a subproblem object 
+        Automatically sets up a job given a subproblem object. It outputs the
+        right alignment subset to a temporary file.
         '''
         assert isinstance(subproblem, sepp.problem.SeppProblem)
         assert isinstance(subproblem.subalignment, sepp.problem.ReadonlySubalignment)
@@ -194,6 +206,11 @@ class HMMBuildJob(ExternalSeppJob):
         return self.infile
 
     def read_results(self):
+        '''
+        Simply make sure the file exists and is not empty. Don't need to load
+        the file into memory or anything else. Just return the location of the
+        file. 
+        '''
         assert os.path.exists(self.outfile)
         assert os.stat(self.outfile)[stat.ST_SIZE] != 0
         return self.outfile        
@@ -210,6 +227,10 @@ class HMMAlignJob(ExternalSeppJob):
         self.trim = None
                 
     def setup(self,hmmmodel, fragments, output_file, base_alignment=None, trim=True, **kwargs):
+        '''
+        Setup job parameters when those are externally decided.
+        Use setup_for_subproblem when possible.
+        '''
         self.hmmmodel = hmmmodel
         self.fragments = fragments 
         self.outfile = output_file
