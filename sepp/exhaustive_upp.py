@@ -32,7 +32,8 @@ class UPPJoinAlignJobs(JoinAlignJobs):
 class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
     This implements the exhaustive algorithm where all alignments subsets
-    are searched for every fragment. 
+    are searched for every fragment. This is for UPP, meaning that no placement
+    is performed, and that there is always only one placement subset (currently).
     '''
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)     
@@ -55,10 +56,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     
     def _get_new_Join_Align_Job(self):        
         return UPPJoinAlignJobs()
-                        
-    def enqueue_firstlevel_job(self):
-        for ap in self.root_problem.iter_leaves():
-            JobPool().enqueue_job(ap.jobs["hmmbuild"])
 
 if __name__ == '__main__':
     UPPExhaustiveAlgorithm().run()

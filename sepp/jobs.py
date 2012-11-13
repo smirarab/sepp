@@ -20,7 +20,9 @@ _LOG = get_logger(__name__)
     
 class ExternalSeppJob(Job):
     '''
-    All Sepp jobs should extend this abstract class to allow future flexibility.    
+    All Sepp jobs that run extrernal programs 
+    should extend this abstract class.
+    This class handles executing external jobs, error handling, and more.     
     '''
     __metaclass__ = ABCMeta
     
@@ -45,7 +47,9 @@ class ExternalSeppJob(Job):
     process = property(get_process)      
     
     def run(self):        
-
+        ''' Runs the external job, and handles errors, piping, etc. 
+        get_invocation() needs to be implemented in child classes.
+        '''
         try:
             _LOG.info("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
             
