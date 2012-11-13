@@ -30,9 +30,7 @@ class ExternalSeppJob(Job):
         self._id = None #_process id for this job
         self._kwargs = dict(kwargs)
         self._process = None
-
-        '''
-        The following will contain stdout and stderr values *only if* those
+        ''' The following will contain stdout and stderr values *only if* those
         are piped. If not, user should read the files to find the output if needed.
         '''
         self.stdoutdata = self.stderrdata = None        
@@ -137,6 +135,11 @@ class ExternalSeppJob(Job):
         '''
         raise NotImplementedError("read_results should be implemented by subclasses")        
     
+    def get_keyword_attribute(self,key):
+        return self._kwargs[key]
+
+    def set_keyword_attribute(self,key,val):
+        self._kwargs[key] = val
 
 class HMMBuildJob(ExternalSeppJob):
 
@@ -289,7 +292,7 @@ class HMMSearchJob(ExternalSeppJob):
     
             
     def get_invocation(self):
-        invoc = [sepp.config.options().hmmsearch.path, "-o", self.outfile, "--noali"]
+        invoc = [sepp.config.options().hmmsearch.path, "-o", self.outfile, "--noali", "--cpu", "1"]
         if self.elim is not None:
             invoc.extend(["-E", str(self.elim)])
         if not self.filters:

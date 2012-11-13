@@ -90,16 +90,13 @@ class JoinAlignJobs(Join):
         for p in placement_problem.iter_leaves():
             self.add_job(p.jobs["hmmalign"])         
     
-    def perform(self):
-        '''    
-        '''
-        
+    def merge_subalignments(self):
         ''' First make sure fragments are correctly assigned to the subproblem'''
         pp = self.placement_problem
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
         for ap in pp.get_children():
             pp.fragments.seq_names.extend(ap.fragments)   
-        
+        ''' Then Build an extended alignment by merging all hmmalign results''' 
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.get_children():
             assert isinstance(ap, SeppProblem)
@@ -107,7 +104,13 @@ class JoinAlignJobs(Join):
                         (ap.jobs["hmmalign"].base_alignment, ap.get_job_result_by_name('hmmalign'))
                                 
             extendedAlignment.merge_in(ap_alg)
-            
+        return extendedAlignment
+    
+    def perform(self):            
+        pp = self.placement_problem
+        
+        extendedAlignment = self.merge_subalignments()
+        
         pj = pp.jobs["pplacer"]
         assert isinstance(pj,PplacerJob)
         extendedAlignment.write_to_path(pj.extended_alignment_file)       
@@ -119,7 +122,10 @@ class JoinAlignJobs(Join):
         return "join align jobs for tips of ", self.placement_problem
 
 class ExhaustiveAlgorithm(AbstractAlgorithm):
-    
+    '''
+    This implements the exhaustive algorithm where all alignments subsets
+    are searched for every fragment. 
+    '''
     def __init__(self):
         AbstractAlgorithm.__init__(self)
         self.place_nomatch_fragments = False
@@ -129,17 +135,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.strategy = options().exhaustive.strategy
 
     def merge_results(self):
+        ''' TODO: implement this 
+        '''
         return AbstractAlgorithm.merge_results(self)
 
-
     def output_results(self):
+        ''' TODO: implement this
+        '''
         return AbstractAlgorithm.output_results(self)
 
- 
     def check_options(self):
         AbstractAlgorithm.check_options(self)
-
-
+             
     def build_subproblems(self):
         (alignment, tree) = self.read_input_files()        
         assert isinstance(tree, PhylogeneticTree)
@@ -151,27 +158,24 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         
         ''' Make sure size values are set, and are meaningful. '''
         self.check_and_set_sizes(alignment.get_num_taxa())
-                
-        self.root_problem = SeppProblem(tree.leaf_node_names())
-        self.root_problem.label = "root"
-        self.root_problem.subalignment = alignment
-        self.root_problem.subtree = tree
         
+        self._create_root_problem(tree, alignment)             
+        
+        ''' Decompte the tree'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, tree_map = {},
                                         strategy=self.strategy)
         
         _LOG.info("Breaking into %d placement subsets." %len(placement_tree_map))
 
+        ''' For placement subsets create a placement subproblem, and decompose further'''
         for (p_key,p_tree) in placement_tree_map.items():
             assert isinstance(p_tree, PhylogeneticTree)
             placement_problem  = SeppProblem(p_tree.leaf_node_names(), self.root_problem)
             placement_problem.subtree = p_tree
             placement_problem.label = "P_%s" %str(p_key)
             _LOG.debug("Placement subset %s has %d nodes: %s" %(placement_problem.label,len(p_tree.leaf_node_names()),str(sorted(p_tree.leaf_node_names()))))
-            '''
-            Further decompose to alignment subsets
-            '''
+            ''' Further decompose to alignment subsets '''
             alignment_tree_map = PhylogeneticTree(Tree(p_tree.den_tree)).decompose_tree(
                                         self.options.alignment_size, tree_map = {},
                                         strategy=self.strategy)
@@ -187,17 +191,23 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
     
+    def _get_new_Join_Align_Job(self):
+        return JoinAlignJobs()
+    
     def build_job_dag(self):
+        ''' a callback function called after hmmbuild jobs are finished'''
         def enq_job_searchfragment(result, search_job):
             search_job.hmmmodel = result 
             JobPool().enqueue_job(search_job)
         
         assert isinstance(self.root_problem, SeppProblem)
         for placement_problem in self.root_problem.get_children():
+            ''' Create pplacer jobs'''
             pj = PplacerJob()
             placement_problem.add_job(pj.job_type,pj)
             pj.partial_setup_for_subproblem(placement_problem, self.options.info_file.name)
             
+            '''For each alignment subproblem, ...'''
             for alg_problem in placement_problem.iter_leaves():
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
@@ -215,11 +225,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 alg_problem.add_job(aj.job_type, aj)
                 aj.partial_setup_for_subproblem(alg_problem)
                 
-            '''Join align jobs of a placement subset to enqueue placement job'''
-            jaj = JoinAlignJobs()
+            '''Join all align jobs of a placement subset (enqueues placement job)'''
+            jaj = self._get_new_Join_Align_Job()
             jaj.setup_with_placement_problem(placement_problem)
                         
-        ''' Join all search jobs together to enqueue align jobs'''
+        ''' Join all search jobs together (enqueues align jobs)'''
         jsj = JoinSearchJobs()
         jsj.setup_with_root_problem(self.root_problem)
                         

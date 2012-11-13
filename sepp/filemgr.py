@@ -43,8 +43,8 @@ def open_with_intermediates(filepath, mode):
             raise IOError('The file "%s" cannot be created because "%s" exists but is not a directory' % (filepath, d))
     return open(filepath, mode)
 
-def get_temp_file(prefix, rel_path, suffix = ""):
-    d = os.path.join(get_root_temp_dir(), rel_path)
+def get_temp_file(prefix, relative_path, suffix = ""):
+    d = os.path.join(get_root_temp_dir(), relative_path)
     if not os.path.exists(d):
         os.makedirs(d)
     return tempfile.mktemp(prefix = prefix,

@@ -163,7 +163,8 @@ class ReadOnlyAlignment(Mapping, object):
         return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])     
 
 class MutableAlignment(dict, ReadOnlyAlignment, object):
-    """A simple class that maps taxa names to sequences.
+    """ An alignment object, that can be modified. This is the class that should
+    be used mainly for holding alignments.  
     """
     def __init__(self):
         "creates an empty matrix"
@@ -214,8 +215,10 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             seq = seq[:pos] + seq[pos + 1:]
             self[name] = seq
     
-    #Delete all sites that consists of nothing but gaps
     def delete_all_gap(self):
+        '''
+        Delete all sites that consists of nothing but gaps
+        '''
         pos = 0
         i = 0
         subset = []
@@ -241,10 +244,20 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         return new_alignment
 
     def get_soft_sub_alignment(self, sub_key):
+        '''
+        Returns a read-only sub-alignment, which won't consume extra memory, 
+        since it will not hold a separate copy of the alignment.
+        '''
         return ReadonlySubalignment(sub_key, self)                
 
 class ReadonlySubalignment(ReadOnlyAlignment):
-    
+    '''
+    A class that emulates a subalignment of a given alignment. This is a 
+    readonly alignment and does not actually hold sequences in memory. It
+    simply keeps the list of sequences that belong to the sub alignment, 
+    and implements methods of alignment class (and dictionaries) such that 
+    only subalignment keys are returned. 
+    '''
     def __init__(self, keys, parent_alignment):
         self.seq_names = keys
         self.parent_alignment = parent_alignment
@@ -269,7 +282,9 @@ class ReadonlySubalignment(ReadOnlyAlignment):
         return ret
 
 class _AlignmentLookupHelper(object):
-    
+    '''
+    Internal helper calss
+    '''
     def __init__(self,pos,ref):
         self.pos = pos
         self.ref = ref        
@@ -281,7 +296,14 @@ class _AlignmentLookupHelper(object):
             return default
 
 class ExtendedAlignment(MutableAlignment):
-    
+    '''
+    This is used to keep an extended alignment. An extended alignment 
+    has a bunch of sequences that are labeles as fragments. More importantly,
+    columns of extended alignments are labeled with numbers and also it is 
+    known whether a column is an "insertion" column or a normal column. 
+    1) these can be read from .sto files. 
+    2) these alignments can be merged together.
+    '''
     def __init__(self, fragment_names):
         MutableAlignment.__init__(self)
         self.fragments = set(fragment_names)
@@ -292,11 +314,16 @@ class ExtendedAlignment(MutableAlignment):
         self._reset_col_names()        
 
     def read_file_object(self, file_obj, file_format='FASTA'):
+        ''' currently supports only fasta'''
         ret = MutableAlignment.read_file_object(self, file_obj, file_format)
         self._reset_col_names()
         return ret
 
     def add_column(self, pos, char='-', new_label=None):
+        '''
+        A new column is added to the alignment. The new label can be value, 
+        or one of three directives (see below). 
+        '''
         MutableAlignment.add_column(self, pos, char)
         if new_label == "MAX":
             self._col_labels.insert(pos, max(self._col_labels) + 1)
@@ -308,6 +335,9 @@ class ExtendedAlignment(MutableAlignment):
             self._col_labels.insert(pos, new_label)
 
     def remove_column(self, pos, labels="REMOVE"):
+        '''
+        Remove a column and potentially adjust column names.
+        '''
         MutableAlignment.remove_column(self, pos)
         if labels == "RESET":
             self._reset_col_names()
@@ -319,12 +349,19 @@ class ExtendedAlignment(MutableAlignment):
     col_labels = property(_get_col_labels)
     
     def _reset_col_names(self):
+        ''' sequentially label columns'''
         self._col_labels = range(0,self.get_length())
     
-    def get_fragments_readonly_alignment(self):        
+    def get_fragments_readonly_alignment(self):
+        '''
+        Return a readonly alignment that contains only the fragments. 
+        '''        
         return ReadonlySubalignment(self.fragments, self)
     
     def get_base_readonly_alignment(self):
+        '''
+        Returns a readonly subalignment that does not contain fragments. 
+        '''
         return ReadonlySubalignment(self.get_base_seq_names(), self)
     
     def get_fragment_names(self):
@@ -334,6 +371,10 @@ class ExtendedAlignment(MutableAlignment):
         return list(set(self.keys()) - self.fragments)
 
     def _read_sto(self, handle):
+        '''
+        Reads a sto file and populates this current object. Figures out
+        insertion columns by finding lower case letters and dots. 
+        '''
         insertions = set()
         for line in handle:
             line = line.strip() 
@@ -345,7 +386,6 @@ class ExtendedAlignment(MutableAlignment):
             elif line == "":                
                 pass
             elif line[0] != "#": # not a comment
-                #Sequence Format: "<seqname> <sequence>"
                 parts = [x.strip() for x in line.split(" ",1)]
                 if len(parts) != 2:
                     raise ValueError("Could not split line into identifier " \
@@ -361,12 +401,17 @@ class ExtendedAlignment(MutableAlignment):
         self._reset_col_names() 
         return insertions
 
-    def build_extended_alignment(self, original_alignment, path_to_sto_extension):
-        
-        if isinstance(original_alignment, ReadOnlyAlignment):
-            self.set_alignment(copy.deepcopy(original_alignment))            
-        elif isinstance(original_alignment, str):
-            self.read_filepath(original_alignment, "FASTA")
+    def build_extended_alignment(self, base_alignment, path_to_sto_extension):
+        '''
+        Given a base alignment, and the path to and .sto file, this 
+        populates self with an extended alignment. This is equivalent of
+        reading the base_alignment firs, and then merging in the extended 
+        alignment. 
+        '''
+        if isinstance(base_alignment, ReadOnlyAlignment):
+            self.set_alignment(copy.deepcopy(base_alignment))            
+        elif isinstance(base_alignment, str):
+            self.read_filepath(base_alignment, "FASTA")
         
         ext = ExtendedAlignment(self.fragments)
         ext.read_extended_alignment(path_to_sto_extension)
@@ -374,7 +419,7 @@ class ExtendedAlignment(MutableAlignment):
         self.merge_in(ext)
     
     def read_extended_alignment(self, path, aformat = "stockholm"):
-        ''' Reads alignment from given path and somehow figures out "insertion"
+        ''' Reads alignment from given path and figures out "insertion"
         columns. Labels insertion columns with special labels and labels the 
         rest of columns (i.e. original columns) sequentially. 
         '''         
@@ -413,6 +458,10 @@ class ExtendedAlignment(MutableAlignment):
         return self._is_insertion_label(self.col_labels[col])
     
     def relabel_original_columns(self, original_labels):
+        '''
+        This methods relabels non-insertion columns in self based on the 
+        input lables. Insertion column labels will not be affected.  
+        '''
         j = 0
         for i in xrange(0,self.get_length()):
             if not self._is_insertion_label(self.col_labels[i]):
@@ -422,6 +471,14 @@ class ExtendedAlignment(MutableAlignment):
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
         
     def merge_in(self, other):
+        '''
+        Merges another alignment in with the current alignment. The other
+        alignment needs to be an ExtendedAlignment as well. Since both 
+        alignments are extended alignments, we know column labels, and we also
+        know which columns are insertions. Columns with the same labels are
+        merged together. In other cases gaps are introduced as necessary to
+        merge the two alignments.
+        '''
         assert isinstance(other, ExtendedAlignment)
         me = 0
         she = 0 # important alignments are assumed to be female!

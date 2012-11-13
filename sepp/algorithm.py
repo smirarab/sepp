@@ -13,6 +13,8 @@ from sepp.tree import PhylogeneticTree
 import dendropy
 from sepp import get_logger
 import sys
+import os
+from sepp.problem import SeppProblem
 
 _LOG = get_logger(__name__)
 
@@ -169,6 +171,9 @@ class AbstractAlgorithm(object):
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
             raise ArgumentError("Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (self.options.outdir,self.options.output))
 
+    def get_output_filename(self, name):
+        return os.path.join(self.options.outdir,"%s_%s" %(self.options.output,name))
+    
     def read_input_files(self):
         alignment = MutableAlignment()
         alignment.read_file_object(self.options.alignment_file)
@@ -181,3 +186,10 @@ class AbstractAlgorithm(object):
                                                preserve_underscores=True))        
         
         return (alignment, tree)
+    
+    def _create_root_problem(self, tree, alignment):
+        ''' Create the root problem'''   
+        self.root_problem = SeppProblem(tree.leaf_node_names())
+        self.root_problem.label = "root"
+        self.root_problem.subalignment = alignment
+        self.root_problem.subtree = tree
