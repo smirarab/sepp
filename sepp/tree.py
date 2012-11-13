@@ -20,12 +20,12 @@
 # This file is copied to SEPP and is used as an external library
 
 import copy
-from dendropy import Tree
+from dendropy import Tree, Taxon
 from dendropy import Edge
 from dendropy import Node
 from dendropy import DataSet as Dataset
 from dendropy import convert_node_to_root_polytomy
-from satelib import get_logger
+from sepp import get_logger
 
 _LOG = get_logger(__name__)
 
@@ -37,6 +37,10 @@ class PhylogeneticTree(object):
         self._tree.seed_node.edge.tail_node = None
         self._tree.seed_node.edge.length = None
 
+    def get_tree(self):
+        return self._tree
+    den_tree = property(get_tree)
+    
     def count_leaves(self):
         return len(self._tree.leaf_nodes())
 
@@ -170,12 +174,63 @@ class PhylogeneticTree(object):
     def compose_newick(self):
         return self._tree.compose_newick()
 
+    def write_newick_to_path(self, path):
+        tree_handle = open(path, "w")
+        tree_handle.write(self.compose_newick())
+        tree_handle.write(";\n")
+        tree_handle.close()
+        
     def read_tree_from_file(self, treefile, file_format):
         dataset = Dataset()
         dataset.read(open(treefile, 'rU'), schema=file_format)
         dendropy_tree = dataset.trees_blocks[0][0]
         self._tree = dendropy_tree
         self.n_leaves = self.count_leaves()
+        
+        
+    def get_subtree(self, taxa):
+        if len(taxa) == 0:
+            return None
+        tree = Tree(self._tree)        
+        if isinstance(taxa[0],str):
+            tree.prune_taxa_with_labels(taxa)
+        elif isinstance(taxa[0],Taxon):
+            tree.prune_taxa(taxa)
+        return PhylogeneticTree(tree)
+    
+    def bisect_tree(self, breaking_edge_style='centroid'):
+        """Partition 'tree' into two parts
+        """
+        e = self.get_breaking_edge(breaking_edge_style)
+        _LOG.debug("breaking_edge length = %s, %s" % (e.length, breaking_edge_style) )
+        snl = self.n_leaves
+        tree1, tree2 = self.bipartition_by_edge(e)
+        _LOG.debug("Tree 1 has %s nodes, tree 2 has %s nodes" % (tree1.n_leaves, tree2.n_leaves) )
+        assert snl == tree1.n_leaves + tree2.n_leaves
+        return tree1, tree2
+
+    def decompose_tree(self, maxSize=25, tree_map={}, strategy="centroid"):
+        """
+        This function decomposes the tree until all subtrees are smaller than the max size.  Two
+        possible decompositions strategies can used: "centroid" and "longest".  Returns a
+        map containing the subtrees, in an ordered fashion.
+        
+        SIDE EFFECT: deroots the tree (TODO: necessary?)
+        """          
+        self._tree.deroot()
+        if (self.count_leaves() > maxSize):    
+            (t1, t2) = self.bisect_tree(strategy)
+            t1.decompose_tree(maxSize, tree_map, strategy)
+            t2.decompose_tree(maxSize, tree_map, strategy)
+        else:
+            tree_map[len(tree_map)] = self
+        return tree_map
+    
+    def lable_edges(self):
+        en = 0        
+        for e in self._tree.postorder_edge_iter():
+            e.label = en
+            en += 1
 
 def node_formatter(n):
     return str(id(n))

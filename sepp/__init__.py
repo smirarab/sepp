@@ -22,6 +22,8 @@ import os
 
 __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools", "problem"]
 
+version = "2.0"
+
 def sortByValue(d,reverse=False):
     return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
 
@@ -38,12 +40,12 @@ def get_setup_path():
     return _INSTALL_PATH
 
 def get_logging_level():    
-    return logging.DEBUG
+    return logging.DEBUG if _DEBUG else logging.INFO
 
-def get_logger(name="sepp"):
-    logger_set = False
+__set_loggers = set()
+def get_logger(name="sepp"):    
     logger = logging.getLogger(name)
-    if not logger_set:
+    if name not in __set_loggers:
         level = get_logging_level()
         logging_formatter = logging.Formatter("[%(asctime)s] %(filename)s (line %(lineno)d): %(levelname) 8s: %(message)s")
         logging_formatter.datefmt = '%H:%M:%S'
@@ -52,6 +54,7 @@ def get_logger(name="sepp"):
         ch.setLevel(level)
         ch.setFormatter(logging_formatter)
         logger.addHandler(ch)
+        __set_loggers.add(name)
     return logger
 
 TIMING_LOG = logging.getLogger("TIMING_LOG")
@@ -76,3 +79,5 @@ def log_exception(logger):
     s = cStringIO.StringIO()
     traceback.print_exc(None, s)
     logger.debug(s.getvalue())
+    
+os.sys.setrecursionlimit(1000000)    

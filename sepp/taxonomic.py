@@ -31,7 +31,7 @@ from Bio import SeqIO
 from Bio import AlignIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from sepp.alignment import Alignment
+from sepp.alignment import MutableAlignment
 from sepp.utilities import read_sto_alignment
 from sepp import get_setup_path
 import shutil
@@ -144,7 +144,7 @@ def decompose_tree(tree, maxSize=25, tree_map={}, strategy="centroid"):
     full and fragmentary sequences, a raxml info file.  the output is a json file.
     TODO Fix input arguments
 """
-def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tempdir=None, pckg="", version="pplacer", options=""):
+def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tempdir=None, pckg="", version="pplacer", _options_singelton=""):
 
     executalbe = version #os.path.join(LIB_PATH,version)
     ##Get full path to files
@@ -181,8 +181,8 @@ def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tem
     new_temp = tempfile.mkdtemp()
     os.chdir(new_temp)
         
-    print("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp , pckg, tree, raxml, ref_alignment, options, full_alignment_path));
-    os.system("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp, pckg, tree, raxml, ref_alignment, options, full_alignment_path));
+    print("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp , pckg, tree, raxml, ref_alignment, _options_singelton, full_alignment_path));
+    os.system("%s --no-pre-mask --out-dir %s %s %s %s %s %s %s" % (executalbe, new_temp, pckg, tree, raxml, ref_alignment, _options_singelton, full_alignment_path));
     if (os.path.exists("%s.json" % get_filename(alignment))):
         print "%s.json to be moved to %s " % (get_filename(alignment), full_output_path)
         shutil.move("%s.json" % get_filename(alignment), full_output_path)
@@ -196,7 +196,7 @@ def run_pplacer(tree="", alignment="",ref_alignment="", raxml="", output="", tem
 def read_alignment(fn, format="fasta"):
     try:
         ioA = AlignIO.read(fn, format)
-        alignment = Alignment()
+        alignment = MutableAlignment()
         for row in ioA:
             alignment[row.id] = row.seq.data.upper()
     except Exception as inst:
@@ -211,7 +211,7 @@ def read_alignment(fn, format="fasta"):
     This function reads file in fasta format and returns
     a dictionary containing the alignment
 """
-def read_fasta(input_file):
+def _read_fasta(input_file):
     file = open(input_file, 'r')
     alignment = {}
     counter = 0;
@@ -324,13 +324,13 @@ def hmmr_search(input_file, hmmr_file, output_file, elim=None, filters=True):
 """
 def hmmr_align(input_file, hmmr_file, output_file, original_file=None, trim=None):
     executalbe = "hmmalign" #os.path.join(LIB_PATH,"hmmalign")
-    options = ""
+    _options_singelton = ""
     if (original_file is not None):
-        options = "--mapali %s" % original_file
+        _options_singelton = "--mapali %s" % original_file
     if (trim):
-        options = options + " --trim";
-    print("%s %s -o %s %s %s" % (executalbe, options, output_file, hmmr_file, input_file));
-    os.system("%s %s -o %s %s %s" % (executalbe, options, output_file, hmmr_file, input_file));
+        _options_singelton = _options_singelton + " --trim";
+    print("%s %s -o %s %s %s" % (executalbe, _options_singelton, output_file, hmmr_file, input_file));
+    os.system("%s %s -o %s %s %s" % (executalbe, _options_singelton, output_file, hmmr_file, input_file));
     
 """
     This function generates hmmr profile for an alignment
@@ -339,12 +339,12 @@ def hmmr_align(input_file, hmmr_file, output_file, original_file=None, trim=None
     NOTE --enone to turn "entropy weighting" off in hmmbuild step, suggested by Eddy
     Or $format = "--informat afa";
 """
-def hmmr_profile(input_file, output_file, format="fasta", options=""):
+def hmmr_profile(input_file, output_file, format="fasta", _options_singelton=""):
     executable =  "hmmbuild" # os.path.join(LIB_PATH,"hmmbuild")
     special = ""
     if (format == "fasta"):
         special = "--informat afa"
-    os.system("%s --symfrac 0.0 --dna %s %s %s %s" % (executable, special, options, output_file, input_file))
+    os.system("%s --symfrac 0.0 --dna %s %s %s %s" % (executable, special, _options_singelton, output_file, input_file))
 
 
 """
@@ -499,7 +499,7 @@ class NammyClass:
         return
     
     def get_merged_alignments(self, local_sets, global_align=True):
-        final_alignment = Alignment()     
+        final_alignment = MutableAlignment()     
         final_alignment.set_alignment(self.alignment)
               
         sTimer = os.times()     
@@ -527,7 +527,7 @@ class NammyClass:
         alignment_map = {}
         for tree_idx in super_tree_map.keys():
             subset = [i.taxon.label for i in super_tree_map[tree_idx]._tree.leaf_nodes()]
-            a = Alignment()
+            a = MutableAlignment()
             a.set_alignment(dict([(s, self.alignment[s]) for s in subset]))
             alignment_map[tree_idx] = a
 

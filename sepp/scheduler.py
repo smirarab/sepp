@@ -229,6 +229,7 @@ class Join(object):
                 self._lock.release()                
                 return
         self.perform()
+
         self._joined = True
         self._lock.release()
         
@@ -252,7 +253,11 @@ def JobPool(cpus = None):
                         %( _jobPool.cpus, cpus)) 
     return _jobPool
     
-
+class JobError(Exception):
+    
+    def __init__(self, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+        
 class _JobPool:
     '''
     A singelton class, managing all Jobs. 
@@ -293,7 +298,7 @@ class _JobPool:
                 # TODO: currently callback exceptions are simply ignored. 
                 # Is there a better solution?
                 job.errors.append(e)
-                traceback.print_exc()
+                traceback.print_exc()            
                 
         ''' We need to backup callbacks of a Job. 
         The following line ensures that pickling issues do not arise'''
@@ -312,30 +317,37 @@ class _JobPool:
         '''
         waits for all jobs in the queue to finish running. Makes attempt to 
         wait for newly added jobs as well.
+        
         If ignore_error is false, this method stops after the first job with an
-        error is discovered, and raises the error of that method. 
-        Returns whether all finished jobs have finished successfully (in case
-        ignore_error is set to True). 
+        error and with job.ignore_error == True is discovered, and raises 
+        the error of that job.
+         
+        This method returns whether all finished jobs have finished successfully.
+        So, if some of the jobs have ignore_error set, or if ignore_error 
+        parameter is set, this method does not raise those exceptions, but still
+        the return value tells you whether there are any jobs with error.          
         '''
         more = True
         while more:
-            for result in self._async_restults.values():
+            for (job,result) in self._async_restults.items():
                 try:
                     result.get()
+                    if len(job.errors) != 0:
+                        raise Exception(job.errors[0])
                 except Exception as e:
-                    if not ignore_error:
-                        raise e
+                    if not ignore_error and not job.ignore_error:
+                        raise
             ''' _lock is acquired so that while we are iterating through the list
             no other job can add to the list (i.e. from their callbacks)'''            
             self._lock.acquire()
             more = False 
             hasFailed = False           
-            for result in self._async_restults.values():
+            for (job,result) in self._async_restults.items():
                 if not result.ready():
                     more = True
-                elif not result.successful():
-                    if not ignore_error:
-                        result.get()
+                elif (not result.successful()) or (len(job.errors) != 0):
+                    if not ignore_error and not job.ignore_error:
+                        result.get()                       
                     hasFailed = True
             self._lock.release()
         
@@ -349,7 +361,7 @@ class _JobPool:
         return self._async_restults.has_key(job)
 
     def get_asynch_result_object(self, job):
-        ''' returns an instance of multiprocessing._pool.AsyncResult class,
+        ''' returns an instance of multiprocessing.pool.AsyncResult class,
         corresponding to the execution of the given job. This object can
         be used to check status of a job'''
         self._lock.acquire()
@@ -365,7 +377,7 @@ class _JobPool:
         ret = []
         self._lock.acquire()
         for job, res in self._async_restults.iteritems():
-            if res.ready() and not res.successful():
+            if (res.ready() and not res.successful()) or (len(job.errors)!=0):
                 ret.append(job)
         self._lock.release()
         return ret
@@ -410,6 +422,7 @@ class _JobPool:
     def terminate(self):
         ''' Terminate all jobs in a queue'''
         self._lock.acquire()
+        self._pool.close()
         self._pool.terminate()
         self._pool = None
         self._async_restults = {}

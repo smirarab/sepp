@@ -28,10 +28,9 @@ Created on Jul 13, 2012
 '''
 
 
-import ConfigParser
-from optparse import OptionParser, OptionGroup
+from config import options
 import dendropy
-from sepp.taxonomic import tempfile, read_fasta, write_newick, decompose_tree,\
+from sepp.taxonomic import tempfile, _read_fasta, write_newick, decompose_tree,\
     NammyClass, write_membership, run_pplacer, merge_trees, write_alignment,\
     hmmr_profile, hmmr_align
 from Bio import AlignIO  
@@ -49,13 +48,13 @@ def global_alignment(tree_file, alignment_file, fragment_file, output, logger, t
     
     initTime = os.times()
     sTimer = os.times()
-    alignment = read_fasta(alignment_file);
+    alignment = _read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
     #print alignment.keys()
     
     sTimer = os.times()
-    fragments = read_fasta(fragment_file);
+    fragments = _read_fasta(fragment_file);
     eTimer = os.times()
     logger.write("Time: Reading fragments: %s \n" %  (eTimer[4]-sTimer[4]))
     
@@ -83,13 +82,13 @@ def local_align_local_place_combined_align(tree_file, alignment_file, fragment_f
 
     initTime = os.times()
     sTimer = os.times()
-    alignment = read_fasta(alignment_file);
+    alignment = _read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
     
         
     sTimer = os.times()
-    fragments = read_fasta(fragment_file);
+    fragments = _read_fasta(fragment_file);
     eTimer = os.times()
     logger.write("Time: Reading fragments: %s \n" %  (eTimer[4]-sTimer[4]))
                 
@@ -204,13 +203,13 @@ def local_align_local_place_align(tree_file, alignment_file, fragment_file, outp
     
     initTime = os.times()
     sTimer = os.times()
-    alignment = read_fasta(alignment_file);
+    alignment = _read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
     #logger.write("Alignment keys:\n %s\n" %alignment.keys())   
 
     sTimer = os.times()
-    fragments = read_fasta(fragment_file);
+    fragments = _read_fasta(fragment_file);
     eTimer = os.times()
     logger.write("Time: Reading fragments: %s \n" %  (eTimer[4]-sTimer[4]))
     #logger.write("Fragment keys:\n %s\n" %fragments.keys())   
@@ -316,13 +315,13 @@ def local_align_global_place_align(tree_file, alignment_file, fragment_file, out
                  global_align=True, tempdir=""):
     initTime = os.times()
     sTimer = os.times()
-    alignment = read_fasta(alignment_file);
+    alignment = _read_fasta(alignment_file);
     eTimer = os.times()
     logger.write("Time: Reading alignment: %s \n" %  (eTimer[4]-sTimer[4]))
     
         
     sTimer = os.times()
-    fragments = read_fasta(fragment_file);
+    fragments = _read_fasta(fragment_file);
     eTimer = os.times()
     logger.write("Time: Reading fragments: %s \n" %  (eTimer[4]-sTimer[4]))
                 
@@ -364,147 +363,27 @@ def global_placement(tree_file, raxml_file, output, logger, pckg="", suffix="", 
     logger.write("Time: Total Pplacer: %s \n" %  (eTimer[4]-sTimer[4]))
     logger.flush()    
 
-def parseOptions (commandLine = None):
-    '''Parse command line for options'''
-
-    desc = ' '.join(['This script runs the SEPP algorithm on an input tree, alignment, fragment file, and RAxML info file.'])
-
-    parser = OptionParser(usage = "usage: %prog [options] -t tree_file -a alignment_file -f fragment_file -r raxml_file -o output", 
-                          version = "%prog 1.0", 
-                          description = desc)
-
-    parser.set_defaults(size = None,
-                        superSize = None,
-                        output = "output",
-                        #keep_align = False,
-                        tempdir = tempfile.tempdir)    
-
-    group4InfoString = ' '.join(["These options determine the alignment decomposition size and", 
-                                 "taxon insertion size.  If None is given, then the default",
-                                 "is to align/place at 10% of total taxa.  The alignment decomosition size must be",
-                                 "less than the taxon insertion size."])
-    group4 = OptionGroup(parser, "Decomposition Options".upper(), group4InfoString)                                 
-    
-    group4.add_option("-A", "--alignmentSize", type = "int", 
-                      dest = "size", metavar = "N", 
-                      help = "max alignment subset size of N"
-                             "[default: %default]")    
-    group4.add_option("-P", "--placementSize", type = "int", 
-                      dest = "superSize", metavar = "N", 
-                      help = "max placement subset size of N"
-                             "[default: %default]")    
-    parser.add_option_group(group4)                             
-    
-    group5InfoString = ' '.join(["These options control output."])
-    group5 = OptionGroup(parser, "Output Options".upper(), group5InfoString)                                 
-    
-    group5.add_option("-p", "--tempdir", 
-                      dest = "tempdir", metavar = "DIR", 
-                      help = "Tempfile files will be written to DIR. Full-path required."
-                             "[default: %default]")    
-    group5.add_option("-o", "--output", 
-                      dest = "output", metavar = "OUTPUT", 
-                      help = "output with prefix OUTPUT."
-                             "[default: %default]")
-    group5.add_option("-d", "--outdir", 
-                      dest = "outdir", metavar = "OUTPUT_DIR", 
-                      help = "output to OUTPUT_DIR directory. full-path required."
-                             "[default: .]")    
-        
-    #group5.add_option("-k", "--keep_align", 
-    #                  dest = "keep_align", 
-    #                  help = "Flag to keep alignment files"                      
-    #                         "[default: %default]")
-    parser.add_option_group(group5)                             
-                             
-    group6InfoString = ' '.join(["These options control input. To run SEPP the following is required. " 
-                                 "A backbone tree (in newick format), a RAxML_info file (this is the file generated by RAxML during estimation of the backbone tree. " 
-                                 "Pplacer uses this info file to set model parameters), "
-                                 "a backbone alignment file (in fasta format), and a fasta file including fragments."])
-    group6 = OptionGroup(parser, "Input Options".upper(), group6InfoString)                                 
-    
-    group6.add_option("-c", "--config", 
-                      dest = "config_file", metavar = "CONFIG", 
-                      help = "A config file, including options used to run SEPP. Options provided as command line arguments overwrite config file values for those options."
-                             "[default: %default]")    
-    group6.add_option("-t", "--tree", 
-                      dest = "tree_file", metavar = "TREE", 
-                      help = "Input tree file (newick format)"
-                             "[default: %default]")    
-    group6.add_option("-r", "--raxml", 
-                      dest = "raxml_file", metavar = "RAXML", 
-                      help = "RAxML_info file including model parameters, generated by RAxML (alternatively, a phyml stats.txt file could work)"
-                             "[default: %default]")    
-    group6.add_option("-a", "--alignment", 
-                      dest = "alignment_file", metavar = "ALIGN", 
-                      help = "Aligned fasta file"
-                             "[default: %default]")    
-    group6.add_option("-f", "--fragment", 
-                      dest = "fragment_file", metavar = "FRAG", 
-                      help = "fragment file"
-                             "[default: %default]")                                                          
-    #group6.add_option("-p", "--package", 
-    #                  dest = "package", metavar = "PKG", 
-    #                  help = "package directory"
-    #                         "[default: %default]")                                                          
-    #                         
-
-    parser.add_option_group(group6)
-                                 
-    if commandLine:
-        (options, args) = parser.parse_args(commandLine)
-    else:
-        (options, args) = parser.parse_args()
-
 #    if len(args) != 1:
 #        parser.error("Incorrect number of arguments. Try the -h flag for help.")
 
 #    input = args[0]
 
-    return (options)
+    return (_options_singelton)
 
 
-def checkOptions(options):
+def checkOptions(_options_singelton):
     supply = ""
-    if (options.tree_file is None):
+    if (_options_singelton.tree_file is None):
         supply = supply + " tree file,"
-    if (options.alignment_file is None):
+    if (_options_singelton.alignment_file is None):
         supply = supply + " alignment file,"
-    if (options.raxml_file is None):
+    if (_options_singelton.raxml_file is None):
         supply = supply + " raxml file,";
-    if (options.fragment_file is None):
+    if (_options_singelton.fragment_file is None):
         supply = supply + " fragment file"
     if (supply != ""):
-        print  >>sys.stderr, "Failed to supply: %s\nRun with -h option to see a list of options." % supply
+        print  >>sys.stderr, "Failed to supply: %s\nRun with -h option to see a list of _options_singelton." % supply
         exit(1)    
-
-def parseConfig(options):
-    config = ConfigParser.ConfigParser()
-    config.read(options.config_file)
-    #sections = ['input','output','algorithm']
-    for (k,v) in options.__dict__.items():    
-        try:
-            if (k.endswith("file")):
-                value = config.get('input', k)
-                if ((not value is None and value != "None") and (v is None)):
-                    options.__dict__[k] = value
-            elif (k.endswith("ize")):    
-                if (k == "size"):
-                    value = config.get('algorithm', 'alignment_size')
-                else:
-                    value = config.get('algorithm', 'placement_size')
-                if ((not value is None and value != "None") and (v is None)):
-                    options.__dict__[k] = value
-            else:    
-                value = config.get('output', k)
-                if ((not value is None and value != "None") and (v is None)):
-                    options.__dict__[k] = value
-                #Special case for output file
-                if ((not value is None and value != "None") and (v == "output") and (k == "output")):
-                    options.__dict__[k] = value
-        except:      
-            continue
-    return options
 
   
 def run_with_arguments():
@@ -512,58 +391,51 @@ def run_with_arguments():
     #Increase recursion limit, can hit on very large datasets
     os.sys.setrecursionlimit(1000000)
 
-    (options) = parseOptions()
-
-    #Now parse the config file, only overwriting changes that are 
-    #not specified in the options
-    if not options.config_file is None:
-        options = parseConfig(options)
-    
     #Check all key info given
     checkOptions(options)
     
     #Get taxa sizes, inefficient, can be done differently
-    alignment = read_fasta(options.alignment_file);
+    alignment = alignment.read_fasta(options['alignment_file']);
     total = len(alignment)
-    options.method = None
+    _options_singelton.method = None
     
     
     
     #If sizes are not set, then use 10% rule
-    if (options.size is None and options.superSize is None):
-        options.size = int(total*.10)
-        options.superSize = int(total*.10)
-        options.method = "local"        
-    if (options.superSize is None):
-        options.superSize = total;
+    if (_options_singelton.size is None and _options_singelton.superSize is None):
+        _options_singelton.size = int(total*.10)
+        _options_singelton.superSize = int(total*.10)
+        _options_singelton.method = "local"        
+    if (_options_singelton.superSize is None):
+        _options_singelton.superSize = total;
         
-    size = int(options.size)
-    superSize = int(options.superSize)
+    size = int(_options_singelton.size)
+    superSize = int(_options_singelton.superSize)
     #Determine algorithm based on size setting, will recode this since this is silly
-    if (options.size > options.superSize):
+    if (_options_singelton.size > _options_singelton.superSize):
         print  >>sys.stderr, "Alignment size must be smaller than or equal placment size\n"
         exit(1)
-    elif ((options.superSize >= total)):
-        options.method = "nammy"
-    elif ((options.size < options.superSize)):
-        options.method = "combined"
-    elif ((options.size == options.superSize)):
-        options.method = "local"
+    elif ((_options_singelton.superSize >= total)):
+        _options_singelton.method = "nammy"
+    elif ((_options_singelton.size < _options_singelton.superSize)):
+        _options_singelton.method = "combined"
+    elif ((_options_singelton.size == _options_singelton.superSize)):
+        _options_singelton.method = "local"
     else:
         #Should not reach here
         print  >>sys.stderr, "Error in size setting\n"
         exit(1)                              
 
-    tree_file = options.tree_file
-    alignment_file = options.alignment_file
-    raxml_file = options.raxml_file
-    output = options.output
-    fragment_file = options.fragment_file
+    tree_file = _options_singelton.tree_file
+    alignment_file = _options_singelton.alignment_file
+    raxml_file = _options_singelton.raxml_file
+    output = _options_singelton.output
+    fragment_file = _options_singelton.fragment_file
     ''' Don't place sequences that HMMER cannot mathc to any subset'''
     global_align = False
-    pckg = None #options.package
+    pckg = None #_options_singelton.package
 
-    tempdir = options.tempdir    
+    tempdir = _options_singelton.tempdir    
     #Hard coded filter e cutoff so that all fragments are scored
     elim = "99999999"
     #Filters are off by default
@@ -572,14 +444,14 @@ def run_with_arguments():
     merge = True
     #always output labeled tree
     #label_tree = True
-    method = options.method
+    method = _options_singelton.method
     #threads = 4
     
     strategy = "centroid"
     clean = True
     
     #Getting the output directory
-    outdir = os.curdir if options.outdir is None else options.outdir
+    outdir = os.curdir if _options_singelton.outdir is None else _options_singelton.outdir
     if os.path.split(output)[0] != '':
         print >>sys.stderr, "Output prefix cannot be a directory: %s" %output
         exit(1)
@@ -599,7 +471,7 @@ def run_with_arguments():
     
     logger = sys.stderr
     
-    print "Running %s %s %s" % (options.method, options.size, options.superSize)
+    print "Running %s %s %s" % (_options_singelton.method, _options_singelton.size, _options_singelton.superSize)
     #Need to change it from alignment/tree in separate steps back into one, right now a little inefficient
     #clean the output directory.  This can get very messy, will fix later how files are kept track with later
     if (method == "nammy"):
@@ -609,7 +481,7 @@ def run_with_arguments():
         global_placement(tree_file, raxml_file, output, logger, pckg=pckg, suffix="alignment.sto", ref_suffix="aligned.fasta")
         if (os.path.isfile("%s.meta" % output)):
             remove_temp("%s.meta" % output)
-        if (True):# options.keep_align == False):
+        if (True):# _options_singelton.keep_align == False):
             if (os.path.isfile("%s.alignment.sto" % output)):
                 remove_temp("%s.alignment.sto" % output)
           
@@ -643,7 +515,7 @@ def run_with_arguments():
                 remove_temp(os.path.join(outdir,f))
             elif (re.search(outfile + '\.tree\.' + '\d+', f) is not None):
                 remove_temp(os.path.join(outdir,f))
-            elif (re.search(outfile + '\.\d+\.combined\.sto', f) is not None and True): # options.keep_align == False):
+            elif (re.search(outfile + '\.\d+\.combined\.sto', f) is not None and True): # _options_singelton.keep_align == False):
                 remove_temp(os.path.join(outdir,f))                  
           
     #elif (method == "papara"):

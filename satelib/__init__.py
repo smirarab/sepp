@@ -50,7 +50,6 @@ If you tell sate to keep its temporary files (-k option), then the configuration
 If configuration files are read in the order they occur as arguments (with values in later files replacing previously read values). Options specified in the command line are read last. Thus these values "overwrite" any settings from the configuration files.
 """
 
-__all__ = ["alignment", "configure", "sate", "scheduler", "settings", "tools", "tree", "usersettingclasses", "utility"]
 
 import os
 import glob
@@ -59,113 +58,6 @@ import re
 import time
 import sys
 
-_LOGGING_LEVEL_ENVAR = "SATE_LOGGING_LEVEL"
-_LOGGING_FORMAT_ENVAR = "SATE_LOGGING_FORMAT"
-
-# global debugging flag
-if "SATE_DEBUG" in os.environ:
-    if os.environ["SATE_DEBUG"]:
-        if os.environ["SATE_DEBUG"].lower()[0] in ["1", "t", "y", "d"]:
-            GLOBAL_DEBUG = True
-        else:
-            GLOBAL_DEBUG = False
-    else:
-        GLOBAL_DEBUG = False
-else:
-    GLOBAL_DEBUG = False
-
-def get_logging_level():
-    """Checks environment for SATE_LOGGING_LEVEL and returns a logging level
-    integer.
-    """
-    import logging
-    if _LOGGING_LEVEL_ENVAR in os.environ:
-        if os.environ[_LOGGING_LEVEL_ENVAR].upper() == "NOTSET":
-            level = logging.NOTSET
-        elif os.environ[_LOGGING_LEVEL_ENVAR].upper() == "DEBUG":
-            level = logging.DEBUG
-        elif os.environ[_LOGGING_LEVEL_ENVAR].upper() == "INFO":
-            level = logging.INFO
-        elif os.environ[_LOGGING_LEVEL_ENVAR].upper() == "WARNING":
-            level = logging.WARNING
-        elif os.environ[_LOGGING_LEVEL_ENVAR].upper() == "ERROR":
-            level = logging.ERROR
-        elif os.environ[_LOGGING_LEVEL_ENVAR].upper() == "CRITICAL":
-            level = logging.CRITICAL
-        else:
-            level = logging.NOTSET
-    else:
-        level = logging.NOTSET
-    return level
-
-def get_logger(name="sate"):
-    """
-    Returns a logger with name set as given, and configured
-    to the level given by the environment variable _LOGGING_LEVEL_ENVAR.
-    """
-    logger_set = False
-    logger = logging.getLogger(name)
-    if not logger_set:
-        level = get_logging_level()
-        rich_formatter = logging.Formatter("[%(asctime)s] %(filename)s (line %(lineno)d): %(levelname) 8s: %(message)s")
-        simple_formatter = logging.Formatter("%(levelname) 8s: %(message)s")
-        default_formatter = None
-        logging_formatter = default_formatter
-        if _LOGGING_FORMAT_ENVAR in os.environ:
-            if os.environ[_LOGGING_FORMAT_ENVAR].upper() == "RICH":
-                logging_formatter = rich_formatter
-            elif os.environ[_LOGGING_FORMAT_ENVAR].upper() == "SIMPLE":
-                logging_formatter = simple_formatter
-            elif os.environ[_LOGGING_FORMAT_ENVAR].upper() == "NONE":
-                logging_formatter = None
-            else:
-                logging_formatter = default_formatter
-        else:
-            logging_formatter = default_formatter
-        if logging_formatter is not None:
-            logging_formatter.datefmt = '%H:%M:%S'
-        logger.setLevel(level)
-        ch = logging.StreamHandler()
-        ch.setLevel(level)
-        ch.setFormatter(logging_formatter)
-        logger.addHandler(ch)
-    return logger
-
-TIMING_LOG = logging.getLogger("TIMING_LOG")
-TIMING_LOG.setLevel(logging.CRITICAL)
-
-def set_timing_log_filepath(fp):
-    global TIMING_LOG
-    if not fp:
-        TIMING_LOG.setLevel(logging.CRITICAL)
-    else:
-        TIMING_LOG.setLevel(logging.DEBUG)
-        h = logging.FileHandler(fp)
-        f = logging.Formatter("[%(asctime)s] : %(message)s")
-        f.datefmt = '%D %H:%M:%S'
-        h.setLevel(logging.DEBUG)
-        h.setFormatter(f)
-        TIMING_LOG.addHandler(h)
-
-def log_exception(logger):
-    '''Logs the exception trace to the logObj as an error'''
-    import traceback, cStringIO
-    s = cStringIO.StringIO()
-    traceback.print_exc(None, s)
-    logger.debug(s.getvalue())
-
-def ensure_unique_filename(stem, suffix=None):
-    disambiguator = ""
-    idx = 1
-    if suffix is None:
-        suffix = ""
-    while True:
-        idx += 1
-        path = "%s%s%s" % (stem, disambiguator, suffix)
-        if not os.path.exists(path):
-            break
-        disambiguator = ".%03d" % idx
-    return path
 
 class Messenger(object):
     """

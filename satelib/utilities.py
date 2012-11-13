@@ -19,7 +19,7 @@
 from dendropy import treecalc
 from sepp import sortByValue
 from Bio import AlignIO
-from sepp.alignment import Alignment
+from sepp.alignment import MutableAlignment
 
 '''
 Returns a given number of taxa that are closest to a given leaf
@@ -60,7 +60,7 @@ def convert_stockholm_to_fasta(in_path, out_path):
 def read_sto_alignment(fn, keep_original = False):
     try:
         ioA = AlignIO.read(fn, 'stockholm')
-        alignment = Alignment()
+        alignment = MutableAlignment()
         for row in ioA:
             if (keep_original == True):
                 alignment[row.id]=row.seq.data
