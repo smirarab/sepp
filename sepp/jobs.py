@@ -37,6 +37,7 @@ class ExternalSeppJob(Job):
         '''
         self.stdoutdata = self.stderrdata = None        
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
+        self.fake_run = False
     
     def get_id(self):
         return self._id
@@ -50,6 +51,8 @@ class ExternalSeppJob(Job):
         ''' Runs the external job, and handles errors, piping, etc. 
         get_invocation() needs to be implemented in child classes.
         '''
+        if self.fake_run:
+            return self.read_results()        
         try:
             _LOG.info("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
             
@@ -275,9 +278,11 @@ class HMMAlignJob(ExternalSeppJob):
         it will need to get pickled and unpickled. Instead, we just send
         back the file name, and will let the caller figure out what to do with it. 
         '''
-        assert os.path.exists(self.outfile)
-        assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
-        return self.outfile
+        if os.path.exists(self.outfile):
+            assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
+            return self.outfile
+        else:
+            return None
     
     
     

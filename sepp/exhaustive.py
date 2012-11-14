@@ -65,11 +65,15 @@ class JoinSearchJobs(Join):
         for align_problem in self.root_problem.iter_leaves():
             aj = align_problem.jobs['hmmalign']
             assert isinstance(aj,HMMAlignJob)
-            ''' First Complete setting up alignment'''
-            aj.hmmmodel = align_problem.get_job_result_by_name('hmmbuild')
-            aj.base_alignment = align_problem.jobs["hmmbuild"].infile    
+            
             assert isinstance(align_problem.fragments, ReadOnlyAlignment)
-            align_problem.fragments.write_to_path(aj.fragments)
+            if not align_problem.fragments.is_empty():
+                ''' First Complete setting up alignment''' 
+                aj.hmmmodel = align_problem.get_job_result_by_name('hmmbuild')
+                aj.base_alignment = align_problem.jobs["hmmbuild"].infile    
+                align_problem.fragments.write_to_path(aj.fragments)
+            else:
+                aj.fake_run = True
             ''' Now the align job can be put on the queue '''
             JobPool().enqueue_job(aj)                
                 
@@ -100,10 +104,12 @@ class JoinAlignJobs(Join):
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.get_children():
             assert isinstance(ap, SeppProblem)
-            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-                        (ap.jobs["hmmalign"].base_alignment, ap.get_job_result_by_name('hmmalign'))
+            aligned_file = ap.get_job_result_by_name('hmmalign')
+            if aligned_file:
+                ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                        (ap.jobs["hmmalign"].base_alignment, aligned_file)
                                 
-            extendedAlignment.merge_in(ap_alg)
+                extendedAlignment.merge_in(ap_alg)
         return extendedAlignment
     
     def perform(self):            
@@ -148,7 +154,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         AbstractAlgorithm.check_options(self)
              
     def build_subproblems(self):
-        (alignment, tree) = self.read_input_files()        
+        (alignment, tree) = self.read_alignment_and_tree()        
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
         
@@ -161,7 +167,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         
         self._create_root_problem(tree, alignment)             
         
-        ''' Decompte the tree'''
+        ''' Decompte the tree based on placement subsets'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, tree_map = {},
                                         strategy=self.strategy)

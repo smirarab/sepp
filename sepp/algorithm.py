@@ -4,10 +4,9 @@ Created on Oct 2, 2012
 @author: smirarab
 '''
 from sepp.config import options
-from argparse import ArgumentError
 from abc import abstractmethod, ABCMeta
 from sepp.scheduler import JobPool
-from sepp.filemgr import directory_has_files_with_prefix
+from sepp.filemgr import directory_has_files_with_prefix, get_temp_file
 from sepp.alignment import MutableAlignment
 from sepp.tree import PhylogeneticTree
 import dendropy
@@ -169,12 +168,12 @@ class AbstractAlgorithm(object):
 
     def check_outputprefix(self):
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
-            raise ArgumentError("Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (self.options.outdir,self.options.output))
+            raise ValueError("Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (self.options.outdir,self.options.output))
 
     def get_output_filename(self, name):
         return os.path.join(self.options.outdir,"%s_%s" %(self.options.output,name))
     
-    def read_input_files(self):
+    def read_alignment_and_tree(self):
         alignment = MutableAlignment()
         alignment.read_file_object(self.options.alignment_file)
         
@@ -186,6 +185,22 @@ class AbstractAlgorithm(object):
                                                preserve_underscores=True))        
         
         return (alignment, tree)
+
+    def read_and_divide_fragments(self, chunks):
+        alignment = MutableAlignment()
+        alignment.read_file_object(self.options.fragment_file)
+        
+        chunksize = alignment.get_num_taxa()//chunks + 1;
+        names = alignment.get_sequence_names()
+        
+        ret = []
+        for i in xrange(0,chunks):
+            temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")
+            subset = names[i*chunksize:max((i+1)*chunksize,len(names))]
+            subset_alg = alignment.get_soft_sub_alignment(subset)
+            subset_alg.write_to_path(temp_file)
+            ret.append(temp_file)            
+        return ret
     
     def _create_root_problem(self, tree, alignment):
         ''' Create the root problem'''   
