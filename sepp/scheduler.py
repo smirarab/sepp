@@ -172,7 +172,7 @@ class Join(object):
         return ret
     
     # internal method for checking join status. 
-    def _assert_is_active(self):
+    def _assert_has_not_finished(self):
         if self._joined:
             raise Exception("Adding a job to a Join object that has already joined.")    
     
@@ -182,7 +182,7 @@ class Join(object):
         '''
         check_object(job)
         self._lock.acquire()
-        self._assert_is_active()
+        self._assert_has_not_finished()
         self._jobs.add(job)
         JobPool()._add_jobs_to_join([job], self)
         self._lock.release()
@@ -191,7 +191,7 @@ class Join(object):
 #    def add_jobs(self, jobs):
 #        for job in jobs: check_object(job)
 #        self._lock.acquire()
-#        self._assert_is_active()
+#        self._assert_has_not_finished()
 #        self._jobs.update(set(jobs))
 #        JobPool()._add_jobs_to_join(job, self)
 #        self._lock.release()                
@@ -199,7 +199,7 @@ class Join(object):
 #    def replace_job(self, old_job, new_job):
 #        check_object(new_job)        
 #        self._lock.acquire()
-#        self._assert_is_active()
+#        self._assert_has_not_finished()
 #        if not self.depends_on(old_job):
 #            self._lock.release()
 #            raise KeyError("the job to be replaced is not part of this join: %s" %str(old_job))        
