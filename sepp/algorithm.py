@@ -163,9 +163,9 @@ class AbstractAlgorithm(object):
         if (options.placement_size is None):
             options.placement_size = options.alignment_size
         if options.placement_size is not None and options.placement_size < options.alignment_size:
-            raise ArgumentError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
+            raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
         if options.placement_size > total or options.placement_size > total:
-            raise ArgumentError("alignment_size (%d) and placement_size (%d) should be smaller than total number of taxa (%d). " %(options.alignment_size,options.placement_size,total))
+            raise ValueError("alignment_size (%d) and placement_size (%d) should be smaller than total number of taxa (%d). " %(options.alignment_size,options.placement_size,total))
 
     def check_outputprefix(self):
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
