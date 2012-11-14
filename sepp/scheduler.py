@@ -270,7 +270,7 @@ class _JobPool:
     '''
     
     def __init__(self, cpunum):
-        self.cpus = cpunum if cpunum is not None else max([cpu_count()-2,1])
+        self.cpus = cpunum if cpunum is not None else cpu_count()
         self._pool = Pool(self.cpus)
         self._async_restults = {}
         self._callBack_lists = {}

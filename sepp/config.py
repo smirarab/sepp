@@ -32,6 +32,7 @@ import ConfigParser
 from sepp import version, get_logger
 import argparse
 import os
+from sepp.scheduler import JobPool
 
 _LOG = get_logger(__name__)
    
@@ -68,6 +69,11 @@ def valid_file_prefix(prefix):
     if os.path.dirname(prefix) != "":
         raise argparse.ArgumentTypeError("%s is not a valid output prefix (includes a directory)." %prefix)
     return prefix
+
+def set_cpu(cpus):
+    c = int(cpus)
+    JobPool(c)
+    return c
     
 def _get_parser():
     parser = ArgumentParser(description= 
@@ -145,13 +151,22 @@ def _get_parser():
                       dest = "fragment_file", metavar = "FRAG",
                       type = argparse.FileType('r'), 
                       help = "fragment file "
-                             "[default: %(default)s]")                                                          
+                             "[default: %(default)s]")          
+    parser.add_argument_group(inputGroup)
+        
+    otherGroup = parser.add_argument_group( "Other options".upper(), 
+                         "These options control how SEPP is run")                                     
+    otherGroup.add_argument("-x", "--cpu", type = set_cpu, 
+                      dest = "cpu", metavar = "N", 
+                      default = None,
+                      help = "Use N cpus "
+                             "[default: number of cpus available on the machine]")                                                      
     #inputGroup.add_argument("-p", "--package", 
     #                  dest = "package", metavar = "PKG", 
     #                  help = "package directory"
     #                         "[default: %(default)s]")                                                          
     #                         
-    parser.add_argument_group(inputGroup)
+
     
     return parser
 
