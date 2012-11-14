@@ -43,11 +43,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         pass
 
     def output_results(self):
-        outfilename = self.get_output_filename("alignment.fasta")
         assert len(self.root_problem.get_children()) == 1, "Currently UPP works with only one placement subset."
         pp = self.root_problem.get_children()[0]
         extended_alignment = pp.jobs["pplacer"].get_keyword_attribute("extended_alignment_object")
+        outfilename = self.get_output_filename("alignment.fasta")
         extended_alignment.write_to_path(outfilename)
+        masked = extended_alignment.get_insertion_masked_alignment()
+        outfilename = self.get_output_filename("masked_alignment.fasta")
+        masked.write_to_path(outfilename)
         
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (self.options.placement_size >= total), "currently UPP works with only one placement subset"

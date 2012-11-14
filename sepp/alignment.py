@@ -469,6 +469,14 @@ class ExtendedAlignment(MutableAlignment):
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
+    
+    def get_insertion_masked_alignment(self):
+        ret = MutableAlignment()
+        ret.set_alignment(self)
+        for pos in xrange(len(self.col_labels)-1,-1,-1):
+            if self.is_insertion_column(pos):
+                ret.remove_column(pos)
+        return ret
         
     def merge_in(self, other):
         '''
