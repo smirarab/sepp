@@ -20,7 +20,7 @@ _LOG = get_logger(__name__)
     
 class ExternalSeppJob(Job):
     '''
-    All Sepp jobs that run extrernal programs 
+    All Sepp jobs that run external programs 
     should extend this abstract class.
     This class handles executing external jobs, error handling, and more.     
     '''

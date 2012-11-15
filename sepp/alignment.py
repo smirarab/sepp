@@ -488,6 +488,9 @@ class ExtendedAlignment(MutableAlignment):
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
     
     def get_insertion_masked_alignment(self):
+        '''
+        Outputs a new alignment with insertion columns masked out.
+        '''
         ret = MutableAlignment()
         ret.set_alignment(self)
         for pos in xrange(len(self.col_labels)-1,-1,-1):

@@ -19,10 +19,7 @@
 
 # This file is copied to SEPP and is used as an external library
 
-import copy
 from dendropy import Tree, Taxon
-from dendropy import Edge
-from dendropy import Node
 from dendropy import DataSet as Dataset
 from dendropy import convert_node_to_root_polytomy
 from sepp import get_logger
