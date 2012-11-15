@@ -32,8 +32,8 @@ import ConfigParser
 from sepp import version, get_logger
 import argparse
 import os
-from sepp.scheduler import JobPool
 from multiprocessing import cpu_count
+from sepp import scheduler
 
 _LOG = get_logger(__name__)
    
@@ -73,7 +73,7 @@ def valid_file_prefix(prefix):
 
 def set_cpu(cpus):
     c = int(cpus)
-    JobPool(c)
+    scheduler.default_cpus = c
     return c
     
 def _get_parser():
