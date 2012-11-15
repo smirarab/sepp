@@ -39,6 +39,7 @@ class ExternalSeppJob(Job):
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
         self.fake_run = False
         self.attributes=dict()
+        self.path = sepp.config.options().__getattribute__(self.job_type).path         
     
     def get_id(self):
         return self._id
@@ -198,7 +199,7 @@ class HMMBuildJob(ExternalSeppJob):
         self._kwargs = kwargs
         
     def get_invocation(self):
-        invoc = [sepp.config.options().hmmbuild.path, "--symfrac" ,"0.0" ,"--dna"]
+        invoc = [self.path, "--symfrac" ,"0.0" ,"--dna"]
         if self._kwargs.has_key("user_options"):
             invoc.extend(self._kwargs["user_options"].split())
         if self.informat == "fasta":
@@ -259,7 +260,7 @@ class HMMAlignJob(ExternalSeppJob):
         self._kwargs = kwargs  
                     
     def get_invocation(self):
-        invoc = [sepp.config.options().hmmalign.path, "--allcol", "--dna",
+        invoc = [self.path, "--allcol", "--dna",
                  "-o", self.outfile]
         if self.trim:
             invoc.extend(["--trim"])
@@ -323,7 +324,7 @@ class HMMSearchJob(ExternalSeppJob):
     
             
     def get_invocation(self):
-        invoc = [sepp.config.options().hmmsearch.path, "-o", self.outfile, "--noali", "--cpu", "1"]
+        invoc = [self.path, "-o", self.outfile, "--noali", "--cpu", "1"]
         if self.elim is not None:
             invoc.extend(["-E", str(self.elim)])
         if not self.filters:
@@ -409,7 +410,7 @@ class PplacerJob(ExternalSeppJob):
 
         
     def get_invocation(self):
-        invoc = [sepp.config.options().pplacer.path, 
+        invoc = [self.path, 
                  "--out-dir", os.path.dirname(self.out_file)]   
         if self._kwargs.has_key("user_options"):
             invoc.extend(self._kwargs["user_options"].split())

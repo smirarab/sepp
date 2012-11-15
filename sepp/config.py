@@ -156,7 +156,7 @@ def _get_parser():
                          "These options control how SEPP is run")                                     
     otherGroup.add_argument("-x", "--cpu", type = set_cpu, 
                       dest = "cpu", metavar = "N", 
-                      default = cpu_count(),
+                      default = set_cpu(cpu_count()),
                       help = "Use N cpus "
                              "[default: number of cpus available on the machine]")
                                                           
