@@ -1,0 +1,79 @@
+IMPORTANT WARNING: Alignment column 883 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 884 contains only undetermined values which will be treated as missing data
+IMPORTANT WARNING: Alignment column 885 contains only undetermined values which will be treated as missing data
+
+IMPORTANT WARNING
+Found 3 columns that contain only undetermined values which will be treated as missing data.
+Normally these columns should be excluded from the analysis.
+
+Just in case you might need it, an alignment file with 
+undetermined columns removed is printed to file temp.phylip.reduced
+
+
+This is RAxML version 7.2.8 released by Alexandros Stamatakis in October 2010.
+
+With greatly appreciated code contributions by:
+Andre Aberer (TUM)
+Simon Berger (TUM)
+John Cazes (TACC)
+Michael Ott (TUM)
+Nick Pattengale (UNM)
+Wayne Pfeiffer (SDSC)
+Akifumi S. Tanabe (Univ. Tsukuba)
+
+
+Alignment has 747 distinct alignment patterns
+
+Proportion of gaps and completely undetermined characters in this alignment: 73.23%
+
+RAxML rapid hill-climbing mode
+
+Using 1 distinct models/data partitions with joint branch length optimization
+
+
+Executing 1 inferences on the original alignment using 1 user-specifed trees
+
+All free model parameters will be estimated by RAxML
+ML estimate of 25 per site rate categories
+
+Likelihood of final tree will be evaluated and optimized under GAMMA
+
+GAMMA Model parameters will be estimated up to an accuracy of 0.1000000000 Log Likelihood units
+
+Partition: 0
+Alignment Patterns: 747
+Name: No Name Provided
+DataType: DNA
+Substitution Matrix: GTR
+
+
+
+
+RAxML was called as follows:
+
+/projects/sate3/namphuon/bin/raxmlHPC -m GTRCAT -n tree -s temp.phylip -g /projects/sate5/metagen//data/genes/rpsS/rpsS.taxonomy 
+
+
+Inference[0]: Time 872.680798 CAT-based likelihood -149792.803628, best rearrangement setting 10
+alpha[0]: 1.000000 rates[0] ac ag at cg ct gt: 1.369556 3.320973 1.916155 1.942774 4.871462 1.000000 
+
+
+Conducting final model optimizations on all 1 trees under GAMMA-based models ....
+
+Testing which likelihood implementation to use
+Standard Implementation full tree traversal time: 0.926688
+Subtree Equality Vectors for gap columns full tree traversal time: 0.484984
+... using SEV-based implementation
+
+Inference[0] final GAMMA-based Likelihood: -148066.823410 tree written to file /scratch/cluster/namphuon/tmp/temp228876/RAxML_result.tree
+
+
+Starting final GAMMA-based thorough Optimization on tree 0 likelihood -148066.823410 .... 
+
+Final GAMMA-based Score of best tree -148044.220043
+
+Program execution info written to /scratch/cluster/namphuon/tmp/temp228876/RAxML_info.tree
+Best-scoring ML tree written to: /scratch/cluster/namphuon/tmp/temp228876/RAxML_bestTree.tree
+
+Overall execution time: 1454.746667 secs or 0.404096 hours or 0.016837 days
+

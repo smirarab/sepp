@@ -1,0 +1,31 @@
+{
+    "files": {
+        "phylo_model": "tmpGz5ysi", 
+        "taxonomy": "all_taxon.taxonomy", 
+        "tree_file": "sate.tre", 
+        "aln_fasta": "sate.fasta", 
+        "seq_info": "species.mapping", 
+        "tree_stats": "sate.tre.RAxML_info"
+    }, 
+    "rollback": null, 
+    "log": [
+        "Stripped refpkg (removed 0 files)", 
+        "Loaded initial files into empty refpkg"
+    ], 
+    "metadata": {
+        "package_version": "1.0", 
+        "locus": "pyrg", 
+        "create_date": "2012-02-07 16:35:46", 
+        "format_version": "1.1", 
+        "author": "Nam Nguyen <namphuon@cs.utexas.edu>"
+    }, 
+    "rollforward": null, 
+    "md5": {
+        "phylo_model": "fc2282b47adc1cefefcadb0bf26eb6f0", 
+        "taxonomy": "d493f466ca4ebd56d3acd402b80d3839", 
+        "tree_file": "51fb7ccdf4660c2d846e2e7bc43928c3", 
+        "aln_fasta": "0ce8b4a57edd9881c484198d7faeb1cd", 
+        "seq_info": "4de9c48ede9111dec6f2ce2a225bb498", 
+        "tree_stats": "010b639a886e94f52d7d97b41c387191"
+    }
+}
