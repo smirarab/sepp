@@ -38,6 +38,7 @@ class ExternalSeppJob(Job):
         self.stdoutdata = self.stderrdata = None        
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
         self.fake_run = False
+        self.attributes=dict()
     
     def get_id(self):
         return self._id
@@ -145,15 +146,15 @@ class ExternalSeppJob(Job):
         '''
         raise NotImplementedError("read_results should be implemented by subclasses")        
     
-    def get_keyword_attribute(self,key):
+    def get_attribute(self,key):
         ''' each job maintains a dictionary of free form attributes. 
         '''
-        return self._kwargs[key]
+        return self.attributes[key]
 
-    def set_keyword_attribute(self,key,val):
+    def set_attribute(self,key,val):
         ''' each job maintains a dictionary of free form attributes. 
         '''
-        self._kwargs[key] = val
+        self.attributes[key] = val
 
 class HMMBuildJob(ExternalSeppJob):
     '''

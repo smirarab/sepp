@@ -160,8 +160,25 @@ class ReadOnlyAlignment(Mapping, object):
         return True    
         
     def __str__(self):
-        return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])     
+        return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])
+    
+    def divide_to_equal_chunks(self,chunks):
+        chunksize = self.get_num_taxa()//chunks + 1;
+        names = self.get_sequence_names()        
+        ret = []
+        for i in xrange(0,chunks):
+            subset = names[i*chunksize:min((i+1)*chunksize,len(names))]
+            subset_alg = self.get_soft_sub_alignment(subset)
+            ret.append(subset_alg)            
+        return ret     
 
+    def get_soft_sub_alignment(self, sub_key):
+        '''
+        Returns a read-only sub-alignment, which won't consume extra memory, 
+        since it will not hold a separate copy of the alignment.
+        '''
+        return ReadonlySubalignment(sub_key, self)       
+    
 class MutableAlignment(dict, ReadOnlyAlignment, object):
     """ An alignment object, that can be modified. This is the class that should
     be used mainly for holding alignments.  
@@ -241,14 +258,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         for key in sub_keys:
             new_alignment[key] = self[key]
         new_alignment.delete_all_gap()
-        return new_alignment
-
-    def get_soft_sub_alignment(self, sub_key):
-        '''
-        Returns a read-only sub-alignment, which won't consume extra memory, 
-        since it will not hold a separate copy of the alignment.
-        '''
-        return ReadonlySubalignment(sub_key, self)                
+        return new_alignment         
 
 class ReadonlySubalignment(ReadOnlyAlignment):
     '''
@@ -403,20 +413,27 @@ class ExtendedAlignment(MutableAlignment):
 
     def build_extended_alignment(self, base_alignment, path_to_sto_extension):
         '''
-        Given a base alignment, and the path to and .sto file, this 
-        populates self with an extended alignment. This is equivalent of
-        reading the base_alignment firs, and then merging in the extended 
-        alignment. 
+        Given a base alignment and a path to an .sto file (or a list of paths), 
+        this methods populates self with an extended alignment by first reading
+        the base alignment, and then merging in all the .sto extension alignments.         
+        Note that the .sto alignments should contain only fragments, and also
+        note that there should be no taxon overlap among extensions, or between
+        extensions and the base.
         '''
         if isinstance(base_alignment, ReadOnlyAlignment):
             self.set_alignment(copy.deepcopy(base_alignment))            
         elif isinstance(base_alignment, str):
             self.read_filepath(base_alignment, "FASTA")
         
-        ext = ExtendedAlignment(self.fragments)
-        ext.read_extended_alignment(path_to_sto_extension)
+        if isinstance(path_to_sto_extension, str):
+            paths = [path_to_sto_extension]
+        else:
+            paths = path_to_sto_extension
         
-        self.merge_in(ext)
+        for path in paths:
+            ext = ExtendedAlignment(self.fragments)
+            ext.read_extended_alignment(path)        
+            self.merge_in(ext)
     
     def read_extended_alignment(self, path, aformat = "stockholm"):
         ''' Reads alignment from given path and figures out "insertion"

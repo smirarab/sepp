@@ -6,14 +6,13 @@ Created on Oct 10, 2012
 from sepp.algorithm import AbstractAlgorithm
 from sepp.config import options
 from sepp.tree import PhylogeneticTree
-from sepp.alignment import MutableAlignment, ReadOnlyAlignment,\
-    ExtendedAlignment
+from sepp.alignment import MutableAlignment, ExtendedAlignment
 from sepp.problem import SeppProblem
 from dendropy.dataobject.tree import Tree
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
-import sepp
+from sepp.math_utils import lcm
 
 _LOG = get_logger(__name__)
 
@@ -33,18 +32,21 @@ class JoinSearchJobs(Join):
     
     def perform(self):
         '''
-        Distributes fragments to alignments subsets, and runs align jobs on those.    
+        Distributes fragments to alignments subsets with best score, 
+        and runs align jobs on those. Also, creates new chunks of fragments
+        for better parallelism.     
         '''
-        self.root_problem.fragments = MutableAlignment().read_file_object(sepp.config.options().fragment_file)
-        
+  
         ''' Figure out which fragment should go to which subproblem'''
-        max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])              
-        for align_problem in self.root_problem.iter_leaves():
+        max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])    
+        for fragment_chunk_problem in self.root_problem.iter_leaves():
+            align_problem = fragment_chunk_problem.get_parent()
             assert isinstance(align_problem, SeppProblem)
             '''For each subproblem start with an empty set of fragments, 
             and add to them as we encounter new best hits for that subproblem'''
-            align_problem.fragments = self.root_problem.fragments.get_soft_sub_alignment([])
-            search_res = align_problem.get_job_result_by_name("hmmsearch")
+            if align_problem.fragments is None: 
+                align_problem.fragments = self.root_problem.fragments.get_soft_sub_alignment([])
+            search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
             for key in search_res.keys():
                 (best_value, prev_align_problem) = max_evalues[key]
                 ''' If this is better than previous best hit, remove this
@@ -61,21 +63,29 @@ class JoinSearchJobs(Join):
         for k,v in max_evalues.items():
             assert v[1] is not None, "Fragments %s is not scored against any subset" %k
         
-        ''' Now setup alignment jobs and enqueue them'''
-        for align_problem in self.root_problem.iter_leaves():
-            aj = align_problem.jobs['hmmalign']
-            assert isinstance(aj,HMMAlignJob)
-            
-            assert isinstance(align_problem.fragments, ReadOnlyAlignment)
-            if not align_problem.fragments.is_empty():
-                ''' First Complete setting up alignment''' 
-                aj.hmmmodel = align_problem.get_job_result_by_name('hmmbuild')
-                aj.base_alignment = align_problem.jobs["hmmbuild"].infile    
-                align_problem.fragments.write_to_path(aj.fragments)
-            else:
-                aj.fake_run = True
-            ''' Now the align job can be put on the queue '''
-            JobPool().enqueue_job(aj)                
+        ''' For each alignment subproblem, 
+        1) make sure its fragments are evenly distributed to fragment chunks. 
+        2) Setup alignment jobs for its children and enqueue them'''
+        alg_problems = [alg for p in self.root_problem.children for alg in p.children ]
+        for alg_problem in alg_problems:
+            assert isinstance(alg_problem, SeppProblem)
+            chunks = len(alg_problem.get_children())
+            fragment_chunks = alg_problem.fragments.divide_to_equal_chunks(chunks)
+
+            ''' Now setup alignment jobs and enqueue them'''
+            for (i,fragment_chunk_problem) in enumerate(alg_problem.children):        
+                fragment_chunk_problem.fragments = fragment_chunks[i] 
+                aj = fragment_chunk_problem.jobs['hmmalign']
+                assert isinstance(aj,HMMAlignJob)            
+                if not fragment_chunk_problem.fragments.is_empty():
+                    ''' First Complete setting up alignments''' 
+                    aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
+                    aj.base_alignment = alg_problem.jobs["hmmbuild"].infile    
+                    fragment_chunk_problem.fragments.write_to_path(aj.fragments)
+                else:
+                    aj.fake_run = True
+                ''' Now the align job can be put on the queue '''
+                JobPool().enqueue_job(aj)                
                 
     def __str__(self):
         return "join search jobs for all tips of ", self.root_problem
@@ -102,14 +112,13 @@ class JoinAlignJobs(Join):
             pp.fragments.seq_names.extend(ap.fragments)   
         ''' Then Build an extended alignment by merging all hmmalign results''' 
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
-        for ap in pp.get_children():
+        for ap in pp.children:
             assert isinstance(ap, SeppProblem)
-            aligned_file = ap.get_job_result_by_name('hmmalign')
-            if aligned_file:
-                ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-                        (ap.jobs["hmmalign"].base_alignment, aligned_file)
+            aligned_files = [fp.get_job_result_by_name('hmmalign') for fp in ap.children if fp.get_job_result_by_name('hmmalign') is not None]
+            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                        (ap.jobs["hmmbuild"].infile , aligned_files)
                                 
-                extendedAlignment.merge_in(ap_alg)
+            extendedAlignment.merge_in(ap_alg)
         return extendedAlignment
     
     def perform(self):            
@@ -119,7 +128,8 @@ class JoinAlignJobs(Join):
         
         pj = pp.jobs["pplacer"]
         assert isinstance(pj,PplacerJob)
-        extendedAlignment.write_to_path(pj.extended_alignment_file)       
+        extendedAlignment.write_to_path(pj.extended_alignment_file)  
+        pj.set_attribute("extended_alignment_object", extendedAlignment)     
         
         JobPool().enqueue_job(pj)
         
@@ -143,12 +153,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def merge_results(self):
         ''' TODO: implement this 
         '''
-        return AbstractAlgorithm.merge_results(self)
+        pass
 
     def output_results(self):
-        ''' TODO: implement this
-        '''
-        return AbstractAlgorithm.output_results(self)
+        ''' TODO: implement this to 1) output merged .json 2) merge alignments
+        '''        
+        for pp in self.root_problem.get_children():
+            extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
+            outfilename = self.get_output_filename("alignment_%s.fasta" %pp.label)
+            extended_alignment.write_to_path(outfilename)
+            masked = extended_alignment.get_insertion_masked_alignment()
+            outfilename = self.get_output_filename("alignment_%s_masked.fasta"%pp.label)
+            masked.write_to_path(outfilename)        
 
     def check_options(self):
         AbstractAlgorithm.check_options(self)
@@ -163,10 +179,10 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         tree.lable_edges()
         
         ''' Make sure size values are set, and are meaningful. '''
-        self.check_and_set_sizes(alignment.get_num_taxa())
-        
-        self._create_root_problem(tree, alignment)             
-        
+        self.check_and_set_sizes(alignment.get_num_taxa())        
+    
+        self._create_root_problem(tree, alignment)              
+                       
         ''' Decompte the tree based on placement subsets'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, tree_map = {},
@@ -191,9 +207,23 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 alignment_problem  = SeppProblem(a_tree.leaf_node_names(), 
                                                   placement_problem)
                 alignment_problem.subtree = a_tree
-                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                
+                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))            
         
-        _LOG.info("Breaking into %d alignment subsets." %len(list(self.root_problem.iter_leaves())))    
+        ''' Divide fragments into chunks, to help achieve better parallelism'''
+        alg_subset_count = len(list(self.root_problem.iter_leaves()))
+        frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
+        fragment_chunk_files = self.read_and_divide_fragments(frag_chunk_count) 
+        for alignment_problem in self.root_problem.iter_leaves():       
+            for afc in xrange(0,frag_chunk_count):
+                frag_chunk_problem  = SeppProblem(alignment_problem.taxa, 
+                                              alignment_problem)
+                frag_chunk_problem.subtree = alignment_problem.subtree
+                frag_chunk_problem.label = alignment_problem.label.replace("A_", "FC_") + "_" +str(afc)
+                frag_chunk_problem.fragments = fragment_chunk_files[afc]
+                    
+        
+        _LOG.info("Breaking into %d alignment subsets." %alg_subset_count)    
+        _LOG.info("Breaking each alignment subset into %d fragment chunks." %frag_chunk_count)
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
     
@@ -214,22 +244,24 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             pj.partial_setup_for_subproblem(placement_problem, self.options.info_file.name)
             
             '''For each alignment subproblem, ...'''
-            for alg_problem in placement_problem.iter_leaves():
+            for alg_problem in placement_problem.children:
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
                 bj.setup_for_subproblem(alg_problem)
                 alg_problem.add_job(bj.job_type, bj)                
-                ''' create the search job'''
-                sj = HMMSearchJob()
-                sj.partial_setup_for_subproblem(self.options.fragment_file.name, alg_problem, self.elim, self.filters)
-                alg_problem.add_job(sj.job_type, sj)                
-                ''' connect bulid and search jobs'''
-                bj.add_call_Back(lambda result, next_job = sj: enq_job_searchfragment(result, next_job))                
-                ''' create the align job'''
-                aj = HMMAlignJob()
-                alg_problem.add_job(aj.job_type, aj)
-                aj.partial_setup_for_subproblem(alg_problem)
+                ''' create the search jobs'''
+                for fc_problem in alg_problem.get_children():
+                    sj = HMMSearchJob()
+                    sj.partial_setup_for_subproblem(fc_problem.fragments, fc_problem, self.elim, self.filters)
+                    fc_problem.add_job(sj.job_type, sj)                
+                    ''' connect bulid and search jobs'''
+                    bj.add_call_Back(lambda result, next_job = sj: enq_job_searchfragment(result, next_job))                
+                    
+                    ''' create the align job'''
+                    aj = HMMAlignJob()
+                    fc_problem.add_job(aj.job_type, aj)
+                    aj.partial_setup_for_subproblem(fc_problem)
                 
             '''Join all align jobs of a placement subset (enqueues placement job)'''
             jaj = self._get_new_Join_Align_Job()
@@ -241,8 +273,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                         
 
     def enqueue_firstlevel_job(self):
-        for ap in self.root_problem.iter_leaves():
-            JobPool().enqueue_job(ap.jobs["hmmbuild"])
+        for p in self.root_problem.children:
+            for ap in p.children:
+                JobPool().enqueue_job(ap.jobs["hmmbuild"])
 
 if __name__ == '__main__':
     ExhaustiveAlgorithm().run()

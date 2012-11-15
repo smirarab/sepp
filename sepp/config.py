@@ -33,6 +33,7 @@ from sepp import version, get_logger
 import argparse
 import os
 from sepp.scheduler import JobPool
+from multiprocessing import cpu_count
 
 _LOG = get_logger(__name__)
    
@@ -97,8 +98,7 @@ def _get_parser():
                       dest = "placement_size", metavar = "N",
                       default = None, 
                       help = "max placement subset size of N "
-                             "[default: 10%% of the total number of taxa]")    
-    parser.add_argument_group(decompGroup)                             
+                             "[default: 10%% of the total number of taxa]")                              
         
     outputGroup = parser.add_argument_group( "Output Options".upper(), 
                          "These options control output.")                                     
@@ -119,8 +119,7 @@ def _get_parser():
                       default = os.path.curdir, 
                       type = valid_dir_path,
                       help = "output to OUTPUT_DIR directory. full-path required. "
-                             "[default: %(default)s]")        
-    parser.add_argument_group(outputGroup)                             
+                             "[default: %(default)s]")                       
                              
     inputGroup = parser.add_argument_group ("Input Options".upper(), 
                          ' '.join(["These options control input. To run SEPP the following is required." 
@@ -152,15 +151,15 @@ def _get_parser():
                       type = argparse.FileType('r'), 
                       help = "fragment file "
                              "[default: %(default)s]")          
-    parser.add_argument_group(inputGroup)
         
     otherGroup = parser.add_argument_group( "Other options".upper(), 
                          "These options control how SEPP is run")                                     
     otherGroup.add_argument("-x", "--cpu", type = set_cpu, 
                       dest = "cpu", metavar = "N", 
-                      default = None,
+                      default = cpu_count(),
                       help = "Use N cpus "
-                             "[default: number of cpus available on the machine]")                                                      
+                             "[default: number of cpus available on the machine]")
+                                                          
     #inputGroup.add_argument("-p", "--package", 
     #                  dest = "package", metavar = "PKG", 
     #                  help = "package directory"

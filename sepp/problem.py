@@ -186,10 +186,12 @@ class SeppProblem(Problem):
     
     def write_subalignment_without_allgap_columns(self, path):
         '''
-        Writes out the subalignment associated with this subproblem. 
-        Also keeps track of column names, so that later on column names 
-        could be retrieved for merging step. This is crucial for a correct
-        merge. 
+        Writes out the subalignment associated with this subproblem to a file,
+        removing all gap columns, but also keeping track of what was removed and
+        what was kept. This method keeps track of column names that were actually
+        written to file, so that later on column names could be set to the original
+        value. This is crucial for a correct merge. 
+        (see read_extendend_alignment_and_relabel_columns) 
         '''
         mut_subalg = self.subalignment.get_mutable_alignment()
         remaining_cols = mut_subalg.delete_all_gap()
@@ -200,9 +202,12 @@ class SeppProblem(Problem):
         
     def read_extendend_alignment_and_relabel_columns(self, orig_path, extension_path):
         '''
-        This goes with write_subalignment_without_allgap_columns method, and enables
-        reading back an alignment that was previously written to disk, and 
-        relabeling its columns with the original lables.  
+        This method goes with write_subalignment_without_allgap_columns method.
+        It enables reading back an alignment that was previously written to disk, 
+        and relabeling its columns with the original labels. 
+        extension_path is a path to an .sto file (or a list of paths).
+        Alignments from these .sto files are also read, and merged with the 
+        original (base) alignment.  
         '''
         remaining_cols = self.annotations["ref.alignment.columns"]
         assert remaining_cols is not None and len(remaining_cols) != 0, ("Subproblem"
