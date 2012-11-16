@@ -105,8 +105,9 @@ class JoinAlignJobs(Join):
             self.add_job(p.jobs["hmmalign"])         
     
     def merge_subalignments(self):
-        ''' First make sure fragments are correctly assigned to the subproblem'''
+        ''' First make sure fragments are correctly assigned to the root problem'''
         pp = self.placement_problem
+        _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
         for ap in pp.get_children():
             pp.fragments.seq_names.extend(ap.fragments)   
@@ -115,9 +116,10 @@ class JoinAlignJobs(Join):
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
             aligned_files = [fp.get_job_result_by_name('hmmalign') for fp in ap.children if fp.get_job_result_by_name('hmmalign') is not None]
+            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
-                                
+            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
             extendedAlignment.merge_in(ap_alg)
         return extendedAlignment
     
@@ -162,9 +164,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
             outfilename = self.get_output_filename("alignment_%s.fasta" %pp.label)
             extended_alignment.write_to_path(outfilename)
-            masked = extended_alignment.get_insertion_masked_alignment()
+            extended_alignment.remove_insertion_masked_alignment()
             outfilename = self.get_output_filename("alignment_%s_masked.fasta"%pp.label)
-            masked.write_to_path(outfilename)        
+            extended_alignment.write_to_path(outfilename)        
 
     def check_options(self):
         AbstractAlgorithm.check_options(self)

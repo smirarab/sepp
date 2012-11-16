@@ -46,9 +46,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
         outfilename = self.get_output_filename("alignment.fasta")
         extended_alignment.write_to_path(outfilename)
-        masked = extended_alignment.get_insertion_masked_alignment()
+        extended_alignment.remove_insertion_masked_alignment()
         outfilename = self.get_output_filename("alignment_masked.fasta")
-        masked.write_to_path(outfilename)
+        extended_alignment.write_to_path(outfilename)
         
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (

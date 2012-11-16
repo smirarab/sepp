@@ -39,7 +39,7 @@ _LOG = get_logger(__name__)
 
 
 def is_sequence_legal(seq):
-    """Check for illegal characters -- TODO, currently returns True"""
+    """Check for illegal characters -- TODO:, currently returns True"""
     return True
 
 def _read_fasta(src):
@@ -196,7 +196,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         """Augments the matrix by reading the filepath.
         If duplicate sequence names are encountered then the old name will be replaced.
         """
-        file_obj = open(filename, 'r')
+        file_obj = open(filename, 'rU')
         return self.read_file_object(file_obj, file_format=file_format)
 
     def read_file_object(self, file_obj, file_format='FASTA'):
@@ -231,6 +231,10 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             seq = self.get(name)
             seq = seq[:pos] + seq[pos + 1:]
             self[name] = seq
+
+    def remove_columns(self, indexes):
+        for name in self.keys():
+            self[name] = ''.join((char for idx, char in enumerate(self.get(name)) if idx not in indexes))
     
     def delete_all_gap(self):
         '''
@@ -343,7 +347,20 @@ class ExtendedAlignment(MutableAlignment):
             self._reset_col_names()
         else:
             self._col_labels.insert(pos, new_label)
-
+    
+    def add_column_other(self, pos, other, otherpos, addlen, new_label=None):
+        '''
+        A new column is added to the alignment. The new label can be value, 
+        or one of three directives (see below). 
+        '''
+        for name,seq in self.items():
+            if other.has_key(name):
+                c = other[name][otherpos:otherpos+addlen]
+            else:            
+                c = "-" * addlen       
+            self[name] = seq[:pos] + c + seq[pos:]
+        self._col_labels[pos:pos] = new_label
+        
     def remove_column(self, pos, labels="REMOVE"):
         '''
         Remove a column and potentially adjust column names.
@@ -423,6 +440,7 @@ class ExtendedAlignment(MutableAlignment):
         if isinstance(base_alignment, ReadOnlyAlignment):
             self.set_alignment(copy.deepcopy(base_alignment))            
         elif isinstance(base_alignment, str):
+            _LOG.info("Reading base alignment: %s." %(base_alignment))
             self.read_filepath(base_alignment, "FASTA")
         
         if isinstance(path_to_sto_extension, str):
@@ -432,15 +450,17 @@ class ExtendedAlignment(MutableAlignment):
         
         for path in paths:
             ext = ExtendedAlignment(self.fragments)
-            ext.read_extended_alignment(path)        
+            ext.read_extended_alignment(path)   
+            _LOG.info("Merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))     
             self.merge_in(ext)
+            _LOG.debug("Finished merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))            
     
     def read_extended_alignment(self, path, aformat = "stockholm"):
         ''' Reads alignment from given path and figures out "insertion"
         columns. Labels insertion columns with special labels and labels the 
         rest of columns (i.e. original columns) sequentially. 
         '''         
-        handle = open(path,'r')
+        handle = open(path,'rU')
         insertions = None
         if aformat.lower() == "stockholm":
             insertions = self._read_sto(handle)
@@ -454,8 +474,8 @@ class ExtendedAlignment(MutableAlignment):
         insertion = -1
         for c in insertions:
             k=""
-            assert all([self[k][c] != "-" for k in self.get_base_seq_names()]), (
-                            "Insertion column has sequence among original"
+            assert not any ([self[k][c] != "-" for k in self.get_base_seq_names()]), (
+                            "Insertion column has sequence among original "
                             "sequences. An error? column: %d k= %s" %(c,k))
             self.col_labels[c] = insertion
             insertion -= 1
@@ -487,16 +507,40 @@ class ExtendedAlignment(MutableAlignment):
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
     
-    def get_insertion_masked_alignment(self):
+    def remove_insertion_masked_alignment(self):
         '''
         Outputs a new alignment with insertion columns masked out.
         '''
-        ret = MutableAlignment()
-        ret.set_alignment(self)
-        for pos in xrange(len(self.col_labels)-1,-1,-1):
-            if self.is_insertion_column(pos):
-                ret.remove_column(pos)
-        return ret
+        cols = [i for (i,x) in enumerate(self.col_labels) if x < 0]
+        s=[]
+        a=0
+        for b in cols: 
+            if b > a:
+                s.append((a,b)); 
+            a=b+1;
+        s.append((a,len(self.col_labels)))
+        for name, seq in self.items():
+            news = []
+            for c in s:
+                news.append(seq[c[0]:c[1]])
+            self[name] = "".join(news)
+        
+    def write_insertion_maked_to_file(self,path):
+        cols = [i for (i,x) in enumerate(self.col_labels) if x < 0]
+        s=[]
+        a=0
+        for b in cols: 
+            if b > a:
+                s.append((a,b)); 
+            a=b+1;
+        s.append((a,len(self.col_labels)))
+        file_obj = open(path,'w')
+        for name, seq in self.items():
+            file_obj.write('>%s\n' % name)
+            for c in s:
+                file_obj.write(seq[c[0]:c[1]])
+            file_obj.write("\n")
+        file_obj.close()
         
     def merge_in(self, other):
         '''
@@ -508,52 +552,111 @@ class ExtendedAlignment(MutableAlignment):
         merge the two alignments.
         '''
         assert isinstance(other, ExtendedAlignment)
+        _LOG.debug("Merging started ...")
         me = 0
-        she = 0 # important alignments are assumed to be female!
+        she = 0 # Assumption: alignments are female!
         me_len = self.get_length() if not self.is_empty() else 0 
         she_len = other.get_length()   
         insertion = -1
         
+        ''' Add sequences from her to my alignment '''
         for f in other.fragments:
             self.fragments.add(f)
         for k in other.keys():
             assert k not in self.keys(), "Merging overlapping alignments not implemented"
             self[k] = ""
-            
-        while me < me_len or she < she_len:
+                    
+        start = 0
+        status = 0   
+        atboundary = False 
+        while True:
             #print me, she, me_len, she_len
+            ''' For performance reason, string manipulation is done at chunks '''
+            if atboundary:
+                if status == 1:
+                    run = she - start
+                    self.add_column_other(me, other, start, run, range(insertion,insertion-run,-1))
+                    insertion -= run   
+                    me += run             
+                    me_len += run
+                elif status == 4:
+                    run = she - start
+                    self.add_column_other(me, other, start, run, other.col_labels[start:she])
+                    me += run
+                    me_len += run
+                elif status == 5:
+                    for k in other.keys():                    
+                        self[k] += other[k][start:she]
+                elif status == 2:
+                    run = me - start
+                    ins = "-" * run
+                    for k in other.keys():
+                        self[k] += ins
+                    self.col_labels[start:me] = range(insertion,insertion-run,-1)
+                    insertion -= run 
+                elif status == 3:
+                    run = me - start
+                    ins = "-" * run
+                    for k in other.keys():
+                        self[k] += ins                  
+                atboundary = False
+                status = 0
+                
+            ''' Check exit conditions'''
             if me == me_len and she == she_len:
-                break
+                if status == 0:
+                    break
+                else:
+                    atboundary = True
+                    continue    
+            
+            ''' Check the 5 possible statuses between she and I '''            
             if she != she_len and other.is_insertion_column(she):
-                self.add_column(me, char = _AlignmentLookupHelper(she, other))                
-                self.col_labels[me] = insertion
-                insertion -= 1
-                she += 1
-                me += 1
-                me_len += 1
+                ''' Hers is an insertion column'''                
+                if status == 0:
+                    status = 1
+                    start = she
+                if status == 1:
+                    she += 1
+                else:
+                    atboundary = True
             elif me != me_len and self.is_insertion_column(me):
-                for k in other.keys():
-                    self[k] += "-"
-                self.col_labels[me] = insertion
-                insertion -= 1                
-                me += 1
+                ''' Mine is an insertion column'''
+                if status == 0:
+                    status = 2
+                    start = me
+                if status == 2:                    
+                    me += 1
+                else:
+                    atboundary = True                    
             elif she == she_len or (me != me_len and self.col_labels[me] < other.col_labels[she]):
                 ''' My column is not present (i.e. was allgap) in the "other"'''
-                for k in other.keys():
-                    self[k] += "-"
-                me += 1                
+                if status == 0:
+                    status = 3
+                    start = me
+                if status == 3:
+                    me += 1
+                else:
+                    atboundary = True                
             elif me == me_len or (she != she_len and self.col_labels[me] > other.col_labels[she]):
                 ''' Her column is not present (i.e. was allgap) in "me"'''
-                self.add_column(me, char= _AlignmentLookupHelper(she, other))
-                self.col_labels[me] = other.col_labels[she]
-                she += 1
-                me += 1
-                me_len += 1
+                if status == 0:
+                    status = 4
+                    start = she
+                if status == 4:
+                    she += 1                        
+                else:
+                    atboundary = True
             elif self.col_labels[me] == other.col_labels[she]:
-                ''' A shared column'''                
-                for k in other.keys():                    
-                    self[k] += other[k][she]
-                she += 1
-                me += 1
+                ''' A shared column'''
+                if status == 0:
+                    status = 5
+                    start = she
+                if status == 5:
+                    she += 1
+                    me += 1
+                else:
+                    atboundary = True
             else:
                 raise "hmmm, we thought this should be impossible? %d %d" %(me, she)
+        _LOG.debug("Merging finished ...")
