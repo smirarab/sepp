@@ -52,8 +52,8 @@ class JoinSearchJobs(Join):
                 ''' If this is better than previous best hit, remove this
                 fragment from the previous hit, and add it to this subproblem 
                 '''
-                if best_value is None or (best_value > search_res[key][0]):
-                    max_evalues[key] = (search_res[key][0], align_problem)
+                if best_value is None or (best_value > search_res[key][1]):
+                    max_evalues[key] = (search_res[key][1], align_problem)
                     align_problem.fragments.seq_names.append(key)
                     if prev_align_problem is not None:
                         prev_align_problem.fragments.seq_names.remove(key)
