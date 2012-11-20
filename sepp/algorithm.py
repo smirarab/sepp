@@ -14,6 +14,7 @@ from sepp import get_logger
 import sys
 import os
 from sepp.problem import SeppProblem
+import time
 
 _LOG = get_logger(__name__)
 
@@ -125,6 +126,8 @@ class AbstractAlgorithm(object):
             
     def run(self):
         
+        t = time.time()
+        
         '''check input arguments'''
         self.check_options()
         
@@ -150,6 +153,7 @@ class AbstractAlgorithm(object):
         '''Output final results'''
         self.output_results()         
         
+        _LOG.info("Execution Finished in %d seconds" %(time.time() - t))
 
     ''' The following are a bunch of helper methods that will be needed in 
     most implementations of sepp'''
