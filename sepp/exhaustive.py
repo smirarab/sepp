@@ -52,7 +52,7 @@ class JoinSearchJobs(Join):
                 ''' If this is better than previous best hit, remove this
                 fragment from the previous hit, and add it to this subproblem 
                 '''
-                if best_value is None or (best_value > search_res[key][1]):
+                if best_value is None or (best_value < search_res[key][1]):
                     max_evalues[key] = (search_res[key][1], align_problem)
                     align_problem.fragments.seq_names.append(key)
                     if prev_align_problem is not None:
@@ -151,6 +151,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.elim = 99999999
         self.filters = False
         self.strategy = options().exhaustive.strategy
+        self.minsubsetsize = int(options().exhaustive.minsubsetsize)
 
     def merge_results(self):
         ''' TODO: implement this 
@@ -187,9 +188,13 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                        
         ''' Decompte the tree based on placement subsets'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
-                                        self.options.placement_size, tree_map = {},
-                                        strategy=self.strategy)
-        
+                                        self.options.placement_size, 
+                                        strategy=self.strategy, 
+                                        minSize = self.minsubsetsize,
+                                        tree_map = {})
+        assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
+        " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
+        %(self.strategy, self.minsubsetsize, self.options.placement_size))        
         _LOG.info("Breaking into %d placement subsets." %len(placement_tree_map))
 
         ''' For placement subsets create a placement subproblem, and decompose further'''
@@ -198,11 +203,17 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             placement_problem  = SeppProblem(p_tree.leaf_node_names(), self.root_problem)
             placement_problem.subtree = p_tree
             placement_problem.label = "P_%s" %str(p_key)
-            _LOG.debug("Placement subset %s has %d nodes: %s" %(placement_problem.label,len(p_tree.leaf_node_names()),str(sorted(p_tree.leaf_node_names()))))
+            _LOG.debug("Placement subset %s has %d nodes" %(placement_problem.label,len(p_tree.leaf_node_names())))
             ''' Further decompose to alignment subsets '''
             alignment_tree_map = PhylogeneticTree(Tree(p_tree.den_tree)).decompose_tree(
-                                        self.options.alignment_size, tree_map = {},
-                                        strategy=self.strategy)
+                                        self.options.alignment_size, 
+                                        strategy=self.strategy, 
+                                        minSize = self.minsubsetsize,
+                                        tree_map = {})
+            assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
+            " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
+            %(self.strategy, self.minsubsetsize, self.options.alignment_size))
+            
             _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
             for (a_key, a_tree) in alignment_tree_map.items():
                 assert isinstance(a_tree, PhylogeneticTree)

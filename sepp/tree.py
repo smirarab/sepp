@@ -53,7 +53,7 @@ class PhylogeneticTree(object):
             else:
                 i.num_leaves_below = sum([j.edge.num_leaves_below for j in nd.child_nodes()])
 
-    def get_centroid_edge(self):
+    def get_centroid_edge(self, minSize):
         """Get centroid edge"""
         root = self._tree.seed_node
         root_children = root.child_nodes()
@@ -71,7 +71,11 @@ class PhylogeneticTree(object):
         for edge in self._tree.postorder_edge_iter():
             if edge.tail_node is None:
                 continue
-            n_descendants = edge.num_leaves_below
+            n_descendants = edge.num_leaves_below  
+            if n_descendants > 1:
+                pass
+            if  minSize is not None and ((n_descendants < minSize) or (self.n_leaves - n_descendants < minSize)):
+                continue
             imbalance = abs(half_taxa - n_descendants)
             if (imbalance < centroid_imbalance):
                 centroid_edge = edge
@@ -79,23 +83,14 @@ class PhylogeneticTree(object):
             assert centroid_edge is not None
         return centroid_edge
 
-    def get_longest_internal_edge(self):
-        longest_internal_edge = None
-        longest_len = -1.0
-        for edge in self._tree.postorder_edge_iter():
-            if edge.tail_node is None:
-                continue
-            if (edge.length is not None) and edge.is_internal() and edge.length > longest_len:
-                longest_internal_edge = edge
-                longest_len = edge.length
-        assert longest_internal_edge is not None
-        return longest_internal_edge
-
-    def get_longest_edge(self):
+    def get_longest_edge(self, minSize):
         longest_edge = None
         longest_len = -1.0
         for edge in self._tree.postorder_edge_iter():
             if edge.tail_node is None:
+                continue
+            onesideSize = len(edge.head_node.leaf_nodes())
+            if  minSize is not None and (onesideSize < minSize or self.n_leaves - onesideSize < minSize):
                 continue
             if edge.length is not None and edge.length > longest_len:
                 longest_edge = edge
@@ -109,11 +104,11 @@ class PhylogeneticTree(object):
         he.extend(te)
         return he
 
-    def get_breaking_edge(self, option):
+    def get_breaking_edge(self, option, minSize):
         if option.lower() == 'centroid':
-            return self.get_centroid_edge()
+            return self.get_centroid_edge(minSize)
         elif option.lower() == 'longest':
-            return self.get_longest_edge()
+            return self.get_longest_edge(minSize)
         else:
             raise ValueError('Unknown break strategy "%s"' % option)
 
@@ -195,30 +190,34 @@ class PhylogeneticTree(object):
             tree.prune_taxa(taxa)
         return PhylogeneticTree(tree)
     
-    def bisect_tree(self, breaking_edge_style='centroid'):
+    def bisect_tree(self, breaking_edge_style='centroid', minSize= None):
         """Partition 'tree' into two parts
         """
-        e = self.get_breaking_edge(breaking_edge_style)
+        e = self.get_breaking_edge(breaking_edge_style, minSize)
+        if (e is None):
+            return None, None, None
         _LOG.debug("breaking_edge length = %s, %s" % (e.length, breaking_edge_style) )
         snl = self.n_leaves
         tree1, tree2 = self.bipartition_by_edge(e)
         _LOG.debug("Tree 1 has %s nodes, tree 2 has %s nodes" % (tree1.n_leaves, tree2.n_leaves) )
         assert snl == tree1.n_leaves + tree2.n_leaves
-        return tree1, tree2
+        return tree1, tree2, e
 
-    def decompose_tree(self, maxSize=25, tree_map={}, strategy="centroid"):
+    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}):
         """
-        This function decomposes the tree until all subtrees are smaller than the max size.  Two
-        possible decompositions strategies can used: "centroid" and "longest".  Returns a
-        map containing the subtrees, in an ordered fashion.
+        This function decomposes the tree until all subtrees are smaller than 
+        the max size, but does not decompose below min size.  
+        Two possible decompositions strategies can used: "centroid" and "longest".  
+        Returns a map containing the subtrees, in an ordered fashion.
         
         SIDE EFFECT: deroots the tree (TODO: necessary?)
         """          
         self._tree.deroot()
         if (self.count_leaves() > maxSize):    
-            (t1, t2) = self.bisect_tree(strategy)
-            t1.decompose_tree(maxSize, tree_map, strategy)
-            t2.decompose_tree(maxSize, tree_map, strategy)
+            (t1, t2, e) = self.bisect_tree(strategy, minSize)
+            if e is not None:
+                t1.decompose_tree(maxSize, strategy, minSize, tree_map)
+                t2.decompose_tree(maxSize, strategy, minSize, tree_map)
         else:
             tree_map[len(tree_map)] = self
         return tree_map

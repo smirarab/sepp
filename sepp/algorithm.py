@@ -169,6 +169,8 @@ class AbstractAlgorithm(object):
             raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
         if options.placement_size > total or options.placement_size > total:
             raise ValueError("alignment_size (%d) and placement_size (%d) should be smaller than total number of taxa (%d). " %(options.alignment_size,options.placement_size,total))
+        
+        _LOG.info("Decomposition Sizes are set to alignment: %d placement: %d" %(options.alignment_size, options.placement_size)) 
 
     def check_outputprefix(self):
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
@@ -178,12 +180,13 @@ class AbstractAlgorithm(object):
         return os.path.join(self.options.outdir,"%s_%s" %(self.options.output,name))
     
     def read_alignment_and_tree(self):
+        _LOG.info("Reading input alignment: %s" %(self.options.alignment_file))
         alignment = MutableAlignment()
         alignment.read_file_object(self.options.alignment_file)
         
         #fragments = MutableAlignment()
         #fragments.read_file_object(self.options.fragment_file);   
-        
+        _LOG.info("Reading input tree: %s" %(self.options.tree_file))        
         tree = PhylogeneticTree( dendropy.Tree(stream=self.options.tree_file, 
                                                schema="newick", 
                                                preserve_underscores=True))        
