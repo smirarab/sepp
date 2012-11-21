@@ -24,10 +24,6 @@ __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools", "
 
 version = "2.0"
 
-def sortByValue(d,reverse=False):
-    return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
-
-
 _DEBUG = os.environ.has_key("SEPP_DEBUG") and os.environ["SEPP_DEBUG"].lower() == "true"
 #print "Debug mode is %s." %("on" if _DEBUG else "off")
 
@@ -57,22 +53,6 @@ def get_logger(name="sepp"):
         __set_loggers.add(name)
     return logger
 
-TIMING_LOG = logging.getLogger("TIMING_LOG")
-TIMING_LOG.setLevel(logging.CRITICAL)
-
-def set_timing_log_filepath(fp):
-    global TIMING_LOG
-    if not fp:
-        TIMING_LOG.setLevel(logging.CRITICAL)
-    else:
-        TIMING_LOG.setLevel(logging.DEBUG)
-        h = logging.FileHandler(fp)
-        f = logging.Formatter("[%(asctime)s] : %(message)s")
-        f.datefmt = '%D %H:%M:%S'
-        h.setLevel(logging.DEBUG)
-        h.setFormatter(f)
-        TIMING_LOG.addHandler(h)
-
 def log_exception(logger):
     '''Logs the exception trace to the logObj as an error'''
     import traceback, cStringIO
@@ -81,3 +61,8 @@ def log_exception(logger):
     logger.debug(s.getvalue())
     
 os.sys.setrecursionlimit(1000000)    
+
+def sortByValue(d,reverse=False):
+    return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
+
+

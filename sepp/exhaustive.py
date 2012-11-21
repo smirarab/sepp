@@ -9,7 +9,8 @@ from sepp.tree import PhylogeneticTree
 from sepp.alignment import MutableAlignment, ExtendedAlignment
 from sepp.problem import SeppProblem
 from dendropy.dataobject.tree import Tree
-from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob
+from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
+    MergeJsonJob
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
 from sepp.math_utils import lcm
@@ -155,11 +156,28 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def merge_results(self):
         ''' TODO: implement this 
-        '''
-        pass
+        '''        
+        assert isinstance(self.root_problem,SeppProblem)
+        mergeinput = []
+        '''Append main tree to merge input'''
+        mergeinput.append("%s;" %(self.root_problem.subtree.compose_newick(labels = True)))
+        jsons = []
+        for pp in self.root_problem.get_children():
+            assert isinstance(pp,SeppProblem)
+            '''Append subset trees and json locations to merge input'''
+            mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
+                              pp.get_job_result_by_name("pplacer")))
+        mergeinput.append("")
+        mergeinput.append("")
+        meregeinputstring = "\n".join(mergeinput)
+        mergeJsonJob = MergeJsonJob()
+        mergeJsonJob.setup(meregeinputstring, 
+                           self.get_output_filename("placement.json"))
+        mergeJsonJob.run()                        
 
     def output_results(self):
-        ''' TODO: implement this to 1) output merged .json 2) merge alignments
+        ''' Merged json file is already saved in merge_results function.        
+        TODO: implement this to calculate and output merged .json. 
         '''        
         for pp in self.root_problem.get_children():
             extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")

@@ -2,13 +2,13 @@
 <project name="merge" default="jar">  
   
   <!-- Name of the output .jar file -->  
-  <property name="jar.name" value="merge.jar" />  
+  <property name="jar.name" value="seppJsonMerger.jar" />  
   
   <!-- Base directory for distribution target -->  
   <property name="deploy.home" value="." />  
   
   <!-- Base directory for compilation targets -->  
-  <property name="build.home" value="src" />  
+  <property name="src.home" value="src" />  
   
   <!-- Main class -->  
   <property name="main.class" value="phylolab.taxonamic.PPlacerJSONMerger" />  
@@ -17,7 +17,7 @@
   <property name="lib.home" value="lib" />  
   
   <target name="clean">
-        <delete dir="${build.home}/classes"/>
+        <delete dir="${debploy.home}/classes"/>
   </target>
 
   <path id="classpath">
@@ -27,8 +27,8 @@
   </path>
 
   <target name="compile">
-        <mkdir dir="${build.home}/classes"/>
-        <javac srcdir="src" destdir="${build.home}/classes">
+        <mkdir dir="${deploy.home}/classes"/>
+        <javac srcdir="src" destdir="${deploy.home}/classes">
 	        <classpath refid="classpath"/>
         </javac>
   </target>
@@ -36,7 +36,7 @@
   <target name="jar" description="Create jar and MANIFEST.MF" depends="clean,compile">  
 
     <!-- create the jar -->  
-    <jar jarfile="${deploy.home}/${jar.name}" basedir="${build.home}/classes">  
+    <jar jarfile="${deploy.home}/${jar.name}" basedir="${deploy.home}/classes">  
   
       <manifest>  
         <attribute name="Built-By" value="${user.name}" />  
@@ -48,7 +48,7 @@
       
       <zipgroupfileset dir="lib" includes="*.jar" />
       <!--<fileset dir="lib" includes="*.jar"/>  -->
-  
+      <fileset dir="${src.home}" includes="**/*.java"/>      
     </jar>  
   </target>  
   

@@ -10,10 +10,10 @@ from subprocess import Popen
 
 import os
 import subprocess
-import sepp
 import stat
 import re
 from sepp.tree import PhylogeneticTree
+import sepp.config
 import traceback
 
 _LOG = get_logger(__name__)
@@ -35,7 +35,11 @@ class ExternalSeppJob(Job):
         ''' The following will contain stdout and stderr values *only if* those
         are piped. If not, user should read the files to find the output if needed.
         '''
-        self.stdoutdata = self.stderrdata = None        
+        self.stdoutdata = self.stderrdata = None
+        ''' When the following is something other than None, it is piped in to
+        the subprocess. 
+        '''
+        self.stdindata = None        
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
         self.fake_run = False
         self.attributes=dict()
@@ -71,11 +75,17 @@ class ExternalSeppJob(Job):
                 #k['stderr'] = file(os.devnull, 'w')    
             elif isinstance(self._kwargs['stderr'],str):
                 self._kwargs['stderr'] = file(self._kwargs['stderr'], 'w')
-                    
+            
+            if self.stdindata is not None:
+                self._kwargs['stdin'] = subprocess.PIPE        
+            
             self._process = Popen(self.get_invocation(), **self._kwargs)        
             self._id = self._process.pid
-            
-            (self.stdoutdata, self.stderrdata) = self._process.communicate()         
+
+            if self.stdindata is not None:            
+                (self.stdoutdata, self.stderrdata) = self._process.communicate(input = self.stdindata)         
+            else:
+                (self.stdoutdata, self.stderrdata) = self._process.communicate()
             
     #        if self.process.stdout:
     #            self.process.stdout.close()
@@ -350,8 +360,8 @@ class HMMSearchJob(ExternalSeppJob):
         #Group 1 (e-value) 2 (bitscore) and 9 (taxon name) contain the relevant information, other ones can be ignored unless we plan to do something later
         pattern = re.compile(r"([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)")
         start_reading = False
-        for line in outfile:
-            line = line.strip()
+        for line in outfile:            
+            line = line.strip()            
             if (not start_reading and line.startswith("E-value") == True):
                 start_reading = True
             elif (start_reading and line == ""):
@@ -361,6 +371,8 @@ class HMMSearchJob(ExternalSeppJob):
                 matches = pattern.search(line)
                 if (matches is not None and matches.group(0).find("--") == -1):
                     results[matches.group(9).strip()] = (float(matches.group(1).strip()), float(matches.group(2).strip()))
+                    _LOG.debug("Fragment scores;" 
+                               "fragment:%s E-Value:%s BitScore:%s" %(matches.group(9).strip(),matches.group(1).strip(), matches.group(2).strip()))
         return results
     
 
@@ -428,6 +440,37 @@ class PplacerJob(ExternalSeppJob):
         else:
             return "Not setup properly"
 
+    def read_results(self):
+        '''
+        Since the output file can be huge, we don't want to read it here, because
+        it will need to get pickled and unpickled. Instead, we just send
+        back the file name, and will let the caller figure out what to do with it. 
+        '''
+        assert os.path.exists(self.out_file)
+        assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
+        return self.out_file
+
+class MergeJsonJob(ExternalSeppJob):
+
+    def __init__(self, **kwargs):       
+        self.job_type = 'jsonmerger'
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.input_string = None          
+        self.out_file = None 
+        
+    def setup(self, inString, output_file, **kwargs):
+        self.stdindata = inString
+        self.out_file = output_file
+        self._kwargs = kwargs      
+
+    def get_invocation(self):
+        invoc = [self.path, 
+                 "-", "-", self.out_file]   
+        return invoc
+
+    def characterize_input(self):
+        return "input:pipe output:%s" %(self.out_file)
+ 
     def read_results(self):
         '''
         Since the output file can be huge, we don't want to read it here, because

@@ -19,12 +19,38 @@
 
 # This file is copied to SEPP and is used as an external library
 
-from dendropy import Tree, Taxon
+from dendropy import Tree, Taxon, treecalc
 from dendropy import DataSet as Dataset
 from dendropy import convert_node_to_root_polytomy
-from sepp import get_logger
+from sepp import get_logger, sortByValue
+import cStringIO
 
 _LOG = get_logger(__name__)
+
+def write_newick_node(node, out):
+    child_nodes = node.child_nodes()
+    if child_nodes:
+        out.write('(')
+        f_child = child_nodes[0]
+        for child in child_nodes:
+            if child is not f_child:
+                out.write(',')
+            write_newick_node(child, out)
+        out.write(')')
+
+    out.write(node.get_node_str())
+    e = node.edge
+    if e:
+        sel = e.length
+        if sel is not None:
+            s = ""
+            try:
+                s = float(sel)
+                s = str(s)
+            except ValueError:
+                s = str(sel)
+            if s:
+                out.write(":%s[%s]" % (s , e.label))             
 
 class PhylogeneticTree(object):
     """Data structure to store phylogenetic tree, wrapping dendropy.Tree."""
@@ -163,9 +189,16 @@ class PhylogeneticTree(object):
         leaves = self._tree.leaf_nodes()
         return [i.taxon.label for i in leaves]
 
-    def compose_newick(self):
-        return self._tree.compose_newick()
-
+    def compose_newick(self, labels = False):
+        if not labels:
+            return self._tree.compose_newick()
+        else:
+            stringIO = cStringIO.StringIO()
+            write_newick_node(self._tree.seed_node, stringIO)
+            ret = stringIO.getvalue()
+            stringIO.close()
+            return ret
+            
     def write_newick_to_path(self, path):
         tree_handle = open(path, "w")
         tree_handle.write(self.compose_newick())
@@ -227,6 +260,20 @@ class PhylogeneticTree(object):
         for e in self._tree.postorder_edge_iter():
             e.label = en
             en += 1
+            
+    '''
+    Returns a given number of taxa that are closest to a given leaf
+    '''
+    def branchOut(self,centerTaxon,subsetSize,**kwargs):
+        dist = {}                
+        pdm = treecalc.PatristicDistanceMatrix(self.den_tree)
+        for i , s in enumerate(self.den_tree.taxon_set): #@UnusedVariable
+            if kwargs.has_key("filterTaxon"):
+                if not kwargs["filterTaxon"](s):
+                    continue;
+            dist [s.label] = pdm(centerTaxon, s);
+        incircle = sortByValue(dist)[0:subsetSize]
+        return [node[0] for node in incircle]               
 
 def node_formatter(n):
     return str(id(n))

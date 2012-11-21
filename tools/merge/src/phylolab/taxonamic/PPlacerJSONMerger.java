@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -180,13 +182,18 @@ public class PPlacerJSONMerger {
 	public static void main(String[] args) {
 		boolean sorted = false;
 
-		if (args.length < 3) {
+		if (args.length < 3) { 
 			System.out
 					.println("Usage: merge.jar <json files directory> <base tree file> <output> [-s]\n" +
 							"\t\t<json files directory>: the directory with all pplacer results (.json files)\n" +
 							"\t\t<base tree file>: The base tree file\n" +
 							"\t\t<output>: output json file name\n" +
-							"\t\t-s: (optional) sort the fragments by name.");
+							"\t\t-s: (optional) sort the fragments by name.\n\n" + 
+							"\t\t ( NOTE: Instead of providing json directory and base tree files, you can use a '-'.\n"+
+							"\t\t In this case base trees and json files are read from standard input.\n"+
+							"\t\t First line of standard input should give the global base tree. Subsequent lines\n" +
+							"\t\t should give a labeled tree followed by the location of .json file for each subset.\n" +
+							"\t\t After these pairs of lines are given for all subsets, an empty line should indicate end of input. )");
 
 			System.exit(1);
 		}
@@ -194,16 +201,60 @@ public class PPlacerJSONMerger {
 		if ( (args.length ==4) && (args[3].equals("-s")) ) {
 			sorted = true;
 		}
-		File[] files = (File[]) null;
 		String mainTree = "";
 		HashMap<String, Double> mainEdgeLen = new HashMap<String, Double>();
 		String name;
 		try {
+			
 			String baseFn = args[1];
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					new FileInputStream(baseFn)));
-			mainTree = in.readLine();
-			in.close();
+			BufferedReader inm = new BufferedReader(new InputStreamReader(
+					"-".equals(baseFn)? System.in : new FileInputStream(baseFn)));
+			mainTree = inm.readLine();
+			if (!"-".equals(baseFn)) {inm.close();}
+			
+			List<String> trees = new ArrayList<String>();
+			List<String> jsonLocations = new ArrayList<String>();			
+			String jsonDir = args[0];						
+			if (!"-".equals(jsonDir)) {
+				File[] files = new File(jsonDir).listFiles(new FilenameFilter() {
+					public boolean accept(File dir, String name) {
+						return (name.indexOf(".json") >= 0)
+								&& (name.indexOf("merged") < 0);
+					}
+				});
+	
+				for (int i = 0; i < files.length; i++) {
+					File jsonFile = files[i];
+					try {
+						String baseTreeFn = jsonFile.getAbsolutePath().replace("json",
+								"labeled.tree");
+						BufferedReader in = new BufferedReader(new InputStreamReader(
+								new FileInputStream(baseTreeFn)));
+						trees.add(in.readLine()); 
+						in.close();
+						
+						jsonLocations.add(jsonFile.getAbsolutePath());
+					} catch (FileNotFoundException e) {
+						System.err.println(e.getLocalizedMessage());
+						System.err.println("The above warnning ignored. continue ...");
+					} catch (IOException e) {
+						System.err.println(e.getLocalizedMessage());
+						System.err.println("The above warnning ignored. continue ...");
+					}
+				}
+			} else {
+				String line = "";
+				while (true){					
+					line = inm.readLine();				
+					if (line.length() == 0) {
+						break;
+					}
+					trees.add(line);
+					jsonLocations.add(inm.readLine());
+				}
+			}
+			System.err.println("json locations: " + jsonLocations);
+			
 			mainTree = mainTree.replaceAll("'","");
 			//System.out.println(mainTree);
 			Matcher matcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
@@ -214,70 +265,44 @@ public class PPlacerJSONMerger {
 				name = matcher.group(2);
 				mainEdgeLen.put(name, len);
 			}
-
-			String jsonDir = args[0];
-
-			files = new File(jsonDir).listFiles(new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					return (name.indexOf(".json") >= 0)
-							&& (name.indexOf("merged") < 0);
-				}
-			});
-		} catch (FileNotFoundException e) {
-			System.err.println("File not found: \n" + e.getMessage());
-			System.exit(1);
-		} catch (IOException e) {
-			System.err.println("I/O Error: \n" + e.getMessage());
-			System.exit(1);
-		}
+			
+			JSONObject resultsJson = new JSONObject();
+			resultsJson.put("tree", mainTree);
+			JSONArray resultsPlacements = new JSONArray();
+			JSONArray fields = null;
 		
-		JSONObject resultsJson = new JSONObject();
-		resultsJson.put("tree", mainTree);
-		JSONArray resultsPlacements = new JSONArray();
-		JSONArray fields = null;
-		
-		for (int i = 0; i < files.length; i++) {
-			File jsonFile = files[i];
-			try {
-				String baseTreeFn = jsonFile.getAbsolutePath().replace("json",
-						"labeled.tree");
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						new FileInputStream(baseTreeFn)));
-				String baseTree = in.readLine();
-				in.close();
-
-				in = new BufferedReader(new FileReader(jsonFile));
-				StringBuffer jsonString = new StringBuffer();
-				String str;
-				while ((str = in.readLine()) != null) {
-					jsonString.append(str);
+			for (int i = 0; i < trees.size(); i++) {
+				try {					
+					String jsonFile = jsonLocations.get(i);
+					BufferedReader in = new BufferedReader(new FileReader(jsonFile));
+					StringBuffer jsonString = new StringBuffer();
+					String str;
+					while ((str = in.readLine()) != null) {
+						jsonString.append(str);
+					}
+					JSONObject json = JSONObject.fromObject(jsonString.toString());
+					
+					String baseTree = trees.get(i);
+					
+					PPlacerJSONMerger merger = new PPlacerJSONMerger();
+					merger.relabelJson(baseTree, json, mainEdgeLen);
+	
+					json.put("tree", mainTree);								
+	
+					// UPDATE the global merge file
+					resultsPlacements.addAll(json.getJSONArray("placements"));
+					fields = json.getJSONArray("fields");
+					
+					// Unnecessary IO
+					if (false) {
+						writeGSONFile(jsonFile.replace(".json", ".merged.json"),json);
+					}
+	
+				} catch (JsonSyntaxException e) {
+					System.err.println(e.getLocalizedMessage());
+					System.err.println("The above warnning ignored. continue ...");
 				}
-				JSONObject json = JSONObject.fromObject(jsonString.toString());
-				PPlacerJSONMerger merger = new PPlacerJSONMerger();
-
-				merger.relabelJson(baseTree, json, mainEdgeLen);
-
-				json.put("tree", mainTree);								
-
-				// UPDATE the global merge file
-				resultsPlacements.addAll(json.getJSONArray("placements"));
-				fields = json.getJSONArray("fields");
-				
-				writeGSONFile(jsonFile.getAbsolutePath()
-						.replace(".json", ".merged.json"),json);
-
-			} catch (JsonSyntaxException e) {
-				System.err.println(e.getLocalizedMessage());
-				System.err.println("The above warnning ignored. continue ...");
-			} catch (FileNotFoundException e) {
-				System.err.println(e.getLocalizedMessage());
-				System.err.println("The above warnning ignored. continue ...");
-			} catch (IOException e) {
-				System.err.println(e.getLocalizedMessage());
-				System.err.println("The above warnning ignored. continue ...");
-			}
-		}		
-		try {
+			}	
 			if (sorted) {
 			    TreeSet<JSONObject> sortedPlacements = new TreeSet<JSONObject>(new Comparator<JSONObject>() {
 					@Override
@@ -293,13 +318,16 @@ public class PPlacerJSONMerger {
 			}
 			resultsJson.put("placements", resultsPlacements);
 			resultsJson.put("metadata", JSONObject.fromObject("{\"invocation\":" +
-					"\"SEPP-generated json file.\"}"));
+					"\"SEPP-generated json file (sepp 2).\"}"));
 			resultsJson.put("version", 1);
 			resultsJson.put("fields", fields);
 			writeGSONFile(args[2], resultsJson);
+		} catch (FileNotFoundException e) {
+			System.err.println("File not found: \n" + e.getMessage());
+			System.exit(1);
 		} catch (IOException e) {
 			System.err.println("I/O Error: \n" + e.getMessage());
 			System.exit(1);
-		}
+		}		
 	}
 }
