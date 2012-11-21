@@ -1,0 +1,20 @@
+{"tree":
+  "((SE:1.66261[0],(SDIJ:0.732891[1],(SIDJ:0.621497[2],SCHH:0.290379[3]):0.208158[4]):0.476485[5]):0.213044[6],(SCAA:0.217212[7],((SEGC:0.0828812[8],(SJEF:0.133405[9],SGEB:0.0432542[10]):0.0234937[11]):0.0943367[12],(SBDB:0.134541[13],SHEH:0.139747[14]):0.0167133[15]):0.466789[16]):0.924758[17],((SBGC:0.0117479[18],SBE:1.39408e-06[19]):0.558682[20],SJJI:0.482096[21]):0.90336[22]):0[23];",
+  "placements":
+  [
+    {"p":
+      [[1, -830.086202, 0.751117, 0.343220, 0.497957],
+        [5, -832.056322, 0.104736, 0.000007, 0.590240],
+        [4, -832.056363, 0.104732, 0.208152, 0.590249],
+        [0, -833.290511, 0.030486, 1.255432, 0.179895],
+        [6, -834.518335, 0.008930, 0.000007, 0.539951]
+      ], "n": ["SJH_0"]
+    }
+  ], "metadata":
+  {"invocation":
+    "\/projects\/sate7\/tools\/bin\/pplacer --out-dir \/tmp\/sepp\/output.SRqhvz\/root\/P_2 -s simulated\/test.RAxML_info -t \/tmp\/sepp\/output.SRqhvz\/root\/P_2\/pplacer.tree.ThO9eb.tre \/tmp\/sepp\/output.SRqhvz\/root\/P_2\/pplacer.extended.8RdBXg.fasta"
+  }, "version": 1, "fields":
+  ["edge_num", "likelihood", "like_weight_ratio", "distal_length",
+    "pendant_length"
+  ]
+}

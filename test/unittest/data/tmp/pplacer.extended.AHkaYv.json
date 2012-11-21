@@ -1,0 +1,16 @@
+{"tree":
+  "(((SFBB:1.46648[0],(SCJI:0.950192[1],SBHG:0.683323[2]):0.067726[3]):0.256928[4],(SEID:1.21902[5],SGCF:0.58478[6]):0.200703[7]):0.291887[8],((SBDF:0.311894[9],(SCEG:0.741245[10],SFAC:0.175665[11]):0.0519259[12]):0.250827[13],(SJCF:0.394571[14],SFID:0.378758[15]):0.360716[16]):0.740203[17],(((SJEB:0.118075[18],(SJHJ:0.064926[19],SCFB:0.0388543[20]):0.163812[21]):0.0433685[22],SDAF:0.191277[23]):0.449049[24],(SFBI:1.01907[25],(SEBD:0.964866[26],(SBBF:0.278606[27],(SJAH:0.113273[28],SBDA:0.251708[29]):0.23534[30]):0.57646[31]):0.199095[32]):0.114915[33]):0.138684[34]):0[35];",
+  "placements":
+  [{"p": [[10, -1765.273910, 1.000000, 0.294633, 0.148225]], "n": ["SBBG_0"]
+    },
+    {"p": [[5, -1272.268457, 1.000000, 0.516238, 0.275748]], "n": ["SFHG_0"]
+    },
+    {"p": [[1, -1783.195358, 1.000000, 0.419549, 0.000006]], "n": ["SFCA_0"]}
+  ], "metadata":
+  {"invocation":
+    "\/projects\/sate7\/tools\/bin\/pplacer --out-dir \/tmp\/sepp\/output.SRqhvz\/root\/P_6 -s simulated\/test.RAxML_info -t \/tmp\/sepp\/output.SRqhvz\/root\/P_6\/pplacer.tree.Uxqls6.tre \/tmp\/sepp\/output.SRqhvz\/root\/P_6\/pplacer.extended.AHkaYv.fasta"
+  }, "version": 1, "fields":
+  ["edge_num", "likelihood", "like_weight_ratio", "distal_length",
+    "pendant_length"
+  ]
+}

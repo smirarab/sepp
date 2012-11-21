@@ -1,0 +1,10 @@
+{"tree":
+  "((SCDJ:0.0143342[0],SFIA:0.0165051[1]):0.586327[2],(SIJJ:0.270526[3],(SGC:0.191258[4],(SEFF:0.0569221[5],(SFGC:0.0804344[6],SEHE:0.13509[7]):0.0107189[8]):0.0818809[9]):0.301072[10]):0.290229[11],(SBAJ:0.573152[12],(SED:0.167554[13],SFGE:0.177015[14]):0.245188[15]):0.0945377[16]):0[17];",
+  "placements": [], "metadata":
+  {"invocation":
+    "\/projects\/sate7\/tools\/bin\/pplacer --out-dir \/tmp\/sepp\/output.SRqhvz\/root\/P_15 -s simulated\/test.RAxML_info -t \/tmp\/sepp\/output.SRqhvz\/root\/P_15\/pplacer.tree.AcMl9T.tre \/tmp\/sepp\/output.SRqhvz\/root\/P_15\/pplacer.extended.m3dfwE.fasta"
+  }, "version": 1, "fields":
+  ["edge_num", "likelihood", "like_weight_ratio", "distal_length",
+    "pendant_length"
+  ]
+}

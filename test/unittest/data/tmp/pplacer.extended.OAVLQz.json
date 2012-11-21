@@ -1,0 +1,12 @@
+{"tree":
+  "((SIIJ:1.16514[0],(SCBD:0.970417[1],((SIJG:1.20259[2],(SHJF:0.222651[3],(SJDD:0.36021[4],SGBE:0.384812[5]):0.112439[6]):0.0317552[7]):0.336871[8],SHDD:0.767848[9]):0.517172[10]):0.117717[11]):1.86482[12],SGDB:0.688259[13],(SHEC:0.623398[14],SCA:0.442787[15]):0.839382[16]):0[17];",
+  "placements":
+  [{"p": [[4, -821.960202, 1.000000, 0.050305, 0.000006]], "n": ["SEJH_0"]}],
+  "metadata":
+  {"invocation":
+    "\/projects\/sate7\/tools\/bin\/pplacer --out-dir \/tmp\/sepp\/output.SRqhvz\/root\/P_18 -s simulated\/test.RAxML_info -t \/tmp\/sepp\/output.SRqhvz\/root\/P_18\/pplacer.tree.VRdnKN.tre \/tmp\/sepp\/output.SRqhvz\/root\/P_18\/pplacer.extended.OAVLQz.fasta"
+  }, "version": 1, "fields":
+  ["edge_num", "likelihood", "like_weight_ratio", "distal_length",
+    "pendant_length"
+  ]
+}
