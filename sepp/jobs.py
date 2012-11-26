@@ -416,7 +416,7 @@ class PplacerJob(ExternalSeppJob):
         assert isinstance(subproblem.subtree, PhylogeneticTree)
         subproblem.subtree.write_newick_to_path(self.tree_file)
              
-        self.info_file = info_file         
+        self.info_file = info_file.name if hasattr(info_file,"name") else info_file
         self._kwargs = kwargs      
         self.setup_setting = "File:TrInEx"  
 

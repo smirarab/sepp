@@ -202,17 +202,17 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         ''' Make sure size values are set, and are meaningful. '''
         self.check_and_set_sizes(alignment.get_num_taxa())        
     
-        self._create_root_problem(tree, alignment)              
+        self._create_root_problem(tree, alignment)
                        
-        ''' Decompte the tree based on placement subsets'''
+        ''' Decompose the tree based on placement subsets'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
                                         tree_map = {})
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
-        " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
-        %(self.strategy, self.minsubsetsize, self.options.placement_size))        
+                " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
+                %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
         _LOG.info("Breaking into %d placement subsets." %len(placement_tree_map))
 
         ''' For placement subsets create a placement subproblem, and decompose further'''
@@ -234,11 +234,12 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             
             _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
             for (a_key, a_tree) in alignment_tree_map.items():
-                assert isinstance(a_tree, PhylogeneticTree)
+                assert isinstance(a_tree, PhylogeneticTree)                                                
                 alignment_problem  = SeppProblem(a_tree.leaf_node_names(), 
                                                   placement_problem)
                 alignment_problem.subtree = a_tree
-                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))            
+                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                
+                            
         
         ''' Divide fragments into chunks, to help achieve better parallelism'''
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
@@ -272,7 +273,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             ''' Create pplacer jobs'''
             pj = PplacerJob()
             placement_problem.add_job(pj.job_type,pj)
-            pj.partial_setup_for_subproblem(placement_problem, self.options.info_file.name)
+            pj.partial_setup_for_subproblem(placement_problem, self.options.info_file)
             
             '''For each alignment subproblem, ...'''
             for alg_problem in placement_problem.children:
