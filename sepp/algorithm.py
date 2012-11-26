@@ -55,13 +55,13 @@ class AbstractAlgorithm(object):
             supply = supply + ["tree file"]
         if (options().alignment_file is None):
             supply = supply + ["alignment file"]
-        if (options().info_file is None):
-            supply = supply + ["raxml file"];
         if (options().fragment_file is None):
             supply = supply + ["fragment file"]
         if (len(supply) != 0):
             raise ValueError ("Failed to supply: %s\nRun with -h option to see a list of options." % " , ".join(supply))
-        
+        if (options().info_file is None):
+            supply = supply + ["raxml file"];
+            
         self.check_outputprefix()
         pass
 

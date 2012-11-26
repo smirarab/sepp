@@ -6,6 +6,7 @@ Created on Oct 10, 2012
 from sepp import get_logger
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob
+from sepp.config import options
 
 _LOG = get_logger(__name__)
 
@@ -36,6 +37,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)     
 
+    def check_options(self):
+        options().info_file = "A_dummy_value"
+        return ExhaustiveAlgorithm.check_options(self)
+
+
     def merge_results(self):
         ''' no .json files to merge'''
         pass
@@ -56,7 +62,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
                 self.options.placement_size >= total), \
-                "currently UPP works with only one placement subset"
+                "currently UPP works with only one placement subset. Please leave placement subset size option blank."
         ExhaustiveAlgorithm.check_and_set_sizes(self, total)
         self.options.placement_size = total
     
