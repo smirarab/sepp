@@ -22,7 +22,12 @@ config.options().pplacer.path will be "/some/path".
 A "main" configuration file under {home}/.sepp/main.config is used
 to store some basic configurations such as the location of extra programs, etc.
 This main config file is read first, so that user provided config file can
-overwrite its values.      
+overwrite its values.     
+
+In addition, each client of this module (e.g. a new algorithm)) can add new
+commandline options by getting the parser object using get_parser() and then
+adding extra options. This has to happen *before* the first call to options() 
+module. For an example see exhaustive_upp. 
 '''                
 
 from argparse import ArgumentParser, Namespace

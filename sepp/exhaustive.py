@@ -231,20 +231,38 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
-            
+                        
             _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
+            filtered_taxa=[]
             for (a_key, a_tree) in alignment_tree_map.items():
-                assert isinstance(a_tree, PhylogeneticTree)                                                
+                assert isinstance(a_tree, PhylogeneticTree)  
+                ''' Filter out taxa on long branches '''                              
+                if self.options.long_branch_filter is not None:
+                    tr = a_tree.get_tree()
+                    assert isinstance(tr, Tree)
+                    elen = {}
+                    for e in tr.leaf_edge_iter():
+                        elen[e] = e.length
+                    elensort = sorted(elen.values())
+                    mid = elensort[len(elensort)/2]
+                    torem = []
+                    for k,v in elen.items():
+                        if v > mid * self.options.long_branch_filter:
+                            filtered_taxa.append(k.head_node.taxon.label)
+                            torem.append(k.head_node.taxon)
+                    tr.prune_taxa(torem)
                 alignment_problem  = SeppProblem(a_tree.leaf_node_names(), 
                                                   placement_problem)
                 alignment_problem.subtree = a_tree
-                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                
-                            
+                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                                       
+        
+        _LOG.info("%d taxa pruned from backbone and added to fragments: %s" %(len(filtered_taxa), " , ".join(filtered_taxa)))
         
         ''' Divide fragments into chunks, to help achieve better parallelism'''
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
         frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
-        fragment_chunk_files = self.read_and_divide_fragments(frag_chunk_count) 
+        fragment_chunk_files = self.read_and_divide_fragments(frag_chunk_count, 
+                    extra_frags = alignment.get_soft_sub_alignment(filtered_taxa)) 
         for alignment_problem in self.root_problem.iter_leaves():       
             for afc in xrange(0,frag_chunk_count):
                 frag_chunk_problem  = SeppProblem(alignment_problem.taxa, 

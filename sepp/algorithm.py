@@ -193,10 +193,12 @@ class AbstractAlgorithm(object):
         
         return (alignment, tree)
 
-    def read_and_divide_fragments(self, chunks):
+    def read_and_divide_fragments(self, chunks, extra_frags = {}):
         self.root_problem.fragments = MutableAlignment()
-        self.root_problem.fragments.read_file_object(self.options.fragment_file)        
-        alg_chunks = self.root_problem.fragments .divide_to_equal_chunks(chunks)        
+        self.root_problem.fragments.read_file_object(self.options.fragment_file)
+        for (k,v) in extra_frags.items():
+            self.root_problem.fragments[k] = v.replace("-","")
+        alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks)        
         ret = []
         for i in xrange(0,chunks):
             temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")

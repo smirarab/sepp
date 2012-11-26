@@ -7,6 +7,7 @@ from sepp import get_logger
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob
 from sepp.config import options
+import sepp.config
 
 _LOG = get_logger(__name__)
 
@@ -69,5 +70,17 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def _get_new_Join_Align_Job(self):        
         return UPPJoinAlignJobs()
 
-if __name__ == '__main__':
+def augment_parser():
+    parser = sepp.config.get_parser()
+    uppGroup = parser.add_argument_group("UPP Options".upper(), 
+                         "These options set settings specific to UPP")                                 
+    
+    uppGroup.add_argument("-l", "--longbranchfilter", type = int, 
+                      dest = "long_branch_filter", metavar = "N", 
+                      default = None,
+                      help = "Branches longer than N times the median branch length are filtered from backbone and added to fragments."
+                             " [default: None (no filtering)]")                            
+
+if __name__ == '__main__':   
+    augment_parser() 
     UPPExhaustiveAlgorithm().run()
