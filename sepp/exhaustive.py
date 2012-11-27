@@ -277,12 +277,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def _get_new_Join_Align_Job(self):
         return JoinAlignJobs()
     
-    def build_job_dag(self):
-        ''' a callback function called after hmmbuild jobs are finished'''
-        def enq_job_searchfragment(result, search_job):
-            search_job.hmmmodel = result 
-            JobPool().enqueue_job(search_job)
-        
+    def build_jobs(self):        
         assert isinstance(self.root_problem, SeppProblem)
         for placement_problem in self.root_problem.get_children():
             ''' Create pplacer jobs'''
@@ -301,24 +296,37 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 for fc_problem in alg_problem.get_children():
                     sj = HMMSearchJob()
                     sj.partial_setup_for_subproblem(fc_problem.fragments, fc_problem, self.elim, self.filters)
-                    fc_problem.add_job(sj.job_type, sj)                
-                    ''' connect bulid and search jobs'''
-                    bj.add_call_Back(lambda result, next_job = sj: enq_job_searchfragment(result, next_job))                
-                    
+                    fc_problem.add_job(sj.job_type, sj)                                    
                     ''' create the align job'''
                     aj = HMMAlignJob()
                     fc_problem.add_job(aj.job_type, aj)
                     aj.partial_setup_for_subproblem(fc_problem)
-                
-            '''Join all align jobs of a placement subset (enqueues placement job)'''
-            jaj = self._get_new_Join_Align_Job()
-            jaj.setup_with_placement_problem(placement_problem)
-                        
-        ''' Join all search jobs together (enqueues align jobs)'''
-        jsj = JoinSearchJobs()
-        jsj.setup_with_root_problem(self.root_problem)
                         
 
+    def connect_jobs(self):
+        ''' a callback function called after hmmbuild jobs are finished'''
+        def enq_job_searchfragment(result, search_job):
+            search_job.hmmmodel = result 
+            JobPool().enqueue_job(search_job)        
+        assert isinstance(self.root_problem, SeppProblem)
+        for placement_problem in self.root_problem.get_children():
+            '''For each alignment subproblem, ...'''
+            for alg_problem in placement_problem.children:
+                assert isinstance(alg_problem, SeppProblem)                
+                ''' create the build model job'''
+                bj = alg_problem.jobs["hmmbuild"]            
+                ''' create the search jobs'''
+                for fc_problem in alg_problem.get_children():
+                    sj = fc_problem.jobs["hmmsearch"]
+                    ''' connect bulid and search jobs'''
+                    bj.add_call_Back(lambda result, next_job = sj: enq_job_searchfragment(result, next_job))                                
+            '''Join all align jobs of a placement subset (enqueues placement job)'''
+            jaj = self._get_new_Join_Align_Job()
+            jaj.setup_with_placement_problem(placement_problem)                        
+        ''' Join all search jobs together (enqueues align jobs)'''
+        jsj = JoinSearchJobs()
+        jsj.setup_with_root_problem(self.root_problem)        
+        
     def enqueue_firstlevel_job(self):
         for p in self.root_problem.children:
             for ap in p.children:

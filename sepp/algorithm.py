@@ -80,10 +80,9 @@ class AbstractAlgorithm(object):
         raise NotImplementedError()
     
     @abstractmethod
-    def build_job_dag(self):
+    def connect_jobs(self):
         '''
-        Builds separate jobs for different tasks that need to be done. 
-        Jobs are joined together to form a DAG using Joins (see sepp.scheduler)
+        Join Jobs are joined together to form a DAG using Joins (see sepp.scheduler)
         and call_back functions (see sepp.scheduler.Job). 
 
         Once the first level of jobs (those with no dependency) are enqueued
@@ -98,7 +97,19 @@ class AbstractAlgorithm(object):
         it should enqueue E (either using a callback or a Join with only one
         dependency). B and C should be joined together using a Join, and that 
         Join needs to enqueue D. Also E and D need to be joined, and their join
-        needs to enqueue F.          
+        needs to enqueue F.
+        
+        build_jobs is called before this, and all jobs are saved as part of the
+        subproblem hierarchy. This function only connects those jobs.           
+        '''
+        raise NotImplementedError()
+            
+    @abstractmethod
+    def build_jobs(self):
+        '''
+        Builds separate jobs for different tasks that need to be done. 
+        This just creates jobs, without connecting them. connect_jobs is used
+        to create jobs. 
         '''
         raise NotImplementedError()
 
@@ -133,27 +144,32 @@ class AbstractAlgorithm(object):
         checkpoint_manager = options().checkpoint
         assert isinstance(checkpoint_manager,CheckPointManager)        
         
+        t = time.time()
+                    
         if checkpoint_manager.is_recovering:
+            checkpoint_manager.restore_checkpoint()
             self.root_problem = checkpoint_manager.checkpoint_state.root_problem
-        else:    
-            t = time.time()
-            
+            self.check_outputprefix()
+        else:                
             '''check input arguments'''
             self.check_options()
             
             '''build the problem structure'''
             self.root_problem = self.build_subproblems()
                     
-            '''build a DAG for running all jobs'''
-            self.build_job_dag()
-        
-        '''start the checkpointing (has any effects only in checkpointing mode)'''
-        checkpoint_manager.start_checkpointing(self.root_problem)        
-        
+            '''build jobs'''
+            self.build_jobs()
+            
+        '''connect jobs into a DAG'''            
+        self.connect_jobs()
+               
         '''Queue up first level jobs (i.e. those with no dependency).
         Once these run, they should automatically enqueue the rest of the
         DAG through joins and callbacks '''                            
         self.enqueue_firstlevel_job()
+        
+        '''start the checkpointing (has any effects only in checkpointing mode)'''
+        checkpoint_manager.start_checkpointing(self.root_problem)         
         
         '''Wait for all jobs to finish'''
         if (not JobPool().wait_for_all_jobs()):
@@ -165,6 +181,8 @@ class AbstractAlgorithm(object):
         
         '''Output final results'''
         self.output_results()         
+        
+        checkpoint_manager.stop_checkpointing()
         
         _LOG.info("Execution Finished in %d seconds" %(time.time() - t))
 

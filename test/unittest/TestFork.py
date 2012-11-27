@@ -19,7 +19,6 @@ class TestJob(Job):
         s+=1
         lock.release()
         self.jobname = jobname
-        self.add_call_Back(self.print_res)
         self.state = None
         
         def add_a_child(parent):
@@ -36,6 +35,8 @@ class TestJob(Job):
 
         if random() < 0.1:
             self.add_call_Back(lambda result: a_very_bad_callback())
+            
+        self.add_call_Back(self.print_res)
 
     def print_res(self,result):
         global s
@@ -90,9 +91,9 @@ if __name__ == '__main__':
     
     # Test one of the jobs, to see if it is successful
     if sample_job.ready() and sample_job.successful():
-        assert jobs[3].callbacks_finished == True
+        assert jobs[3].result_set == True
     else:
-        assert jobs[3].callbacks_finished == False
+        assert jobs[3].result_set == False
     
     errors = pool.get_all_job_errors()
     print "Following job errors were raised:", errors 
@@ -104,9 +105,14 @@ if __name__ == '__main__':
     
     errs = [pool.get_job_error(job) for job in pool.get_failed_jobs()]
     
-    assert len(errs) == len(errors) and False not in [x in errors for x in errs]
+    print errs
+    
+    assert len(errs) == len(errors), "Number of errors from failed jobs: %d. Number of errors: %d" %(len(errs), len(errors))
+    assert False not in [x in errors for x in errs]
     
     #print [job.state for job in jobs]
     print "Number of started jobs - number of printed results:", s
     print "Number of failed jobs:", len(errors)
     assert s == len (errors), "Parallelization Error, what happened to the rest?"
+
+    print "Everything seems fine!"

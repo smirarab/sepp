@@ -60,11 +60,10 @@ class Job(object):
         '''
         Constructor
         '''
-        self.callbacks = []
-        self.add_call_Back(self._finished)
         self.result = None
         self.result_set = False
         self.errors = []
+        self.ignore_error = False
 
     def __call__(self):
         ''' This method makes this class a callable object'''
@@ -92,7 +91,7 @@ class Job(object):
         '''
         if not hasattr(function, "__call__"):
             raise TypeError("Expecting a callable object. Instead getting a %s" %type(function))
-        self.callbacks.append(function)
+        JobPool()._add_callback_for_job(self, function)
                     
     def _finished(self, results):
         '''
@@ -287,8 +286,7 @@ class _JobPool:
         
         def call_back(job, result, callBackCopy):
             try:
-                '''First restore callbacks attribute of the job'''
-                job.callbacks = callBackCopy
+                job._finished(result)
                 '''Then run all the callback in order, passing result as parameter'''
                 for callback in callBackCopy:
                     apply(callback, [result])
@@ -306,8 +304,7 @@ class _JobPool:
                 
         ''' We need to backup callbacks of a Job. 
         The following line ensures that pickling issues do not arise'''
-        callBackCopy = copy.copy(job.callbacks)
-        job.callbacks = None
+        callBackCopy = self._callBack_lists.get(job,[])    
         
         ''' Add jobs to the _pool, and save resulting AsyncResult function in a
         safe manner'''
@@ -317,6 +314,13 @@ class _JobPool:
         self._lock.release()
         
 
+    def _add_callback_for_job(self,job,callback):
+        self._lock.acquire()
+        if not self._callBack_lists.has_key(job):
+            self._callBack_lists[job] = []
+        self._callBack_lists[job].append(callback)
+        self._lock.release()
+        
     def wait_for_all_jobs(self, ignore_error=False):
         '''
         waits for all jobs in the queue to finish running. Makes attempt to 
@@ -374,14 +378,17 @@ class _JobPool:
         resobj = self._async_restults[job]
         self._lock.release()
         return resobj
-        
+
+    def _is_job_failed(self,job,res):
+        return (res.ready() and not res.successful()) or (len(job.errors)!=0)
+            
     def get_failed_jobs(self):
         ''' Returns a list of files that have failed (i.e. their run method has
-        finished with an exception raised'''
+        finished with an exception raised)'''
         ret = []
         self._lock.acquire()
         for job, res in self._async_restults.iteritems():
-            if (res.ready() and not res.successful()) or (len(job.errors)!=0):
+            if self._is_job_failed(job, res):
                 ret.append(job)
         self._lock.release()
         return ret
@@ -389,11 +396,13 @@ class _JobPool:
     def get_job_error(self,job):
         '''
         If the given job has finished successfully, this method simply returns None.
-        Otherwise, it raised the exception that terminated the given job 
+        Otherwise, it returns the exception that terminated the given job 
         '''
         res = self.get_asynch_result_object(job)
-        if not res.ready() or res.successful():
+        if not self._is_job_failed(job, res):
             return None
+        elif len(job.errors)!=0:
+            return job.errors
         else:
             try:
                 res.get()
