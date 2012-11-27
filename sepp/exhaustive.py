@@ -105,10 +105,14 @@ class JoinAlignJobs(Join):
         for p in placement_problem.iter_leaves():
             self.add_job(p.jobs["hmmalign"])         
     
-    def merge_subalignments(self):
-        ''' First make sure fragments are correctly assigned to the root problem'''
+    def merge_subalignments(self):   
+        '''
+        Merge alignment subset extended alignments to get one extended alignment
+        for current placement subset.
+        '''     
         pp = self.placement_problem
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
+        ''' First assign fragments to the placement problem'''
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
         for ap in pp.get_children():
             pp.fragments.seq_names.extend(ap.fragments)   
@@ -116,7 +120,10 @@ class JoinAlignJobs(Join):
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
-            aligned_files = [fp.get_job_result_by_name('hmmalign') for fp in ap.children if fp.get_job_result_by_name('hmmalign') is not None]
+            ''' Get all fragment chunk alignments for this alignment subset'''
+            aligned_files = [fp.get_job_result_by_name('hmmalign') for 
+                                fp in ap.children if 
+                                fp.get_job_result_by_name('hmmalign') is not None]
             _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
@@ -177,18 +184,21 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def output_results(self):
         ''' Merged json file is already saved in merge_results function.        
-        TODO: implement this to calculate and output merged .json. 
+        TODO: implement this to calculate and output one alignment for all placement subsets. 
         '''        
         for pp in self.root_problem.get_children():
             extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
             outfilename = self.get_output_filename("alignment_%s.fasta" %pp.label)
             extended_alignment.write_to_path(outfilename)
-            extended_alignment.remove_insertion_masked_alignment()
+            extended_alignment.remove_insertion_columns()
             outfilename = self.get_output_filename("alignment_%s_masked.fasta"%pp.label)
             extended_alignment.write_to_path(outfilename)        
 
     def check_options(self):
         AbstractAlgorithm.check_options(self)
+        
+    def modify_tree(self,a_tree):
+        pass
              
     def build_subproblems(self):
         (alignment, tree) = self.read_alignment_and_tree()        
@@ -233,38 +243,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
                         
             _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
-            filtered_taxa=[]
             for (a_key, a_tree) in alignment_tree_map.items():
                 assert isinstance(a_tree, PhylogeneticTree)  
-                ''' Filter out taxa on long branches '''                              
-                if self.options.long_branch_filter is not None:
-                    tr = a_tree.get_tree()
-                    assert isinstance(tr, Tree)
-                    elen = {}
-                    for e in tr.leaf_edge_iter():
-                        elen[e] = e.length
-                    elensort = sorted(elen.values())
-                    mid = elensort[len(elensort)/2]
-                    torem = []
-                    for k,v in elen.items():
-                        if v > mid * self.options.long_branch_filter:
-                            filtered_taxa.append(k.head_node.taxon.label)
-                            torem.append(k.head_node.taxon)
-                    tr.prune_taxa(torem)
+                self.modify_tree(a_tree)
                 alignment_problem  = SeppProblem(a_tree.leaf_node_names(), 
                                                   placement_problem)
                 alignment_problem.subtree = a_tree
-                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                                       
-        
-        _LOG.info("%d taxa pruned from backbone and added to fragments: %s" %(len(filtered_taxa), " , ".join(filtered_taxa)))
+                alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                                                       
         
         ''' Divide fragments into chunks, to help achieve better parallelism'''
-        alg_subset_count = len(list(self.root_problem.iter_leaves()))
-        frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
-        fragment_chunk_files = self.read_and_divide_fragments(frag_chunk_count, 
-                    extra_frags = alignment.get_soft_sub_alignment(filtered_taxa)) 
+        fragment_chunk_files = self.create_fragment_files()                
         for alignment_problem in self.root_problem.iter_leaves():       
-            for afc in xrange(0,frag_chunk_count):
+            for afc in xrange(0,len(fragment_chunk_files)):
                 frag_chunk_problem  = SeppProblem(alignment_problem.taxa, 
                                               alignment_problem)
                 frag_chunk_problem.subtree = alignment_problem.subtree
@@ -272,11 +262,16 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 frag_chunk_problem.fragments = fragment_chunk_files[afc]
                     
         
-        _LOG.info("Breaking into %d alignment subsets." %alg_subset_count)    
-        _LOG.info("Breaking each alignment subset into %d fragment chunks." %frag_chunk_count)
+        _LOG.info("Breaking into %d alignment subsets." %(len(list(self.root_problem.iter_leaves()))))    
+        _LOG.info("Breaking each alignment subset into %d fragment chunks." %len(fragment_chunk_files))
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
     
+    def create_fragment_files(self):
+        alg_subset_count = len(list(self.root_problem.iter_leaves()))
+        frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
+        return self.read_and_divide_fragments(frag_chunk_count)
+         
     def _get_new_Join_Align_Job(self):
         return JoinAlignJobs()
     

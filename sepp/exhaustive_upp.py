@@ -8,6 +8,7 @@ from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob
 from sepp.config import options
 import sepp.config
+from sepp.math_utils import lcm
 
 _LOG = get_logger(__name__)
 
@@ -55,7 +56,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         outfilename = self.get_output_filename("alignment.fasta")
         extended_alignment.write_to_path(outfilename)
         _LOG.info("Unmasked alignment written to %s" %outfilename)
-        extended_alignment.remove_insertion_masked_alignment()
+        extended_alignment.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         extended_alignment.write_to_path(outfilename)
         _LOG.info("Masked alignment written to %s" %outfilename)
@@ -69,7 +70,30 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     
     def _get_new_Join_Align_Job(self):        
         return UPPJoinAlignJobs()
-
+    
+    def modify_tree(self,a_tree):
+        ''' Filter out taxa on long branches '''
+        self.filtered_taxa=[]                              
+        if self.options.long_branch_filter is not None:
+            tr = a_tree.get_tree()
+            elen = {}
+            for e in tr.leaf_edge_iter():
+                elen[e] = e.length
+            elensort = sorted(elen.values())
+            mid = elensort[len(elensort)/2]
+            torem = []
+            for k,v in elen.items():
+                if v > mid * self.options.long_branch_filter:
+                    self.filtered_taxa.append(k.head_node.taxon.label)
+                    torem.append(k.head_node.taxon)
+            tr.prune_taxa(torem)
+            
+    def create_fragment_files(self):
+        alg_subset_count = len(list(self.root_problem.iter_leaves()))
+        frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
+        _LOG.info("%d taxa pruned from backbone and added to fragments: %s" %(len(self.filtered_taxa), " , ".join(self.filtered_taxa)))        
+        return self.read_and_divide_fragments(frag_chunk_count, extra_frags=self.filtered_taxa)
+                
 def augment_parser():
     parser = sepp.config.get_parser()
     uppGroup = parser.add_argument_group("UPP Options".upper(), 
