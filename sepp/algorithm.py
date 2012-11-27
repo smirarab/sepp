@@ -15,15 +15,19 @@ import sys
 import os
 from sepp.problem import SeppProblem
 import time
+import threading
+import pickle
+from sepp.checkpointing import CheckPointManager
 
 _LOG = get_logger(__name__)
+    
 
 class AbstractAlgorithm(object):
     '''
     This class provides the interface for an abstract algorithm. All different
     ways of implementing SEPP are considered to be different 'algorithms'.
     
-    New algorithms should be implemented by subclassing AbastractAlgorithm and 
+    New algorithms should be implemented by extending AbastractAlgorithm and 
     implementing its abstract methods.    
     '''
 
@@ -124,20 +128,29 @@ class AbstractAlgorithm(object):
         '''
         raise NotImplementedError()
             
-    def run(self):
+    def run(self):    
         
-        t = time.time()
+        checkpoint_manager = options().checkpoint
+        assert isinstance(checkpoint_manager,CheckPointManager)        
         
-        '''check input arguments'''
-        self.check_options()
+        if checkpoint_manager.is_recovering:
+            self.root_problem = checkpoint_manager.checkpoint_state.root_problem
+        else:    
+            t = time.time()
+            
+            '''check input arguments'''
+            self.check_options()
+            
+            '''build the problem structure'''
+            self.root_problem = self.build_subproblems()
+                    
+            '''build a DAG for running all jobs'''
+            self.build_job_dag()
         
-        '''build the problem structure'''
-        self.root_problem = self.build_subproblems()          
+        '''start the checkpointing (has any effects only in checkpointing mode)'''
+        checkpoint_manager.start_checkpointing(self.root_problem)        
         
-        '''build a DAG for running all jobs'''
-        self.build_job_dag()
-        
-        '''Queu up first level jobs (i.e. those no dependency).
+        '''Queue up first level jobs (i.e. those with no dependency).
         Once these run, they should automatically enqueue the rest of the
         DAG through joins and callbacks '''                            
         self.enqueue_firstlevel_job()

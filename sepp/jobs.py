@@ -54,9 +54,12 @@ class ExternalSeppJob(Job):
     process = property(get_process)      
     
     def run(self):        
-        ''' Runs the external job, and handles errors, piping, etc. 
+        ''' Runs the external job, and handles errors, piping, checkpointing, etc. 
         get_invocation() needs to be implemented in child classes.
         '''
+        # Allow re-execution of finished jobs, useful in checkpointing
+        if self.result_set:            
+            return self.result
         if self.fake_run:
             return self.read_results()        
         try:

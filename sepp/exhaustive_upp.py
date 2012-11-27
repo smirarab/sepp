@@ -92,7 +92,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
         frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
         _LOG.info("%d taxa pruned from backbone and added to fragments: %s" %(len(self.filtered_taxa), " , ".join(self.filtered_taxa)))        
-        return self.read_and_divide_fragments(frag_chunk_count, extra_frags=self.filtered_taxa)
+        return self.read_and_divide_fragments(frag_chunk_count, extra_frags =\
+                       self.root_problem.subalignment.get_soft_sub_alignment(\
+                                                         self.filtered_taxa))
                 
 def augment_parser():
     parser = sepp.config.get_parser()

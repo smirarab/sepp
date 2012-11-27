@@ -353,11 +353,12 @@ class ExtendedAlignment(MutableAlignment):
         A new column is added to the alignment. The new label can be value, 
         or one of three directives (see below). 
         '''
+        ins = "-" * addlen 
         for name,seq in self.items():
             if other.has_key(name):
                 c = other[name][otherpos:otherpos+addlen]
             else:            
-                c = "-" * addlen       
+                c = ins      
             self[name] = seq[:pos] + c + seq[pos:]
         self._col_labels[pos:pos] = new_label
         
@@ -507,7 +508,7 @@ class ExtendedAlignment(MutableAlignment):
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
     
-    def remove_insertion_masked_alignment(self):
+    def remove_insertion_columns(self):
         '''
         Outputs a new alignment with insertion columns masked out.
         '''
