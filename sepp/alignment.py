@@ -546,7 +546,11 @@ class ExtendedAlignment(MutableAlignment):
     def from_bytearray_to_string(self):
         for k in self.keys():
             self[k] = str(self[k])
-            
+
+    def from_string_to_bytearray(self):
+        for k in self.keys():
+            self[k] = bytearray(self[k])   
+                        
     def merge_in(self, other, convert_to_string = True):
         '''
         Merges another alignment in with the current alignment. The other
@@ -554,7 +558,20 @@ class ExtendedAlignment(MutableAlignment):
         alignments are extended alignments, we know column labels, and we also
         know which columns are insertions. Columns with the same labels are
         merged together. In other cases gaps are introduced as necessary to
-        merge the two alignments.
+        merge the two alignments. Insertion columns are considered different
+        even when they have the same label. 
+        
+        convert_to_string is by default true, meaning that in the beginning
+        sequences of self are assumed to be string objects. These are converted
+        to bytearray for better speed, but at the end of the merge, are converted
+        back to string. When convert_to_string is False, no conversion back and
+        from string is performed, *but* everything is assumed to be in bytearrays.
+        So, self is assumed to be in bytearray before calling merge, and will
+        remain in bytearray after calling merge. This is useful in cases where
+        multiple alignments are merged in with self. Initially, everything
+        should be turned into bytearray, and after all merging is finished, 
+        everything can be converted back to string (using from_bytearray_to_string
+        and from_string_to_bytearray).        
         '''
         assert isinstance(other, ExtendedAlignment)
         _LOG.debug("Merging started ...")
@@ -570,8 +587,7 @@ class ExtendedAlignment(MutableAlignment):
         for f in other.fragments:
             self.fragments.add(f)
         if convert_to_string:
-            for k in self.keys():
-                self[k] = bytearray(self[k])   
+            self.from_string_to_bytearray()
         for k in other.keys():
             assert k not in self.keys(), "Merging overlapping alignments not implemented"
             self[k] = bytearray()
@@ -670,6 +686,5 @@ class ExtendedAlignment(MutableAlignment):
             else:
                 raise "hmmm, we thought this should be impossible? %d %d" %(me, she)
         if convert_to_string:
-            for k in self.keys():
-                self[k] = str(self[k])
+            self.from_bytearray_to_string()
         _LOG.debug("Merging finished ...")
