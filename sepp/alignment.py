@@ -353,13 +353,13 @@ class ExtendedAlignment(MutableAlignment):
         A new column is added to the alignment. The new label can be value, 
         or one of three directives (see below). 
         '''
-        ins = "-" * addlen 
+        ins = bytearray(b"-") * addlen 
         for name,seq in self.items():
             if other.has_key(name):
                 c = other[name][otherpos:otherpos+addlen]
-            else:            
-                c = ins      
-            self[name] = seq[:pos] + c + seq[pos:]
+                seq.extend(c)
+            else:               
+                seq[pos:pos] = ins
         self._col_labels[pos:pos] = new_label
         
     def remove_column(self, pos, labels="REMOVE"):
@@ -542,8 +542,12 @@ class ExtendedAlignment(MutableAlignment):
                 file_obj.write(seq[c[0]:c[1]])
             file_obj.write("\n")
         file_obj.close()
-        
-    def merge_in(self, other):
+    
+    def from_bytearray_to_string(self):
+        for k in self.keys():
+            self[k] = str(self[k])
+            
+    def merge_in(self, other, convert_to_string = True):
         '''
         Merges another alignment in with the current alignment. The other
         alignment needs to be an ExtendedAlignment as well. Since both 
@@ -554,6 +558,8 @@ class ExtendedAlignment(MutableAlignment):
         '''
         assert isinstance(other, ExtendedAlignment)
         _LOG.debug("Merging started ...")
+        if other.is_empty():
+            return
         me = 0
         she = 0 # Assumption: alignments are female!
         me_len = self.get_length() if not self.is_empty() else 0 
@@ -563,10 +569,13 @@ class ExtendedAlignment(MutableAlignment):
         ''' Add sequences from her to my alignment '''
         for f in other.fragments:
             self.fragments.add(f)
+        if convert_to_string:
+            for k in self.keys():
+                self[k] = bytearray(self[k])   
         for k in other.keys():
             assert k not in self.keys(), "Merging overlapping alignments not implemented"
-            self[k] = ""
-                    
+            self[k] = bytearray()
+                        
         start = 0
         status = 0   
         atboundary = False 
@@ -587,19 +596,19 @@ class ExtendedAlignment(MutableAlignment):
                     me_len += run
                 elif status == 5:
                     for k in other.keys():                    
-                        self[k] += other[k][start:she]
+                        self[k].extend(other[k][start:she])
                 elif status == 2:
                     run = me - start
-                    ins = "-" * run
+                    ins = bytearray(b"-") * run
                     for k in other.keys():
-                        self[k] += ins
+                        self[k].extend(ins)
                     self.col_labels[start:me] = range(insertion,insertion-run,-1)
                     insertion -= run 
                 elif status == 3:
                     run = me - start
-                    ins = "-" * run
+                    ins = bytearray(b"-") * run
                     for k in other.keys():
-                        self[k] += ins                  
+                        self[k].extend(ins)                  
                 atboundary = False
                 status = 0
                 
@@ -660,4 +669,7 @@ class ExtendedAlignment(MutableAlignment):
                     atboundary = True
             else:
                 raise "hmmm, we thought this should be impossible? %d %d" %(me, she)
+        if convert_to_string:
+            for k in self.keys():
+                self[k] = str(self[k])
         _LOG.debug("Merging finished ...")

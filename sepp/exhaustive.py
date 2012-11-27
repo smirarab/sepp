@@ -128,7 +128,9 @@ class JoinAlignJobs(Join):
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
             _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
-            extendedAlignment.merge_in(ap_alg)
+            extendedAlignment.merge_in(ap_alg,convert_to_string=False)
+        
+        extendedAlignment.from_bytearray_to_string()
         return extendedAlignment
     
     def perform(self):            
