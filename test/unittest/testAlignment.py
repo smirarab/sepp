@@ -5,7 +5,6 @@ Created on Sep 19, 2012
 '''
 import unittest
 import sepp
-import copy
 sepp._DEBUG = True
 from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
     ExtendedAlignment
