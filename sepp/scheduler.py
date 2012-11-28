@@ -20,15 +20,14 @@ class Job(object):
     occur through JobPool. job.result should be accessed only once one is sure
     that there the job has finished successfully (through JobPool).   
 
-    A Job keeps a list of callback functions, which are called (in the order 
+    A Job has a list of callback functions, which are called (in the order 
     they were added) when the job finishes running successfully. To address 
-    some pickling issues, while a job is running, this list is copied into the
-    JobPool object, and is set to None in the Job object. It should be noted
-    that a Callback function is expected to never raise an exception. If an 
-    exception is raised, it is simply printed out, but is otherwise totally
-    ignored. To avoid deadlock, the status of the job is set to successful even
-    if callbacks throw an exception. If a callback error is important, it can
-    ask the _pool to terminate.
+    some pickling issues, this list is kept as part of the
+    JobPool object. It should be noted that a Callback function is expected to 
+    never raise an exception. If an exception is raised, 
+    it is printed out. Also, To avoid deadlock, the status of the job is set to 
+    successful even if callbacks throw an exception. However, the error is
+    added to the list of errrors for the jobs.     
     
     The result of the job is simply the return value of the "run" method. 
     Return value of the run method gets automatically set to job.result once 

@@ -15,8 +15,6 @@ import sys
 import os
 from sepp.problem import SeppProblem
 import time
-import threading
-import pickle
 from sepp.checkpointing import CheckPointManager
 
 _LOG = get_logger(__name__)
@@ -97,10 +95,11 @@ class AbstractAlgorithm(object):
         it should enqueue E (either using a callback or a Join with only one
         dependency). B and C should be joined together using a Join, and that 
         Join needs to enqueue D. Also E and D need to be joined, and their join
-        needs to enqueue F.
-        
+        needs to enqueue F.        
         build_jobs is called before this, and all jobs are saved as part of the
-        subproblem hierarchy. This function only connects those jobs.           
+        subproblem hierarchy. This function only connects those jobs.
+        This is called after recovery from a checkpoint, because joins and callbacks
+        are not checkpointed.     
         '''
         raise NotImplementedError()
             
@@ -110,6 +109,8 @@ class AbstractAlgorithm(object):
         Builds separate jobs for different tasks that need to be done. 
         This just creates jobs, without connecting them. connect_jobs is used
         to create jobs. 
+        build_job is not called after checkpoints are recovered, because the 
+        jobs are checkpointed (their connections are not).         
         '''
         raise NotImplementedError()
 
@@ -118,7 +119,7 @@ class AbstractAlgorithm(object):
         '''
         This is called after the DAG is created (see buld_job_dag) to enqueue
         the first level of jobs (those with no dependency). These jobs should
-        automatically enqueue the rest of the DAG upon completion.
+        automatically enqueue the rest of the DAG upon completion.        
         '''
         raise NotImplementedError()    
 

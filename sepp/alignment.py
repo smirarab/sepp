@@ -24,7 +24,7 @@ import re
 #from sepp import #_LOG
 from sepp.filemgr import open_with_intermediates
 
-from collections import Mapping, Container
+from collections import Mapping
 from abc import ABCMeta
 import copy
 from sepp import get_logger
