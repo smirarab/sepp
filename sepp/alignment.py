@@ -501,8 +501,11 @@ class ExtendedAlignment(MutableAlignment):
         input lables. Insertion column labels will not be affected.  
         '''
         j = 0
+        _LOG.debug("Relabeling %d (%d) with %d labels." %(self.get_length(),len(self._col_labels),len(original_labels)))
         for i in xrange(0,self.get_length()):
             if not self._is_insertion_label(self.col_labels[i]):
+                assert j < len(original_labels), ("Not enough labels"
+                           " %d %d" %(j,len(original_labels)))
                 self.col_labels[i] = original_labels[j]
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."

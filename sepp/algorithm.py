@@ -176,19 +176,20 @@ class AbstractAlgorithm(object):
             _LOG.exception("There have been errors in executed jobs. Terminating.")
             sys.exit(1)    
         
+        checkpoint_manager.stop_checkpointing()
+                
         '''Merge results into final outputs'''
         self.merge_results()
         
         '''Output final results'''
-        self.output_results()         
-        
-        checkpoint_manager.stop_checkpointing()
+        self.output_results()                 
         
         _LOG.info("Execution Finished in %d seconds" %(time.time() - t))
 
+
     ''' The following are a bunch of helper methods that will be needed in 
     most implementations of sepp'''
-        
+                
     def check_and_set_sizes(self, total):
         #If sizes are not set, then use 10% rule
         options = self.options

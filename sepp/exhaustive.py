@@ -31,14 +31,10 @@ class JoinSearchJobs(Join):
         for p in root_problem.iter_leaves():
             self.add_job(p.jobs["hmmsearch"])         
     
-    def perform(self):
-        '''
-        Distributes fragments to alignments subsets with best score, 
-        and runs align jobs on those. Also, creates new chunks of fragments
-        for better parallelism.     
-        '''
-  
+    def figureout_fragment_subset(self):
         ''' Figure out which fragment should go to which subproblem'''
+        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+            return
         max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])    
         for fragment_chunk_problem in self.root_problem.iter_leaves():
             align_problem = fragment_chunk_problem.get_parent()
@@ -59,11 +55,23 @@ class JoinSearchJobs(Join):
                     if prev_align_problem is not None:
                         prev_align_problem.fragments.seq_names.remove(key)
         
+        self.root_problem.annotations["fragments.distribution.done"] = 1
+
         ''' Make sure all fragments are in at least one subproblem. 
         TODO: what to do with those that are not?'''        
         for k,v in max_evalues.items():
             assert v[1] is not None, "Fragments %s is not scored against any subset" %k
-        
+
+    def perform(self):
+        '''
+        Distributes fragments to alignments subsets with best score, 
+        and runs align jobs on those. Also, creates new chunks of fragments
+        for better parallelism.     
+        '''
+  
+        ''' Figure out which fragment should go to which subproblem'''
+        self.figureout_fragment_subset()
+                
         ''' For each alignment subproblem, 
         1) make sure its fragments are evenly distributed to fragment chunks. 
         2) Setup alignment jobs for its children and enqueue them'''
