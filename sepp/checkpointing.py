@@ -12,6 +12,7 @@ import stat
 from sepp.filemgr import get_temp_file, get_root_temp_dir, set_root_temp_dir
 import gzip
 import time
+from sepp.config import options
 
 _LOG = get_logger(__name__)
 
@@ -54,7 +55,7 @@ def save_checkpoint(checkpoint_manager):
         if oldTmpFile is not None:
             os.remove(oldTmpFile)        
         _LOG.info("Checkpoint Saved to: %s and linked in %s." %(newTmpDest,checkpoint_manager.checkpoint_path))
-        checkpoint_manager.timer = threading.Timer(60, save_checkpoint, args=[checkpoint_manager])
+        checkpoint_manager.timer = threading.Timer(options().checkpoint_interval, save_checkpoint, args=[checkpoint_manager])
         checkpoint_manager.timer.setDaemon(True)
         checkpoint_manager.timer.start() 
             
@@ -95,6 +96,7 @@ class CheckPointManager:
         
     def start_checkpointing(self, root_problem):
         if self.is_checkpointing:
+            _LOG.info("Checkpoint every %d seconds" %options().checkpoint_interval)
             self.checkpoint_state.root_problem = root_problem 
             self.checkpoint_state.temp_root = get_root_temp_dir()
             if self.checkpoint_state.cumulative_time is None:
