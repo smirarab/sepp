@@ -4,12 +4,14 @@ Created on Nov 26, 2012
 @author: smirarab
 '''
 import os
-import pickle
+import cPickle
 import sys
 import threading
 from sepp import get_logger
 import stat
 from sepp.filemgr import get_temp_file, get_root_temp_dir, set_root_temp_dir
+import gzip
+import time
 
 _LOG = get_logger(__name__)
 
@@ -24,21 +26,35 @@ class CheckPointState(object):
         '''
         self.root_problem = None
         self.temp_root = None
+        self.cumulative_time = 0
         
-def save_checkpoint(checkpoint_manager):
-    #assert os.path.exists(self.checkpoint_path)
+def save_checkpoint(checkpoint_manager):    
+    # Note: this module is not bullet proof in terms of race conditions. 
+    # Most importantly, it is possible (though extremely unlikely) that 
+    # while the new temp path is being written (f.write...) 
     if checkpoint_manager.is_checkpointing:
-        _LOG.info("Checkpoint is being updated: %s" %str(checkpoint_manager.checkpoint_state.root_problem))
-        currenlimit = sys.getrecursionlimit()
-        sys.setrecursionlimit(100000)
+
         newTmpDest = get_temp_file("dump", "checkpoints")
+        _LOG.info("Checkpoint is being updated: %s" %newTmpDest)
         oldTmpFile = open(checkpoint_manager.checkpoint_path).readlines()
         oldTmpFile = None if len(oldTmpFile) == 0 else oldTmpFile[-1][0:-1]
-        pickle.dump(checkpoint_manager.checkpoint_state, open(newTmpDest,"w"))      
-        open(checkpoint_manager.checkpoint_path,"a").write(newTmpDest+"\n")
+
+        checkpoint_manager.update_time()
+
+        currenlimit = sys.getrecursionlimit()
+        sys.setrecursionlimit(100000)
+        picklefile = gzip.GzipFile(newTmpDest, 'wb')
+        cPickle.dump(checkpoint_manager.checkpoint_state, picklefile, 2)    
+        picklefile.close()  
         sys.setrecursionlimit(currenlimit)
-        _LOG.info("Checkpoint Saved to: %s" %str(checkpoint_manager.checkpoint_path))
-        checkpoint_manager.timer = threading.Timer(5, save_checkpoint, args={checkpoint_manager})
+
+        f = open(checkpoint_manager.checkpoint_path,"a")
+        f.write(newTmpDest+"\n")
+        f.close()
+        if oldTmpFile is not None:
+            os.remove(oldTmpFile)        
+        _LOG.info("Checkpoint Saved to: %s and linked in %s." %(newTmpDest,checkpoint_manager.checkpoint_path))
+        checkpoint_manager.timer = threading.Timer(60, save_checkpoint, args=[checkpoint_manager])
         checkpoint_manager.timer.setDaemon(True)
         checkpoint_manager.timer.start() 
             
@@ -51,6 +67,7 @@ class CheckPointManager:
         self.is_checkpointing = False
         self.timer = None
         self._init_state_and_file()
+        self.last_checkpoint_time = time.time()
 
     def _init_state_and_file(self):
         if self.checkpoint_path is None:
@@ -67,9 +84,11 @@ class CheckPointManager:
         _LOG.info("Checkpoint is being restored: %s" %str(self.checkpoint_path))
         assert os.path.exists(self.checkpoint_path)
         lastPath = open(self.checkpoint_path).readlines()[-1][0:-1]
-        self.checkpoint_state = pickle.load(open(lastPath))
+        picklefile = gzip.GzipFile(lastPath, 'rb')
+        self.checkpoint_state = cPickle.load(picklefile)
+        picklefile.close()
         set_root_temp_dir(self.checkpoint_state.temp_root)
-        _LOG.info("Checkpoint restore finished: %s" %str(self.checkpoint_state.root_problem))
+        _LOG.info("Checkpoint restore finished: %s" %lastPath)
     
     def remove_checkpoint_file(self):
         os.remove(self.checkpoint_path)
@@ -78,6 +97,8 @@ class CheckPointManager:
         if self.is_checkpointing:
             self.checkpoint_state.root_problem = root_problem 
             self.checkpoint_state.temp_root = get_root_temp_dir()
+            if self.checkpoint_state.cumulative_time is None:
+                self.checkpoint_state.cumulative_time = 0
             save_checkpoint(self)
             
     def stop_checkpointing(self):
@@ -85,7 +106,12 @@ class CheckPointManager:
         if self.timer is not None:
             self.timer.cancel()
         self.remove_checkpoint_file()
-        
+        self.update_time()
+        _LOG.info("Stop Checkpointing. Cumulative time: %d" %self.checkpoint_state.cumulative_time)
+     
+    def update_time(self):
+        self.checkpoint_state.cumulative_time += (time.time() - self.last_checkpoint_time)
+        self.last_checkpoint_time = time.time()      
 #    def backup_temp_directory(self, path):
 #        assert(os.path.exists(path))
 #        idx = 0

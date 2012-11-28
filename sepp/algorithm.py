@@ -184,8 +184,8 @@ class AbstractAlgorithm(object):
         '''Output final results'''
         self.output_results()                 
         
-        _LOG.info("Execution Finished in %d seconds" %(time.time() - t))
-
+        _LOG.info("Current execution Finished in %d seconds" %(time.time() - t))
+        _LOG.info("All checkpointed executions Finished in %d cumulative time" %(checkpoint_manager.checkpoint_state.cumulative_time + time.time() - checkpoint_manager.last_checkpoint_time ))
 
     ''' The following are a bunch of helper methods that will be needed in 
     most implementations of sepp'''
