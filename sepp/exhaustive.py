@@ -162,6 +162,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.filters = False
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
+        #Temp fix for now, 
+        self.molecule = self.options.molecule
 
     def merge_results(self):
         ''' TODO: implement this 
@@ -295,7 +297,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
-                bj.setup_for_subproblem(alg_problem)
+                bj.setup_for_subproblem(alg_problem,molecule=self.molecule)
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''
                 for fc_problem in alg_problem.get_children():
@@ -308,7 +310,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                     ''' create the align job'''
                     aj = HMMAlignJob()
                     fc_problem.add_job(aj.job_type, aj)
-                    aj.partial_setup_for_subproblem(fc_problem)
+                    aj.partial_setup_for_subproblem(fc_problem, molecule=self.molecule)
                 
             '''Join all align jobs of a placement subset (enqueues placement job)'''
             jaj = self._get_new_Join_Align_Job()
