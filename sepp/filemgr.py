@@ -114,6 +114,10 @@ def get_root_temp_dir():
         _LOG.info("Root temp directory built: %s" % _root_temp_dir)        
     return _root_temp_dir
 
+def set_root_temp_dir(tmp):
+    global _root_temp_dir
+    _root_temp_dir = tmp
+
 def check_or_make_dir_path(path):
     '''
     Make sure a path to a directory exists, and return the normalized path.

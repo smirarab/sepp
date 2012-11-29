@@ -15,8 +15,6 @@ import sys
 import os
 from sepp.problem import SeppProblem
 import time
-import threading
-import pickle
 from sepp.checkpointing import CheckPointManager
 
 _LOG = get_logger(__name__)
@@ -80,10 +78,9 @@ class AbstractAlgorithm(object):
         raise NotImplementedError()
     
     @abstractmethod
-    def build_job_dag(self):
+    def connect_jobs(self):
         '''
-        Builds separate jobs for different tasks that need to be done. 
-        Jobs are joined together to form a DAG using Joins (see sepp.scheduler)
+        Join Jobs are joined together to form a DAG using Joins (see sepp.scheduler)
         and call_back functions (see sepp.scheduler.Job). 
 
         Once the first level of jobs (those with no dependency) are enqueued
@@ -98,7 +95,22 @@ class AbstractAlgorithm(object):
         it should enqueue E (either using a callback or a Join with only one
         dependency). B and C should be joined together using a Join, and that 
         Join needs to enqueue D. Also E and D need to be joined, and their join
-        needs to enqueue F.          
+        needs to enqueue F.        
+        build_jobs is called before this, and all jobs are saved as part of the
+        subproblem hierarchy. This function only connects those jobs.
+        This is called after recovery from a checkpoint, because joins and callbacks
+        are not checkpointed.     
+        '''
+        raise NotImplementedError()
+            
+    @abstractmethod
+    def build_jobs(self):
+        '''
+        Builds separate jobs for different tasks that need to be done. 
+        This just creates jobs, without connecting them. connect_jobs is used
+        to create jobs. 
+        build_job is not called after checkpoints are recovered, because the 
+        jobs are checkpointed (their connections are not).         
         '''
         raise NotImplementedError()
 
@@ -107,7 +119,7 @@ class AbstractAlgorithm(object):
         '''
         This is called after the DAG is created (see buld_job_dag) to enqueue
         the first level of jobs (those with no dependency). These jobs should
-        automatically enqueue the rest of the DAG upon completion.
+        automatically enqueue the rest of the DAG upon completion.        
         '''
         raise NotImplementedError()    
 
@@ -133,44 +145,52 @@ class AbstractAlgorithm(object):
         checkpoint_manager = options().checkpoint
         assert isinstance(checkpoint_manager,CheckPointManager)        
         
+        t = time.time()
+                    
         if checkpoint_manager.is_recovering:
+            checkpoint_manager.restore_checkpoint()
             self.root_problem = checkpoint_manager.checkpoint_state.root_problem
-        else:    
-            t = time.time()
-            
+            self.check_outputprefix()
+        else:                
             '''check input arguments'''
             self.check_options()
             
             '''build the problem structure'''
             self.root_problem = self.build_subproblems()
                     
-            '''build a DAG for running all jobs'''
-            self.build_job_dag()
-        
-        '''start the checkpointing (has any effects only in checkpointing mode)'''
-        checkpoint_manager.start_checkpointing(self.root_problem)        
-        
+            '''build jobs'''
+            self.build_jobs()
+            
+        '''connect jobs into a DAG'''            
+        self.connect_jobs()
+               
         '''Queue up first level jobs (i.e. those with no dependency).
         Once these run, they should automatically enqueue the rest of the
         DAG through joins and callbacks '''                            
         self.enqueue_firstlevel_job()
+        
+        '''start the checkpointing (has any effects only in checkpointing mode)'''
+        checkpoint_manager.start_checkpointing(self.root_problem)         
         
         '''Wait for all jobs to finish'''
         if (not JobPool().wait_for_all_jobs()):
             _LOG.exception("There have been errors in executed jobs. Terminating.")
             sys.exit(1)    
         
+        checkpoint_manager.stop_checkpointing()
+                
         '''Merge results into final outputs'''
         self.merge_results()
         
         '''Output final results'''
-        self.output_results()         
+        self.output_results()                 
         
-        _LOG.info("Execution Finished in %d seconds" %(time.time() - t))
+        _LOG.info("Current execution Finished in %d seconds" %(time.time() - t))
+        _LOG.info("All checkpointed executions Finished in %d cumulative time" %(checkpoint_manager.checkpoint_state.cumulative_time + time.time() - checkpoint_manager.last_checkpoint_time ))
 
     ''' The following are a bunch of helper methods that will be needed in 
     most implementations of sepp'''
-        
+                
     def check_and_set_sizes(self, total):
         #If sizes are not set, then use 10% rule
         options = self.options

@@ -24,6 +24,7 @@ from dendropy import DataSet as Dataset
 from dendropy import convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 import cStringIO
+import sys
 
 _LOG = get_logger(__name__)
 
@@ -58,7 +59,7 @@ class PhylogeneticTree(object):
         self._tree = dendropy_tree
         self.n_leaves = self.count_leaves()
         self._tree.seed_node.edge.tail_node = None
-        self._tree.seed_node.edge.length = None
+        self._tree.seed_node.edge.length = None                  
 
     def get_tree(self):
         return self._tree

@@ -39,7 +39,6 @@ import argparse
 import os
 from multiprocessing import cpu_count
 from sepp import scheduler
-from sepp.checkpointing import CheckPointManager
 
 _LOG = get_logger(__name__)
    
@@ -89,7 +88,8 @@ def set_cpu(cpus):
     return c
 
 def set_checkpoint(checkpoint):
-    return CheckPointManager(checkpoint)
+    import sepp.checkpointing
+    return sepp.checkpointing.CheckPointManager(checkpoint)
 
 _parser = None
     
@@ -188,6 +188,11 @@ def _init_parser():
                       default = set_checkpoint(None),
                       help = "checkpoint file "
                              "[default: no checkpointing]")                                                          
+    otherGroup.add_argument("-cpi", "--interval", type = int, 
+                      dest = "checkpoint_interval", metavar = "N", 
+                      default = 3600,
+                      help = "Interval (in seconds) between checkpoint writes. Has effect only with -cp provided."
+                             "[default: 3600]")  
     #inputGroup.add_argument("-p", "--package", 
     #                  dest = "package", metavar = "PKG", 
     #                  help = "package directory"
