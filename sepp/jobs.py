@@ -181,8 +181,9 @@ class HMMBuildJob(ExternalSeppJob):
         self.infile = None #input reference alignment
         self.informat = None #format of input reference alignment
         self.outfile = None #location of output file
-        
-    def setup(self, infile, outfile, informat = "fasta",**kwargs):
+        self.molecule = None #type of molecule used
+
+    def setup(self, infile, outfile, informat = "fasta", molecule = "dna",**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
         Use setup_for_subproblem when possible. 
@@ -190,9 +191,10 @@ class HMMBuildJob(ExternalSeppJob):
         self.infile = infile
         self.informat = informat
         self.outfile = outfile
-        self._kwargs = kwargs
+        self.molecule = molecule
+        self._kwargs = kwargs        
 
-    def setup_for_subproblem(self, subproblem ,**kwargs):
+    def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
         '''
         Automatically sets up a job given a subproblem object. It outputs the
         right alignment subset to a temporary file.
@@ -209,10 +211,11 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = "fasta"
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.model.", 
                                                        subproblem)
+        self.molecule = molecule
         self._kwargs = kwargs
         
     def get_invocation(self):
-        invoc = [self.path, "--symfrac" ,"0.0" ,"--dna"]
+        invoc = [self.path, "--symfrac" ,"0.0" ,"--%s" % self.molecule]
         if self._kwargs.has_key("user_options"):
             invoc.extend(self._kwargs["user_options"].split())
         if self.informat == "fasta":
@@ -243,8 +246,9 @@ class HMMAlignJob(ExternalSeppJob):
         self.outfile = None
         self.base_alignment = None
         self.trim = None
+        self.molecule = None
                 
-    def setup(self,hmmmodel, fragments, output_file, base_alignment=None, trim=True, **kwargs):
+    def setup(self,hmmmodel, fragments, output_file, base_alignment=None, trim=True, molecule="dna",**kwargs):
         '''
         Setup job parameters when those are externally decided.
         Use setup_for_subproblem when possible.
@@ -254,10 +258,11 @@ class HMMAlignJob(ExternalSeppJob):
         self.outfile = output_file
         self.base_alignment = base_alignment
         self.trim = trim
+        self.molecule = molecule
         self._kwargs = kwargs                        
         
     def partial_setup_for_subproblem(self, subproblem, 
-                              trim=False, **kwargs):
+                              trim=False, molecule="dna", **kwargs):
         '''Automatically sets up a job given a subproblem object. Note that 
         hmmmodel is not set and fragments is just a filename that needs to be
         created later. base_alignment is not set either.  
@@ -270,10 +275,11 @@ class HMMAlignJob(ExternalSeppJob):
                                                    subproblem,".fasta")
               
         self.trim = trim
+        self.molecule = molecule
         self._kwargs = kwargs  
                     
     def get_invocation(self):
-        invoc = [self.path, "--allcol", "--dna",
+        invoc = [self.path, "--allcol", "--%s" % self.molecule,
                  "-o", self.outfile]
         if self.trim:
             invoc.extend(["--trim"])
