@@ -97,7 +97,7 @@ class CheckPointManager:
         _LOG.info("Checkpoint restore finished: %s" %lastPath)
     
     def remove_checkpoint_file(self):
-        if os.path.exists(self.checkpoint_path):
+        if self.checkpoint_path is not None and os.path.exists(self.checkpoint_path):
             os.remove(self.checkpoint_path)
         
     def start_checkpointing(self, root_problem):
@@ -110,16 +110,25 @@ class CheckPointManager:
             save_checkpoint(self)
             
     def stop_checkpointing(self):
-        self.is_checkpointing = False
-        if self.timer is not None:
-            self.timer.cancel()
-        self.remove_checkpoint_file()
-        self.update_time()
-        _LOG.info("Stop Checkpointing. Cumulative time: %d" %self.checkpoint_state.cumulative_time)
+        if self.is_checkpointing:
+            self.is_checkpointing = False
+            if self.timer is not None:
+                self.timer.cancel()
+            self.remove_checkpoint_file()
+            self.update_time()
+            _LOG.info("Stop Checkpointing. Cumulative time: %d" %self.checkpoint_state.cumulative_time)
      
     def update_time(self):
-        self.checkpoint_state.cumulative_time += (time.time() - self.last_checkpoint_time)
-        self.last_checkpoint_time = time.time()      
+        if self.is_checkpointing:
+            self.checkpoint_state.cumulative_time += (time.time() - self.last_checkpoint_time)
+        self.last_checkpoint_time = time.time()     
+        
+        
+    def get_total_time(self):
+        if self.checkpoint_state is not None:
+            return self.checkpoint_state.cumulative_time + time.time() - self.last_checkpoint_time
+        else:
+            return time.time() - self.last_checkpoint_time
 #    def backup_temp_directory(self, path):
 #        assert(os.path.exists(path))
 #        idx = 0
