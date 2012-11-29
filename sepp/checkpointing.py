@@ -97,7 +97,8 @@ class CheckPointManager:
         _LOG.info("Checkpoint restore finished: %s" %lastPath)
     
     def remove_checkpoint_file(self):
-        os.remove(self.checkpoint_path)
+        if os.path.exists(self.checkpoint_path):
+            os.remove(self.checkpoint_path)
         
     def start_checkpointing(self, root_problem):
         if self.is_checkpointing:
