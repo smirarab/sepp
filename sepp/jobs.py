@@ -82,6 +82,10 @@ class ExternalSeppJob(Job):
             if self.stdindata is not None:
                 self._kwargs['stdin'] = subprocess.PIPE        
             
+            assert (self.get_invocation()[0].count("/") == 0 
+                    or os.path.exists(self.get_invocation()[0])), ("path for %s "
+                            " does not exist (%s)" %(self.job_type, self.get_invocation()[0]))
+            
             self._process = Popen(self.get_invocation(), **self._kwargs)        
             self._id = self._process.pid
 
@@ -104,7 +108,7 @@ class ExternalSeppJob(Job):
                 _LOG.info("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
-                        self.process.returncode, self.stdoutdata))
+                        self.process.returncode, "%s ... (continued output) ..." %(self.stdoutdata[0:100]) if len(self.stdoutdata) > 100 else self.stdoutdata))
     
             else:         
                 _LOG.info("Finished %s Job with input: %s with:\n"
@@ -317,6 +321,7 @@ class HMMSearchJob(ExternalSeppJob):
         self.outfile = None
         self.elim = None
         self.filters = None
+        self.pipe = True
         
     def setup(self, hmmmodel, fragments, output_file, elim=None, filters=True, **kwargs):
         self.hmmmodel = hmmmodel
@@ -343,7 +348,9 @@ class HMMSearchJob(ExternalSeppJob):
     
             
     def get_invocation(self):
-        invoc = [self.path, "-o", self.outfile, "--noali", "--cpu", "1"]
+        invoc = [self.path, "--noali", "--cpu", "1"]
+        if not self.pipe:
+            invoc.extend(["-o", self.outfile])
         if self.elim is not None:
             invoc.extend(["-E", str(self.elim)])
         if not self.filters:
@@ -354,16 +361,19 @@ class HMMSearchJob(ExternalSeppJob):
         return invoc
 
     def characterize_input(self):
-        return "model:%s, fragments:%s, elim:%s, filter:%s, output:%s" %(self.hmmmodel,self.fragments,self.elim, self.filters, self.outfile)
+        return "model:%s, fragments:%s, elim:%s, filter:%s, output:%s" %(self.hmmmodel,self.fragments,self.elim, self.filters, "Piped" if self.pipe else self.outfile)
 
     def read_results(self):
         '''
            Reads the search output file and returns a dictionary that contains 
            the e-values of the searched fragments
         '''
-        assert os.path.exists(self.outfile)
-        assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
-        outfile = open(self.outfile, 'r');
+        if self.pipe:
+            outfile = (self.stdoutdata.split("\n"))
+        else:
+            assert os.path.exists(self.outfile)
+            assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
+            outfile = open(self.outfile, 'r');
         results = {}
     
         #Group 1 (e-value) 2 (bitscore) and 9 (taxon name) contain the relevant information, other ones can be ignored unless we plan to do something later
