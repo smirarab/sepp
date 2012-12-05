@@ -108,7 +108,7 @@ class ExternalSeppJob(Job):
                 _LOG.info("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
-                        self.process.returncode, "%s ... (continued output) ..." %(self.stdoutdata[0:100]) if len(self.stdoutdata) > 100 else self.stdoutdata))
+                        self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], len(self.stdoutdata)) if len(self.stdoutdata) > 100 else self.stdoutdata))
     
             else:         
                 _LOG.info("Finished %s Job with input: %s with:\n"
