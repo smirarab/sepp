@@ -321,7 +321,8 @@ class HMMSearchJob(ExternalSeppJob):
         self.outfile = None
         self.elim = None
         self.filters = None
-        self.pipe = True
+        self.pipe = sepp.config.options().hmmsearch.piped.strip().lower() == "true" if hasattr(sepp.config.options().hmmsearch, "piped") else True
+        
         
     def setup(self, hmmmodel, fragments, output_file, elim=None, filters=True, **kwargs):
         self.hmmmodel = hmmmodel
