@@ -200,7 +200,7 @@ class SeppProblem(Problem):
         _LOG.debug("subalignment without allgap columns written to %s; %d columns remaining." %(path, len(remaining_cols)))
         return remaining_cols         
         
-    def read_extendend_alignment_and_relabel_columns(self, orig_path, extension_path):
+    def read_extendend_alignment_and_relabel_columns(self, orig_path, extension_path, convert_to_string = True):
         '''
         This method goes with write_subalignment_without_allgap_columns method.
         It enables reading back an alignment that was previously written to disk, 
@@ -216,7 +216,7 @@ class SeppProblem(Problem):
         _LOG.debug("Reading %s %s and relabeling it based on %d orig column labels." %(orig_path, extension_path, len(remaining_cols)))
         
         ap_alg = ExtendedAlignment(self.fragments.keys())
-        ap_alg.build_extended_alignment(orig_path, extension_path)
+        ap_alg.build_extended_alignment(orig_path, extension_path, convert_to_string)
         ap_alg.relabel_original_columns(remaining_cols)
         return ap_alg
                             

@@ -14,6 +14,7 @@ import gzip
 import time
 from sepp.config import options
 import datetime
+#from threading import Lock
 
 _LOG = get_logger(__name__)
 
@@ -39,7 +40,8 @@ def save_checkpoint(checkpoint_manager):
     # Most importantly, it is possible (though extremely unlikely) that 
     # while the new temp path is being written (f.write...) 
     if checkpoint_manager.is_checkpointing:
-
+        #checkpoint_manager.lock.acquire()
+        checkpoint_manager.saving = True
         newTmpDest = get_temp_file("dump", "checkpoints")
         _LOG.info("Checkpoint is being updated: %s" %newTmpDest)
         oldTmpFile = open(checkpoint_manager.checkpoint_path).readlines()
@@ -60,6 +62,8 @@ def save_checkpoint(checkpoint_manager):
         if oldTmpFile is not None:
             os.remove(oldTmpFile)        
         _LOG.info("Checkpoint Saved to: %s and linked in %s." %(newTmpDest,checkpoint_manager.checkpoint_path))
+        checkpoint_manager.saving = False      
+        #checkpoint_manager.lock.release()
         checkpoint_manager.timer = threading.Timer(options().checkpoint_interval, save_checkpoint, args=[checkpoint_manager])
         checkpoint_manager.timer.setDaemon(True)
         checkpoint_manager.timer.start() 
@@ -74,7 +78,9 @@ class CheckPointManager:
         self.timer = None
         self._init_state_and_file()
         self.last_checkpoint_time = time.time()
-
+        self.saving = False
+        #self.lock = Lock()
+          
     def _init_state_and_file(self):
         if self.checkpoint_path is None:
             return                    
@@ -118,6 +124,16 @@ class CheckPointManager:
             self.update_time()
             _LOG.info("Stop Checkpointing. Cumulative time: %d" %self.checkpoint_state.cumulative_time)
      
+    def pause_checkpointing(self):
+        if self.is_checkpointing:           
+            if self.timer is not None:
+                if self.saving:
+                    self.timer.join()
+                    self.timer.cancel()
+                else:
+                    self.timer.cancel()
+            _LOG.info("Paused Checkpointing. Cumulative time: %d" %self.checkpoint_state.cumulative_time)
+     
     def update_time(self):
         if self.is_checkpointing:
             self.checkpoint_state.cumulative_time += (time.time() - self.last_checkpoint_time)
@@ -129,10 +145,10 @@ class CheckPointManager:
             return self.checkpoint_state.cumulative_time + time.time() - self.last_checkpoint_time
         else:
             return time.time() - self.last_checkpoint_time
-#    def backup_temp_directory(self, path):
-#        assert(os.path.exists(path))
-#        idx = 0
-#        while os.path.exists("%s_back-%d" %(path,idx)): idx += 1                                        
-#        new_name = "%s_back-%d" %(path,idx)
-#        os.rename(path, new_name)
-#        return new_name  
+        
+#    def force_checkpoint(self):
+#        if self.is_checkpointing:
+#            self.timer = threading.Timer(0, save_checkpoint, args=[self,False])
+#            self.timer.setDaemon(True)
+#            self.timer.start()  
+#            self.timer.join()

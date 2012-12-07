@@ -9,6 +9,10 @@ from sepp.jobs import PplacerJob
 from sepp.config import options
 import sepp.config
 from sepp.math_utils import lcm
+from sepp.problem import SeppProblem
+from sepp.scheduler import JobPool
+from multiprocessing import Pool, Manager
+from sepp.alignment import ExtendedAlignment
 
 _LOG = get_logger(__name__)
 
@@ -22,13 +26,21 @@ class UPPJoinAlignJobs(JoinAlignJobs):
         JoinAlignJobs.__init__(self)
     
     def perform(self):            
-        pp = self.placement_problem
+        pp = self.placement_problem        
         
-        extendedAlignment = self.merge_subalignments()
-        
-        pj = pp.jobs["pplacer"]
-        assert isinstance(pj, PplacerJob)
-        pj.set_attribute("extended_alignment_object", extendedAlignment)                    
+        assert isinstance(pp, SeppProblem)
+        pp.annotations["search_join_object"] = self                    
+
+# Useful for multi-core merging if ever needed
+#def mergetwo(x):
+#    ((i,j),extended) = x
+#    a=extended[i]
+#    b=extended[j]
+#    a.merge_in(b,convert_to_string=True)
+#    extended[j] = None
+#    extended[i] = a
+#    del b
+#    return "Success"
 
 class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
@@ -45,14 +57,77 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
 
 
     def merge_results(self):
-        ''' no .json files to merge'''
-        pass
-
-    def output_results(self):
-        _LOG.info("Generating output. ")
         assert len(self.root_problem.get_children()) == 1, "Currently UPP works with only one placement subset."
-        pp = self.root_problem.get_children()[0]
-        extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
+        '''
+        Merge alignment subset extended alignments to get one extended alignment
+        for current placement subset.
+        '''     
+        pp = self.root_problem.get_children()[0]        
+        _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
+        ''' First assign fragments to the placement problem'''
+        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
+        for ap in pp.get_children():
+            pp.fragments.seq_names.extend(ap.fragments)   
+        ''' Then Build an extended alignment by merging all hmmalign results''' 
+        extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
+        for ap in pp.children:
+            assert isinstance(ap, SeppProblem)
+            ''' Get all fragment chunk alignments for this alignment subset'''
+            aligned_files = [fp.get_job_result_by_name('hmmalign') for 
+                                fp in ap.children if 
+                                fp.get_job_result_by_name('hmmalign') is not None]
+            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
+            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                        (ap.jobs["hmmbuild"].infile , aligned_files)
+            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
+            extendedAlignment.merge_in(ap_alg,convert_to_string=False)
+        
+        extendedAlignment.from_bytearray_to_string()
+        self.results = extendedAlignment         
+
+# Useful for multi-core merging if ever needed
+#    def parallel_merge_results(self):
+#        assert len(self.root_problem.get_children()) == 1, "Currently UPP works with only one placement subset."
+#        '''
+#        Merge alignment subset extended alignments to get one extended alignment
+#        for current placement subset.
+#        '''     
+#        pp = self.root_problem.get_children()[0]        
+#        _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))       
+#        ''' Then Build an extended alignment by merging all hmmalign results'''
+#        manager = Manager() 
+#        extendedAlignments = manager.list()        
+#        for ap in pp.children:
+#            assert isinstance(ap, SeppProblem)
+#            ''' Get all fragment chunk alignments for this alignment subset'''
+#            aligned_files = [fp.get_job_result_by_name('hmmalign') for 
+#                                fp in ap.children if 
+#                                fp.get_job_result_by_name('hmmalign') is not None]
+#            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
+#            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+#                        (ap.jobs["hmmbuild"].infile , aligned_files)
+#            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
+#            extendedAlignments.append(ap_alg) 
+#            
+#        while len(extendedAlignments)>1:     
+#            a=range(0,len(extendedAlignments))    
+#            #print [len(x) for x in extendedAlignments]
+#            x = zip(a[0::2],a[1::2])
+#            mapin = zip (x,[extendedAlignments]*len(x))         
+#            _LOG.debug("One round of merging started. Currently have %d alignments left. " %len(extendedAlignments)) 
+#            Pool(max(12,len(extendedAlignments))).map(mergetwo,mapin)
+#            #print [len(x) if x is not None else "None" for x in extendedAlignments]
+#            extendedAlignments = manager.list([x for x in extendedAlignments if x is not None])
+#            extendedAlignments.reverse()            
+#            _LOG.debug("One round of merging finished. Still have %d alignments left. " %len(extendedAlignments)) 
+#        extendedAlignment = extendedAlignments[0] 
+#        extendedAlignment.from_bytearray_to_string()
+#        self.results = extendedAlignment
+        
+
+    def output_results(self):        
+        extended_alignment = self.results        
+        _LOG.info("Generating output. ")
         outfilename = self.get_output_filename("alignment.fasta")
         extended_alignment.write_to_path(outfilename)
         _LOG.info("Unmasked alignment written to %s" %outfilename)

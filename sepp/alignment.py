@@ -154,8 +154,8 @@ class ReadOnlyAlignment(Mapping, object):
 
     def is_all_gap(self, pos):
         '''Checks to see if a column is all gap column at position x'''
-        for name in self.keys():
-            if (self[name][pos] != '-'):
+        for seq in self.itervalues():
+            if (seq[pos] != '-'):
                 return False
         return True    
         
@@ -189,8 +189,8 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         self.datatype = None
     
     def set_alignment(self, alignment):
-        for name in alignment.keys():
-            self[name] = alignment[name].upper()
+        for name, seq in alignment.iteritems():
+            self[name] = seq.upper()
 
     def read_filepath(self, filename, file_format='FASTA'):
         """Augments the matrix by reading the filepath.
@@ -217,8 +217,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         
     def add_column(self, pos, char='-'):
         #_LOG.debug("Added a column to reference alignment at position %d" %pos)
-        for name in self.keys():
-            seq = self.get(name)
+        for name, seq in self.iteritems():
             if hasattr(char, "get"):
                 c = char.get(name,'-')
             else:
@@ -227,14 +226,13 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             self[name] = seq
     
     def remove_column(self, pos):
-        for name in self.keys():
-            seq = self.get(name)
+        for name, seq in self.iteritems():            
             seq = seq[:pos] + seq[pos + 1:]
             self[name] = seq
 
     def remove_columns(self, indexes):
-        for name in self.keys():
-            self[name] = ''.join((char for idx, char in enumerate(self.get(name)) if idx not in indexes))
+        for name, seq in self.iteritems():
+            self[name] = ''.join((char for idx, char in enumerate(seq) if idx not in indexes))
     
     def delete_all_gap(self):
         '''
@@ -243,8 +241,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         pos = 0
         i = 0
         subset = []
-        name = self.keys()[0]
-        while (pos < len(self[name])):            
+        while (pos < self.get_length()):            
             if (self.is_all_gap(pos)):
                 self.remove_column(pos)
             else:
@@ -289,7 +286,7 @@ class ReadonlySubalignment(ReadOnlyAlignment):
     def __iter__(self):
         for key in self.seq_names:
             yield key
-    
+
     def get_mutable_alignment(self):
         ret = MutableAlignment()
         ret.set_alignment(self)
@@ -347,20 +344,6 @@ class ExtendedAlignment(MutableAlignment):
             self._reset_col_names()
         else:
             self._col_labels.insert(pos, new_label)
-    
-    def add_column_other(self, pos, other, otherpos, addlen, new_label=None):
-        '''
-        A new column is added to the alignment. The new label can be value, 
-        or one of three directives (see below). 
-        '''
-        ins = bytearray(b"-") * addlen 
-        for name,seq in self.items():
-            if other.has_key(name):
-                c = other[name][otherpos:otherpos+addlen]
-                seq.extend(c)
-            else:               
-                seq[pos:pos] = ins
-        self._col_labels[pos:pos] = new_label
         
     def remove_column(self, pos, labels="REMOVE"):
         '''
@@ -403,33 +386,32 @@ class ExtendedAlignment(MutableAlignment):
         Reads a sto file and populates this current object. Figures out
         insertion columns by finding lower case letters and dots. 
         '''
-        insertions = set()
+        p = re.compile(r'[a-z.]')
+        insertions = []
+        lastStartInd = -1
         for line in handle:
             line = line.strip() 
-            if line == '# STOCKHOLM 1.0': # If multiple alignments, just treat them as one. 
-                pass
-            elif line == "//":
+            if line == "//":
                 # End of the alignment. ignore meta-data
                 break
-            elif line == "":                
+            elif line == "" or line[0] == "#":                
                 pass
-            elif line[0] != "#": # not a comment
-                parts = [x.strip() for x in line.split(" ",1)]
-                if len(parts) != 2:
-                    raise ValueError("Could not split line into identifier " \
-                                      + "and sequence:\n" + line)
-                key, seq = parts
-                if key not in self.keys():
-                    self[key] = ""
-                startind = len(self[key])
-                for x in [m.start()+startind for m in re.finditer('[a-z.]', seq)]: 
-                    insertions.add(x)
-                
-                self[key] += seq.replace(".","-")
+            else: # not a comment
+                key, seq = line.split()
+                current = self.get(key,"")
+                startind = len(current)
+                if startind != lastStartInd:
+                    #s = sum(len(x) for x in current)
+                    insertions.extend([m.start()+startind for m in p.finditer(seq)])
+                    lastStartInd = startind                                            
+                self[key] = current + seq.replace(".","-")
+#        for k,v in self.items():
+#            self[k] = "".join(v)
         self._reset_col_names() 
-        return insertions
+        return set(insertions)
 
-    def build_extended_alignment(self, base_alignment, path_to_sto_extension):
+    def build_extended_alignment(self, base_alignment, path_to_sto_extension,
+                                 convert_to_string=True):
         '''
         Given a base alignment and a path to an .sto file (or a list of paths), 
         this methods populates self with an extended alignment by first reading
@@ -449,14 +431,20 @@ class ExtendedAlignment(MutableAlignment):
         else:
             paths = path_to_sto_extension
         
+        self.from_string_to_bytearray()
         for path in paths:
-            ext = ExtendedAlignment(self.fragments)
-            ext.read_extended_alignment(path)   
-            _LOG.info("Merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))     
-            self.merge_in(ext)
-            _LOG.debug("Finished merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))            
+            _LOG.info("Reading sto extended alignment: %s." %(path))
+            ext = ExtendedAlignment(self.fragments)            
+            ext.read_extended_alignment(path)  
+            _LOG.info("Merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))             
+            self.merge_in(ext,False)
+            _LOG.debug("Finished merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))
+            del ext
+        if convert_to_string:
+            self.from_bytearray_to_string() 
+            
     
-    def read_extended_alignment(self, path, aformat = "stockholm"):
+    def read_extended_alignment(self, path, aformat = "stockholm", assertion = False):
         ''' Reads alignment from given path and figures out "insertion"
         columns. Labels insertion columns with special labels and labels the 
         rest of columns (i.e. original columns) sequentially. 
@@ -473,9 +461,9 @@ class ExtendedAlignment(MutableAlignment):
         '''Assert that insertion columns have only gaps in original seqs and
         give them appropriate labels'''
         insertion = -1
-        for c in insertions:
-            k=""
-            assert not any ([self[k][c] != "-" for k in self.get_base_seq_names()]), (
+        for c in insertions:            
+            if assertion:
+                assert not any ([self[k][c] != "-" for k in self.get_base_seq_names()]), (
                             "Insertion column has sequence among original "
                             "sequences. An error? column: %d k= %s" %(c,k))
             self.col_labels[c] = insertion
@@ -547,13 +535,13 @@ class ExtendedAlignment(MutableAlignment):
         file_obj.close()
     
     def from_bytearray_to_string(self):
-        for k in self.keys():
-            self[k] = str(self[k])
+        for k,v in self.iteritems():
+            self[k] = str(v)
 
     def from_string_to_bytearray(self):
-        for k in self.keys():
-            self[k] = bytearray(self[k])   
-                        
+        for k,v in self.iteritems():
+            self[k] = bytearray(v)   
+                                
     def merge_in(self, other, convert_to_string = True):
         '''
         Merges another alignment in with the current alignment. The other
@@ -575,7 +563,7 @@ class ExtendedAlignment(MutableAlignment):
         should be turned into bytearray, and after all merging is finished, 
         everything can be converted back to string (using from_bytearray_to_string
         and from_string_to_bytearray).        
-        '''
+        '''        
         assert isinstance(other, ExtendedAlignment)
         _LOG.debug("Merging started ...")
         if other.is_empty():
@@ -586,108 +574,90 @@ class ExtendedAlignment(MutableAlignment):
         she_len = other.get_length()   
         insertion = -1
         
+        merged_insertion_columns = 0
+        
         ''' Add sequences from her to my alignment '''
         for f in other.fragments:
             self.fragments.add(f)
         if convert_to_string:
             self.from_string_to_bytearray()
-        for k in other.keys():
-            assert k not in self.keys(), "Merging overlapping alignments not implemented"
-            self[k] = bytearray()
+        
+        selfother={}
+        for k,v in other.iteritems():
+            assert k not in self, "Merging overlapping alignments not implemented"
+            selfother[k] = bytearray(v)
                         
-        start = 0
-        status = 0   
-        atboundary = False 
         while True:
             #print me, she, me_len, she_len
-            ''' For performance reason, string manipulation is done at chunks '''
-            if atboundary:
-                if status == 1:
-                    run = she - start
-                    self.add_column_other(me, other, start, run, range(insertion,insertion-run,-1))
-                    insertion -= run   
-                    me += run             
-                    me_len += run
-                elif status == 4:
-                    run = she - start
-                    self.add_column_other(me, other, start, run, other.col_labels[start:she])
-                    me += run
-                    me_len += run
-                elif status == 5:
-                    for k in other.keys():                    
-                        self[k].extend(other[k][start:she])
-                elif status == 2:
-                    run = me - start
-                    ins = bytearray(b"-") * run
-                    for k in other.keys():
-                        self[k].extend(ins)
-                    self.col_labels[start:me] = range(insertion,insertion-run,-1)
-                    insertion -= run 
-                elif status == 3:
-                    run = me - start
-                    ins = bytearray(b"-") * run
-                    for k in other.keys():
-                        self[k].extend(ins)                  
-                atboundary = False
-                status = 0
-                
             ''' Check exit conditions'''
             if me == me_len and she == she_len:
-                if status == 0:
-                    break
-                else:
-                    atboundary = True
-                    continue    
+                break
             
             ''' Check the 5 possible statuses between she and I '''            
             if she != she_len and other.is_insertion_column(she):
-                ''' Hers is an insertion column'''                
-                if status == 0:
-                    status = 1
+                if me != me_len and self.is_insertion_column(me):
+                    ''' We both have a series of insertion columns''' 
+                    while me != me_len and self.is_insertion_column(me) and she != she_len and other.is_insertion_column(she):
+                        me += 1
+                        she += 1
+                        merged_insertion_columns += 1
+                else:
+                    ''' Hers is a series of insertion columns'''                
                     start = she
-                if status == 1:
-                    she += 1
-                else:
-                    atboundary = True
+                    while she != she_len and other.is_insertion_column(she):
+                        she += 1
+                    run = she - start                    
+                    ins = bytearray(b"-") * run 
+                    for seq in self.itervalues():               
+                        seq[me:me] = ins
+                    self._col_labels[me:me] = range(insertion,insertion-run,-1)
+                    insertion -= run   
+                    me += run             
+                    me_len += run            
             elif me != me_len and self.is_insertion_column(me):
-                ''' Mine is an insertion column'''
-                if status == 0:
-                    status = 2
-                    start = me
-                if status == 2:                    
+                ''' Mine is a series of insertion column'''
+                start = me
+                while me != me_len and self.is_insertion_column(me):
                     me += 1
-                else:
-                    atboundary = True                    
+                run = me - start
+                ins = bytearray(b"-") * run
+                for v in selfother.itervalues():
+                    v[start:start] =ins
+                self.col_labels[start:me] = range(insertion,insertion-run,-1)
+                insertion -= run
             elif she == she_len or (me != me_len and self.col_labels[me] < other.col_labels[she]):
                 ''' My column is not present (i.e. was allgap) in the "other"'''
-                if status == 0:
-                    status = 3
-                    start = me
-                if status == 3:
+                start = me
+                while me < me_len and (she == she_len or me != me_len and self.col_labels[me] < other.col_labels[she]):
                     me += 1
-                else:
-                    atboundary = True                
+                run = me - start
+                ins = bytearray(b"-") * run
+                for v in selfother.itervalues():
+                    v[start:start] = ins                         
             elif me == me_len or (she != she_len and self.col_labels[me] > other.col_labels[she]):
                 ''' Her column is not present (i.e. was allgap) in "me"'''
-                if status == 0:
-                    status = 4
-                    start = she
-                if status == 4:
-                    she += 1                        
-                else:
-                    atboundary = True
+                start = she
+                while she < she_len and (me == me_len  or she != she_len and self.col_labels[me] > other.col_labels[she]):
+                    she += 1
+                run = she - start
+                ins = bytearray(b"-") * run 
+                for seq in self.itervalues():               
+                    seq[me:me] = ins
+                self._col_labels[me:me] = other.col_labels[start:she]
+                me += run
+                me_len += run                                            
             elif self.col_labels[me] == other.col_labels[she]:
                 ''' A shared column'''
-                if status == 0:
-                    status = 5
-                    start = she
-                if status == 5:
+                while me < me_len and she < she_len and self.col_labels[me] == other.col_labels[she]:
                     she += 1
                     me += 1
-                else:
-                    atboundary = True
             else:
                 raise "hmmm, we thought this should be impossible? %d %d" %(me, she)
+        
+        self.update(selfother)
+        
         if convert_to_string:
             self.from_bytearray_to_string()
         _LOG.debug("Merging finished ...")
+        
+        return merged_insertion_columns

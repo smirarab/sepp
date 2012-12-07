@@ -117,7 +117,7 @@ class Test(unittest.TestCase):
         
         extmerger = ExtendedAlignment([])
         extmerger.merge_in(ext1)
-        extmerger.merge_in(ext2)
+        mixed = extmerger.merge_in(ext2)
                         
         extmerger.write_to_path("data/tmp/extended.merged.fasta")        
 
@@ -125,7 +125,7 @@ class Test(unittest.TestCase):
         in1 = len([x for x in ext1._col_labels if x<0])
         in2 = len([x for x in ext2._col_labels if x<0])
         print "Merged:%d. Insertion1:%d Insertion2:%d BaseLen:%d" %(extmerger.get_length(),in1 , in2 , tlen)
-        assert ( in1 + in2 + tlen) == extmerger.get_length(), "Lengths don't match up after merging. Merged:%d. Insertion1:%d Insertion2:%d BaseLen:%d" %(extmerger.get_length(),in1 , in2 , tlen)
+        assert ( in1 + in2 + tlen - mixed) <= extmerger.get_length(), "Lengths don't match up after merging. Merged:%d. Insertion1:%d BaseLen:%d Mixed-insertion: %d"  %(extmerger.get_length(),in1 , tlen, mixed)
          
         
         tmp = extmerger.get_base_readonly_alignment().get_mutable_alignment()

@@ -175,16 +175,24 @@ class AbstractAlgorithm(object):
         '''Wait for all jobs to finish'''
         if (not JobPool().wait_for_all_jobs()):
             _LOG.exception("There have been errors in executed jobs. Terminating.")
-            sys.exit(1)    
+            sys.exit(1)
+                
+        ''' terminate The job pool and release memory''' 
+        JobPool().terminate()
         
-        checkpoint_manager.stop_checkpointing()
+        ''' Pause Checkpointing'''
+        checkpoint_manager.pause_checkpointing()
+        #checkpoint_manager.force_checkpoint()
                 
         '''Merge results into final outputs'''
         self.merge_results()
         
         '''Output final results'''
         self.output_results()                 
-        
+
+        ''' Pause Checkpointing'''
+        checkpoint_manager.stop_checkpointing()
+                
         _LOG.info("Current execution Finished in %d seconds" %(time.time() - t))
         _LOG.info("All checkpointed executions Finished in %d cumulative time" %(checkpoint_manager.get_total_time() ))
 
