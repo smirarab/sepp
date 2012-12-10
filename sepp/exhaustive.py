@@ -59,8 +59,8 @@ class JoinSearchJobs(Join):
 
         ''' Make sure all fragments are in at least one subproblem. 
         TODO: what to do with those that are not?'''        
-        for k,v in max_evalues.items():
-            assert v[1] is not None, "Fragments %s is not scored against any subset" %k
+        notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
+        assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
 
     def perform(self):
         '''
@@ -167,7 +167,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         AbstractAlgorithm.__init__(self)
         self.place_nomatch_fragments = False
         ''' Hardcoded E-Lim for hmmsearch ''' #TODO: what to do with this
-        self.elim = 99999999
+        self.elim = 1
         self.filters = False
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
