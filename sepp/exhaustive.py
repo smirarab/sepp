@@ -167,7 +167,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         AbstractAlgorithm.__init__(self)
         self.place_nomatch_fragments = False
         ''' Hardcoded E-Lim for hmmsearch ''' #TODO: what to do with this
-        self.elim = 1
+        self.elim = 99999999
         self.filters = False
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
