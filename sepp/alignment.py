@@ -597,10 +597,13 @@ class ExtendedAlignment(MutableAlignment):
             if she != she_len and other.is_insertion_column(she):
                 if me != me_len and self.is_insertion_column(me):
                     ''' We both have a series of insertion columns''' 
+                    start = me
                     while me != me_len and self.is_insertion_column(me) and she != she_len and other.is_insertion_column(she):
                         me += 1
                         she += 1
                         merged_insertion_columns += 1
+                    run = me - start
+                    self.col_labels[start:me] = range(insertion,insertion-run,-1)
                 else:
                     ''' Hers is a series of insertion columns'''                
                     start = she
