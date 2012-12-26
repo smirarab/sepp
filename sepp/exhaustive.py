@@ -86,10 +86,11 @@ class JoinSearchJobs(Join):
                 fragment_chunk_problem.fragments = fragment_chunks[i] 
                 aj = fragment_chunk_problem.jobs['hmmalign']
                 assert isinstance(aj,HMMAlignJob)            
+                ''' First Complete setting up alignments''' 
+                aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
+                aj.base_alignment = alg_problem.jobs["hmmbuild"].infile    
+
                 if not fragment_chunk_problem.fragments.is_empty():
-                    ''' First Complete setting up alignments''' 
-                    aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
-                    aj.base_alignment = alg_problem.jobs["hmmbuild"].infile    
                     fragment_chunk_problem.fragments.write_to_path(aj.fragments)
                 else:
                     aj.fake_run = True
@@ -218,9 +219,10 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
         
+        tree.get_tree().resolve_polytomies()
         # Label edges with numbers so that we could assemble things back
         # at the end
-        tree.lable_edges()
+        tree.lable_edges()        
         
         ''' Make sure size values are set, and are meaningful. '''
         self.check_and_set_sizes(alignment.get_num_taxa())        
@@ -256,6 +258,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
                         
             _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
+            _LOG.debug("Placement subset %s has %d taxa:" %(placement_problem.label,sum([len(a_tree.leaf_node_names()) for a_tree in alignment_tree_map.values()])))
             for (a_key, a_tree) in alignment_tree_map.items():
                 assert isinstance(a_tree, PhylogeneticTree)  
                 self.modify_tree(a_tree)
