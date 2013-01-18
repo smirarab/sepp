@@ -252,6 +252,8 @@ class PhylogeneticTree(object):
             if e is not None:
                 t1.decompose_tree(maxSize, strategy, minSize, tree_map)
                 t2.decompose_tree(maxSize, strategy, minSize, tree_map)
+            else:
+                raise Exception("It was not possible to break-down the following tree according to given subset sizes: %d , %d:\n %s" %(minSize, maxSize, self._tree))
         else:
             tree_map[len(tree_map)] = self
         return tree_map
