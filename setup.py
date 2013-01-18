@@ -27,9 +27,9 @@ use_setuptools(version="0.6.24")
 
 from setuptools import setup, find_packages
 
-def get_tools_dir():    
+def get_tools_dir(where):    
     platform_name = platform.system()
-    path = os.path.join(os.getcwd(),"tools","bundled",platform_name)
+    path = os.path.join(os.getcwd(),"tools",where,platform_name)
     if not os.path.exists(path):
         raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
     return path
@@ -40,28 +40,38 @@ def get_tool_name(tool):
         return tool
     return "%s-%s" %(tool,"64" if is_64bits else "32")
 
-def copy_tool_to_lib(tool):    
-    shutil.copy2(os.path.join(get_tools_dir(),get_tool_name(tool)), 
-                os.path.join(os.getcwd(),"src","sepp","lib",tool))
+def copy_tool_to_lib(tool,where="bundled"):    
+    shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool)), 
+                os.path.join(os.getcwd(),"sepp","lib",tool))
 
-if not os.path.exists(os.path.join(os.getcwd(),"src","sepp","lib")):
-    os.mkdir(os.path.join(os.getcwd(),"src","sepp","lib"))
-
+# Copy tools to a lib directory inside sepp
+libspath=os.path.join(os.getcwd(),"sepp","bundled")
+if not os.path.exists(libspath):
+    os.mkdir(libspath)
 copy_tool_to_lib("guppy")
 copy_tool_to_lib("pplacer")
 copy_tool_to_lib("hmmalign")
 copy_tool_to_lib("hmmsearch")
 copy_tool_to_lib("hmmbuild")
 #TODO: should we compile and build merge.jar?
-shutil.copy2(os.path.join(os.getcwd(),"tools","merge","seppJsonMerger.jar"),
-             os.path.join(os.getcwd(),"src","sepp","lib","seppJsonMerger.jar"))
+copy_tool_to_lib("seppJsonMerger.jar",where="merge")
+
+#patch easy_install to make sure we can find the location of sepp installation
+import setuptools.command.easy_install     
+dist_location = ""
+installation_report_actual=setuptools.command.easy_install.easy_install.installation_report
+def installation_report_my(self, req, dist, what="Installing"):
+    global dist_location
+    if dist.project_name == "sepp":
+        dist_location = dist.location
+    installation_report_actual(self, req, dist, what="Installing")
+setuptools.command.easy_install.easy_install.installation_report=installation_report_my
 
 a = setup(name = "sepp",
       version = "2.1",
       description = "SATe enabled phylogenetic placement.",
-      packages = find_packages("src"),
+      packages = find_packages(),
       package_data = { "sepp" : ["lib/*"]},
-      package_dir = {'':'src'},
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
@@ -82,13 +92,11 @@ a = setup(name = "sepp",
                      "Topic :: Scientific/Engineering :: Bio-Informatics"])
 
 
+# Create the default config file
 if not os.path.exists(os.path.expanduser("~/.sepp")):
     os.mkdir(os.path.expanduser("~/.sepp"))
-
-import sepp
-lib=os.path.dirname(sepp.__file__)
 c = open("default.main.config")
 d = open(os.path.expanduser("~/.sepp/main.config"),"w")
 for l in c:
-    l = l.replace("~",lib)
+    l = l.replace("~",os.path.join(dist_location,"sepp"))
     d.write(l)
