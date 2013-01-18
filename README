@@ -35,7 +35,7 @@ SEPP is distributed as Python source code. Once you have the above required soft
 1. Obtain the latest SEPP distribution from git repository 
 2. Uncompress the distribution file
 3. Go to distribution directory
-4. Install: run "sudo python setup.py install" 
+4. Install: run "sudo python setup.py install". Currently you need to run the script twice (the first time errors out) 
 
 Common Problems:
 -------------------

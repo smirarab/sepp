@@ -56,7 +56,6 @@ copy_tool_to_lib("hmmbuild")
 shutil.copy2(os.path.join(os.getcwd(),"tools","merge","seppJsonMerger.jar"),
              os.path.join(os.getcwd(),"src","sepp","lib","seppJsonMerger.jar"))
 
-print find_packages()
 a = setup(name = "sepp",
       version = "2.1",
       description = "SATe enabled phylogenetic placement.",
