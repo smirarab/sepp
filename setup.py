@@ -21,7 +21,7 @@
 import os, platform, sys
 
 #from distutils.core import setup
-from distribute_setup import use_setuptools
+from distribute_setup import use_setuptools 
 import shutil
 use_setuptools(version="0.6.24")
 
@@ -36,16 +36,16 @@ def get_tools_dir():
 
 def get_tool_name(tool):
     is_64bits = sys.maxsize > 2**32
-    if platform.system() == "Darwin":
+    if platform.system() == "Darwin":#MAC doesn't have 32/64
         return tool
     return "%s-%s" %(tool,"64" if is_64bits else "32")
 
 def copy_tool_to_lib(tool):    
     shutil.copy2(os.path.join(get_tools_dir(),get_tool_name(tool)), 
-                os.path.join(os.getcwd(),"sepp","lib",tool))
+                os.path.join(os.getcwd(),"src","sepp","lib",tool))
 
-if not os.path.exists(os.path.join(os.getcwd(),"sepp","lib")):
-    os.mkdir(os.path.join(os.getcwd(),"sepp","lib"))
+if not os.path.exists(os.path.join(os.getcwd(),"src","sepp","lib")):
+    os.mkdir(os.path.join(os.getcwd(),"src","sepp","lib"))
 
 copy_tool_to_lib("guppy")
 copy_tool_to_lib("pplacer")
@@ -53,26 +53,25 @@ copy_tool_to_lib("hmmalign")
 copy_tool_to_lib("hmmsearch")
 copy_tool_to_lib("hmmbuild")
 #TODO: should we compile and build merge.jar?
-shutil.copy2(os.path.join(os.getcwd(),"tools","merge","merge.jar"),
-             os.path.join(os.getcwd(),"sepp","lib","merge.jar"))
+shutil.copy2(os.path.join(os.getcwd(),"tools","merge","seppJsonMerger.jar"),
+             os.path.join(os.getcwd(),"src","sepp","lib","seppJsonMerger.jar"))
 
 print find_packages()
-setup(name = "sepp",
-      version = "1.1",
+a = setup(name = "sepp",
+      version = "2.1",
       description = "SATe enabled phylogenetic placement.",
-      packages = find_packages(),
-      package_data = { "sepp" : ["lib/merge.jar"]},
+      packages = find_packages("src"),
+      package_data = { "sepp" : ["lib/*"]},
+      package_dir = {'':'src'},
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
       author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
 
       license="General Public License (GPL)",
-      install_requires = ["dendropy >= 3.4", "biopython >= 1.58"],
+      install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["sepp/scripts/run_sepp.py" ,"sepp/lib/hmmalign",
-                 "sepp/lib/hmmbuild", "sepp/lib/hmmsearch", 
-                 "sepp/lib/pplacer","sepp/lib/guppy"],
+      scripts = ["run_sepp.py"],
 
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",
@@ -82,3 +81,15 @@ setup(name = "sepp",
                      "Operating System :: OS Independent",
                      "Programming Language :: Python",
                      "Topic :: Scientific/Engineering :: Bio-Informatics"])
+
+
+if not os.path.exists(os.path.expanduser("~/.sepp")):
+    os.mkdir(os.path.expanduser("~/.sepp"))
+
+import sepp
+lib=os.path.dirname(sepp.__file__)
+c = open("default.main.config")
+d = open(os.path.expanduser("~/.sepp/main.config"),"w")
+for l in c:
+    l = l.replace("~",lib)
+    d.write(l)

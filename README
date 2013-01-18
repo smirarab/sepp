@@ -26,8 +26,6 @@ Requirements:
 Before installing the software you need to make sure the following programs are installed on your machine.
 
 1. Python: Version > 2.6. 
-  1.1 Linux: on many linux distributions, it seems you need to have python-dev (or python-devel for Fedora) installed before you can install many commonly-used ptyhon packages, including biopython and numpy that are used by SEPP.
-  1.2 On some releases of MAC, you might need Xcode and its command line tools component installed on your machine (see common problems section for more info).
 2. Java: Version > 1.5
 
 Installation Steps:
@@ -49,14 +47,12 @@ Common Problems:
 
    2.2 Mac: "unable to execute llvm-gcc-4.2: No such file or directory". Refer to: http://stackoverflow.com/q/9398142. In short, you need to install Xcode, and then download "Command line Tools". For a lighter alternative you can try this solution too: http://waqasshabbir.tumblr.com/post/19073648382/llvm-gcc-4-2-exe-error-on-mac-osx-lion-when-building
 
-   2.3 In general, when installation of dependencies (biopython, numpy, or dendropy) fail, you can manually download and install those packages. Suggested download links for these dependencies are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
+   2.3 In general, when installation of dependencies (dendropy) fail, you can manually download and install those packages. Suggested download links for these dependencies are listed below. To install any of these packages, download the source distribution from addresses mentioned below, uncompress the archive, go to the uncompressed directory, and run "python setup.py install" (using --prefix if you don't have root access). 
        Python Dependencies:
        DendroPy 3 package: http://pypi.python.org/pypi/DendroPy/3.11.0
-       NumPy package: http://pypi.python.org/pypi/numpy/1.6.2
-       Biopython package: http://pypi.python.org/pypi/biopython/1.60
        Alternatively, you can use package mangare of your system (e.g. apt-get for Ubuntu) to find and install these packages.
 
-3. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them. To point SEPP to your installations, you need to make a link to them inside sepp/lib/ directory before running setup.py.
+3. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them (modify ~/.sepp/main.config).    
    pplacer: http://matsen.fhcrc.org/pplacer/
    hmmer://hmmer.janelia.org/
 

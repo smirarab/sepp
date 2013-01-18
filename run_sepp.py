@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from sepp.config import options
+from sepp.exhaustive import ExhaustiveAlgorithm
 
 ##########################################################################, a#
 ##    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
@@ -19,14 +19,9 @@ from sepp.config import options
 ##    You should have received a copy of the GNU General Public License
 ##    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
 ###########################################################################
-
-"""Main script script
-   Created: June 7. 2011
-   Author: Nam Nguyen
-"""
   
 # MAIN
 if __name__ == '__main__':
-    print options
+    ExhaustiveAlgorithm().run()
     
     
