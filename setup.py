@@ -29,20 +29,23 @@ from setuptools import setup, find_packages
 
 def get_tools_dir(where):    
     platform_name = platform.system()
-    path = os.path.join(os.getcwd(),"tools",where,platform_name)
+    if where is None:
+        where = os.path.join("bundled",platform_name)
+    path = os.path.join(os.getcwd(),"tools",where)
     if not os.path.exists(path):
+        print path
         raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
     return path
 
-def get_tool_name(tool):
-    is_64bits = sys.maxsize > 2**32
-    if platform.system() == "Darwin":#MAC doesn't have 32/64
+def get_tool_name(tool,bits):
+    if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
         return tool
+    is_64bits = sys.maxsize > 2**32
     return "%s-%s" %(tool,"64" if is_64bits else "32")
 
-def copy_tool_to_lib(tool,where="bundled"):    
-    shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool)), 
-                os.path.join(os.getcwd(),"sepp","lib",tool))
+def copy_tool_to_lib(tool,where=None,bits=True):    
+    shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
+                os.path.join(os.getcwd(),"sepp","bundled",tool))
 
 # Copy tools to a lib directory inside sepp
 libspath=os.path.join(os.getcwd(),"sepp","bundled")
@@ -54,7 +57,7 @@ copy_tool_to_lib("hmmalign")
 copy_tool_to_lib("hmmsearch")
 copy_tool_to_lib("hmmbuild")
 #TODO: should we compile and build merge.jar?
-copy_tool_to_lib("seppJsonMerger.jar",where="merge")
+copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
 
 #patch easy_install to make sure we can find the location of sepp installation
 import setuptools.command.easy_install     
@@ -71,7 +74,7 @@ a = setup(name = "sepp",
       version = "2.1",
       description = "SATe enabled phylogenetic placement.",
       packages = find_packages(),
-      package_data = { "sepp" : ["lib/*"]},
+      package_data = { "sepp" : ["bundled/*"]},
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
