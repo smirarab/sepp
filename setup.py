@@ -33,7 +33,6 @@ def get_tools_dir(where):
         where = os.path.join("bundled",platform_name)
     path = os.path.join(os.getcwd(),"tools",where)
     if not os.path.exists(path):
-        print path
         raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
     return path
 
@@ -63,11 +62,11 @@ copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
 import setuptools.command.easy_install     
 dist_location = ""
 installation_report_actual=setuptools.command.easy_install.easy_install.installation_report
-def installation_report_my(self, req, dist, what="Installing"):
+def installation_report_my(self, req, dist, what="Installed"):
     global dist_location
     if dist.project_name == "sepp":
         dist_location = dist.location
-    installation_report_actual(self, req, dist, what="Installing")
+    return installation_report_actual(self, req, dist, what)
 setuptools.command.easy_install.easy_install.installation_report=installation_report_my
 
 a = setup(name = "sepp",
@@ -96,6 +95,7 @@ a = setup(name = "sepp",
 
 
 # Create the default config file
+print "\nCreating main sepp config file at %s " %(os.path.expanduser("~/.sepp/main.config"))
 if not os.path.exists(os.path.expanduser("~/.sepp")):
     os.mkdir(os.path.expanduser("~/.sepp"))
 c = open("default.main.config")
