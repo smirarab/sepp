@@ -24,56 +24,76 @@ import os, platform, sys
 from distribute_setup import use_setuptools 
 import shutil
 use_setuptools(version="0.6.24")
+from setuptools import setup, find_packages    
+from distutils.core import setup, Command
+from distutils.command.install import install
 
-from setuptools import setup, find_packages
+version = "2.1.1"
 
-def get_tools_dir(where):    
-    platform_name = platform.system()
-    if where is None:
-        where = os.path.join("bundled",platform_name)
-    path = os.path.join(os.getcwd(),"tools",where)
-    if not os.path.exists(path):
-        raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
-    return path
+class ConfigSepp(Command):
+    """setuptools Command"""
+    description = "Configures Sepp for the current user"
+    user_options = []
+    
+    def initialize_options(self):
+        """init options"""
+        self.configfile = os.path.expanduser("~/.sepp/main.config")
+        pass
 
-def get_tool_name(tool,bits):
-    if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
-        return tool
-    is_64bits = sys.maxsize > 2**32
-    return "%s-%s" %(tool,"64" if is_64bits else "32")
+    def finalize_options(self):
+        """finalize options"""
+        pass
+    
+    def run(self):        
+        print "\nCreating main sepp config file at %s " %(self.configfile)
+        def get_tools_dir(where):    
+            platform_name = platform.system()
+            if where is None:
+                where = os.path.join("bundled",platform_name)
+            path = os.path.join(os.getcwd(),"tools",where)
+            if not os.path.exists(path):
+                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
+            return path
+    
+        def get_tool_name(tool,bits):
+            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
+                return tool
+            is_64bits = sys.maxsize > 2**32
+            return "%s-%s" %(tool,"64" if is_64bits else "32")
+        
+        def get_tools_dest():
+            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
+        
+        def copy_tool_to_lib(tool,where=None,bits=True):    
+            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
+                        os.path.join(get_tools_dest(),tool))
+                    
+        # Create the default config file
+        if not os.path.exists(os.path.expanduser("~/.sepp")):
+            os.mkdir(os.path.expanduser("~/.sepp"))
+        if not os.path.exists(get_tools_dest()):
+            os.mkdir(get_tools_dest())
+        c = open("default.main.config")
+        d = open(self.configfile,"w")
+        for l in c:
+            l = l.replace("~",get_tools_dest())
+            d.write(l)
+        d.close()
+    
+        # Copy tools to a bundled directory inside .sepp
+        copy_tool_to_lib("guppy")
+        copy_tool_to_lib("pplacer")
+        copy_tool_to_lib("hmmalign")
+        copy_tool_to_lib("hmmsearch")
+        copy_tool_to_lib("hmmbuild")
+        #TODO: should we compile and build merge.jar?
+        copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
 
-def copy_tool_to_lib(tool,where=None,bits=True):    
-    shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
-                os.path.join(os.getcwd(),"sepp","bundled",tool))
-
-# Copy tools to a lib directory inside sepp
-libspath=os.path.join(os.getcwd(),"sepp","bundled")
-if not os.path.exists(libspath):
-    os.mkdir(libspath)
-copy_tool_to_lib("guppy")
-copy_tool_to_lib("pplacer")
-copy_tool_to_lib("hmmalign")
-copy_tool_to_lib("hmmsearch")
-copy_tool_to_lib("hmmbuild")
-#TODO: should we compile and build merge.jar?
-copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
-
-#patch easy_install to make sure we can find the location of sepp installation
-import setuptools.command.easy_install     
-dist_location = ""
-installation_report_actual=setuptools.command.easy_install.easy_install.installation_report
-def installation_report_my(self, req, dist, what="Installed"):
-    global dist_location
-    if dist.project_name == "sepp":
-        dist_location = dist.location
-    return installation_report_actual(self, req, dist, what)
-setuptools.command.easy_install.easy_install.installation_report=installation_report_my
-
-a = setup(name = "sepp",
-      version = "2.1",
+    
+setup(name = "sepp",
+      version = version,
       description = "SATe enabled phylogenetic placement.",
       packages = find_packages(),
-      package_data = { "sepp" : ["bundled/*"]},
 
       url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
@@ -83,7 +103,8 @@ a = setup(name = "sepp",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
       scripts = ["run_sepp.py"],
-
+      cmdclass = {"config": ConfigSepp},
+      
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",
                      "Intended Audience :: Science/Research",
@@ -92,14 +113,3 @@ a = setup(name = "sepp",
                      "Operating System :: OS Independent",
                      "Programming Language :: Python",
                      "Topic :: Scientific/Engineering :: Bio-Informatics"])
-
-
-# Create the default config file
-print "\nCreating main sepp config file at %s " %(os.path.expanduser("~/.sepp/main.config"))
-if not os.path.exists(os.path.expanduser("~/.sepp")):
-    os.mkdir(os.path.expanduser("~/.sepp"))
-c = open("default.main.config")
-d = open(os.path.expanduser("~/.sepp/main.config"),"w")
-for l in c:
-    l = l.replace("~",os.path.join(dist_location,"sepp"))
-    d.write(l)
