@@ -60,7 +60,7 @@ class JoinSearchJobs(Join):
         ''' Make sure all fragments are in at least one subproblem. 
         TODO: what to do with those that are not?  For now, only output warning message'''
         notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
-        _LOG.info("WARNING: Fragments %s are not scored against any subset" %str(notScored))
+        _LOG.warning("Fragments %s are not scored against any subset" %str(notScored))
         #assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
 
     def perform(self):
