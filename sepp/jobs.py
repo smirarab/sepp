@@ -407,14 +407,16 @@ class PplacerJob(ExternalSeppJob):
         types of input (i.e. reference package, separate refernce alignment, etc.)
         '''
         self.setup_setting = None 
-        self.tree_file = None         
+        self.tree_file = None
+        self.backbone_alignment_file = None
         self.info_file = None          
         self.extended_alignment_file = None 
         self.out_file = None 
         
-    def setup(self, tree_file, info_file, extended_alignment_file, output_file, **kwargs):
+    def setup(self, backbone_alignment_file, tree_file, info_file, extended_alignment_file, output_file, **kwargs):
+        self.backbone_alignment_file = backbone_alignment_file
         self.tree_file = tree_file        
-        self.info_file = info_file         
+        self.info_file = info_file
         self.extended_alignment_file = extended_alignment_file
         self.out_file = output_file
         self._kwargs = kwargs      
@@ -422,17 +424,20 @@ class PplacerJob(ExternalSeppJob):
 
     def partial_setup_for_subproblem(self, subproblem, info_file, **kwargs):
         ''' Automatically sets up a job given a subproblem object. 
-        Note that extended alignment is just a file name, referring to an empty
-        file at this point. This file needs to be created before the job is queued. 
+        Note that extended alignment and the backbone_alignment_file are just file names, referring to empty
+        files at this point. These files needs to be created before the job is queued. 
         '''
         assert isinstance(subproblem, sepp.problem.SeppProblem)        
+        self.backbone_alignment_file = sepp.filemgr.tempfile_for_subproblem("pplacer.backbone.", 
+                                                       subproblem,
+                                                       ".fasta")
         self.tree_file = sepp.filemgr.tempfile_for_subproblem("pplacer.tree.", 
                                                        subproblem, ".tre")
         self.extended_alignment_file = \
                          sepp.filemgr.tempfile_for_subproblem("pplacer.extended.", 
                                                        subproblem, ".fasta")
         self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
-                             self.extended_alignment_file.replace("fasta","json"))                       
+                             self.extended_alignment_file.replace("fasta","jplace"))                       
         assert isinstance(subproblem.subtree, PhylogeneticTree)
         subproblem.subtree.write_newick_to_path(self.tree_file)
              
@@ -448,15 +453,16 @@ class PplacerJob(ExternalSeppJob):
             invoc.extend(self._kwargs["user_options"].split())
         
         if self.setup_setting == "File:TrInEx":
-            invoc.extend(["-s", self.info_file, 
+            invoc.extend(["-r", self.backbone_alignment_file, 
+                         "-s", self.info_file, 
                          "-t", self.tree_file,
                          self.extended_alignment_file])
         return invoc
 
     def characterize_input(self):
         if self.setup_setting == "File:TrInEx": 
-            return "tree_file:%s, info_file:%s, extended alignment:%s, output:%s"\
-                %(self.tree_file, self.info_file,self.extended_alignment_file,self.out_file)
+            return "backbone_alignment_file:%s, tree_file:%s, info_file:%s, extended alignment:%s, output:%s"\
+                %(self.backbone_alignment_file, self.tree_file, self.info_file,self.extended_alignment_file,self.out_file)
         else:
             return "Not setup properly"
 
@@ -500,4 +506,3 @@ class MergeJsonJob(ExternalSeppJob):
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
         return self.out_file
-        

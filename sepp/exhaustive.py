@@ -58,9 +58,10 @@ class JoinSearchJobs(Join):
         self.root_problem.annotations["fragments.distribution.done"] = 1
 
         ''' Make sure all fragments are in at least one subproblem. 
-        TODO: what to do with those that are not?'''        
+        TODO: what to do with those that are not?  For now, only output warning message'''
         notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
-        assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
+        _LOG.info("WARNING: Fragments %s are not scored against any subset" %str(notScored))
+        #assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
 
     def perform(self):
         '''
@@ -145,17 +146,24 @@ class JoinAlignJobs(Join):
     
     def perform(self):            
         pp = self.placement_problem
+
+        fullExtendedAlignment = self.merge_subalignments()
         
-        extendedAlignment = self.merge_subalignments()
-        
+        #Split the backbone alignment and query sequences into separate files        
+        queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
+        baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+
         pj = pp.jobs["pplacer"]
         assert isinstance(pj,PplacerJob)
-        extendedAlignment.write_to_path(pj.extended_alignment_file)  
-        pj.set_attribute("extended_alignment_object", extendedAlignment)     
+        #Write out the extended alignments, split into query and full-length for pplacer
+        queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
+        baseAlignment.write_to_path(pj.backbone_alignment_file)
         
+        #But keep the extended alignment on everything 
+        pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
+
         JobPool().enqueue_job(pj)
-        
-                
+
     def __str__(self):
         return "join align jobs for tips of ", self.placement_problem
 
@@ -179,6 +187,14 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         ''' TODO: implement this 
         '''        
         assert isinstance(self.root_problem,SeppProblem)
+        
+        '''Generate single extended alignment'''
+        fullExtendedAlignment = self.root_problem.get_children()[0].jobs["pplacer"].get_attribute("full_extended_alignment_object")
+        for pp in self.root_problem.get_children()[1:]:
+            extended_alignment = pp.jobs["pplacer"].get_attribute("full_extended_alignment_object")
+            fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
+        self.results = fullExtendedAlignment
+        
         mergeinput = []
         '''Append main tree to merge input'''
         mergeinput.append("%s;" %(self.root_problem.subtree.compose_newick(labels = True)))
@@ -194,41 +210,39 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         mergeJsonJob = MergeJsonJob()
         mergeJsonJob.setup(meregeinputstring, 
                            self.get_output_filename("placement.json"))
-        mergeJsonJob.run()                        
+        mergeJsonJob.run()
 
     def output_results(self):
-        ''' Merged json file is already saved in merge_results function.        
-        TODO: implement this to calculate and output one alignment for all placement subsets. 
-        '''        
-        for pp in self.root_problem.get_children():
-            extended_alignment = pp.jobs["pplacer"].get_attribute("extended_alignment_object")
-            outfilename = self.get_output_filename("alignment_%s.fasta" %pp.label)
-            extended_alignment.write_to_path(outfilename)
-            extended_alignment.remove_insertion_columns()
-            outfilename = self.get_output_filename("alignment_%s_masked.fasta"%pp.label)
-            extended_alignment.write_to_path(outfilename)        
+        ''' Merged json file is already saved in merge_results function and
+            full extended alignment already created in merge_results function
+        '''
+        outfilename = self.get_output_filename("alignment.fasta")
+        self.results .write_to_path(outfilename)
+        self.results.remove_insertion_columns()
+        outfilename = self.get_output_filename("alignment_masked.fasta")
+        self.results.write_to_path(outfilename)
 
     def check_options(self):
         AbstractAlgorithm.check_options(self)
-        
+
     def modify_tree(self,a_tree):
         pass
-             
+
     def build_subproblems(self):
-        (alignment, tree) = self.read_alignment_and_tree()        
+        (alignment, tree) = self.read_alignment_and_tree()
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
-        
+
         tree.get_tree().resolve_polytomies()
         # Label edges with numbers so that we could assemble things back
         # at the end
         tree.lable_edges()        
-        
+
         ''' Make sure size values are set, and are meaningful. '''
         self.check_and_set_sizes(alignment.get_num_taxa())        
-    
+
         self._create_root_problem(tree, alignment)
-                       
+
         ''' Decompose the tree based on placement subsets'''
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, 

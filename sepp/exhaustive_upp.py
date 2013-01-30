@@ -3,6 +3,8 @@ Created on Oct 10, 2012
 
 @author: smirarab
 '''
+import sys
+sys.path.insert(0,'/projects/sate9/namphuon/sepp/sepp/')
 from sepp import get_logger
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob
@@ -83,7 +85,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             extendedAlignment.merge_in(ap_alg,convert_to_string=False)
         
         extendedAlignment.from_bytearray_to_string()
-        self.results = extendedAlignment         
+        self.results = extendedAlignment
 
 # Useful for multi-core merging if ever needed
 #    def parallel_merge_results(self):
