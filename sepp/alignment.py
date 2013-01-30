@@ -163,11 +163,10 @@ class ReadOnlyAlignment(Mapping, object):
         return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])
     
     def divide_to_equal_chunks(self,chunks):
-        chunksize = self.get_num_taxa()//chunks + 1;
         names = self.get_sequence_names()        
         ret = []
         for i in xrange(0,chunks):
-            subset = names[i*chunksize:min((i+1)*chunksize,len(names))]
+            subset = names[i:len(names):chunks]
             subset_alg = self.get_soft_sub_alignment(subset)
             ret.append(subset_alg)            
         return ret     
