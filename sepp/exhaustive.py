@@ -155,6 +155,9 @@ class JoinAlignJobs(Join):
 
         pj = pp.jobs["pplacer"]
         assert isinstance(pj,PplacerJob)
+        if (queryExtendedAlignment.is_empty()):
+          pj.fake_run = True
+        
         #Write out the extended alignments, split into query and full-length for pplacer
         queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
         baseAlignment.write_to_path(pj.backbone_alignment_file)
@@ -201,6 +204,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         jsons = []
         for pp in self.root_problem.get_children():
             assert isinstance(pp,SeppProblem)
+            if (pp.get_job_result_by_name("pplacer") is None):
+              continue
             '''Append subset trees and json locations to merge input'''
             mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
                               pp.get_job_result_by_name("pplacer")))
@@ -291,7 +296,6 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 frag_chunk_problem.label = alignment_problem.label.replace("A_", "FC_") + "_" +str(afc)
                 frag_chunk_problem.fragments = fragment_chunk_files[afc]
                     
-        
         _LOG.info("Breaking into %d alignment subsets." %(len(list(self.root_problem.iter_leaves()))))    
         _LOG.info("Breaking each alignment subset into %d fragment chunks." %len(fragment_chunk_files))
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))

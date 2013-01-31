@@ -85,7 +85,7 @@ class ExternalSeppJob(Job):
             assert (self.get_invocation()[0].count("/") == 0 
                     or os.path.exists(self.get_invocation()[0])), ("path for %s "
                             " does not exist (%s)" %(self.job_type, self.get_invocation()[0]))
-            
+            _LOG.debug("Invocation of %s", " ".join(self.get_invocation()));
             self._process = Popen(self.get_invocation(), **self._kwargs)        
             self._id = self._process.pid
 
@@ -471,7 +471,11 @@ class PplacerJob(ExternalSeppJob):
         Since the output file can be huge, we don't want to read it here, because
         it will need to get pickled and unpickled. Instead, we just send
         back the file name, and will let the caller figure out what to do with it. 
+        
+        But if it is a fake job, then return nothing
         '''
+        if (self.fake_run):
+          return None
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
         return self.out_file
