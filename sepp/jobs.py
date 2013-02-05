@@ -494,7 +494,7 @@ class MergeJsonJob(ExternalSeppJob):
         self._kwargs = kwargs      
 
     def get_invocation(self):
-        invoc = [self.path, 
+        invoc = ["java -jar", self.path, 
                  "-", "-", self.out_file]   
         return invoc
 
