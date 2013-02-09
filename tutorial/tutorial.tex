@@ -217,34 +217,33 @@ In addition to the placement file, an extended alignment file is also generated.
 \subsection{\sepp Miscellaneous }
 The following are some other points that are worth mentioning and testing.
 \begin{itemize}
-\item By default input is assumed to be DNA. To analyze amino acid datasets use \ins{-m} option (i.e. \ins{-m amino} for amino acid and \ins{-m rna} for rna).
-\item \sepp commandline options (in addition to some extra options that are not available in commandline) can be 
-controlled through configuration files. 
+\item By default input is assumed to be DNA. To analyze amino acid datasets use \ins{-m} option (i.e. \ins{-m amino} for amino acid and \ins{-m rna} for RNA).
+\item By default \sepp tries to use all available cores on your machine in each run. If you run multiple instances of \sepp simultaneously, or if you want it to use fewer cores, be sure
+to set the number of cpus used by \sepp using \ins{-x} option. 
+\item In addition to commandline, \sepp can be 
+controlled through a configuration file, passed to \sepp using \ins{-c} option. 
 Commandline options can be specified in a configuration file under the \ins{[commandline]} section.
-The configuration file can be passed to \sepp using \ins{-c} commandline option. 
-For specifying options under \ins{[commandline]}, you need to use their long format name (as show in the \sepp help invoked by \ins{-h}), with the ``---'' part omitted.
-For example, to set the alignment size parameter (\ins{-A} a.k.a \ins{--alignmentSize}) you can use:
+For specifying options under \ins{[commandline]}, you need to use their long format name (as show in the \sepp help invoked by \ins{-h}).
+For example, to set the alignment size to 10 use:
 
 \ins{
 [commandline]\\
 alignmentSize = 10} 
-
-An example config file is available in ``test/unittest/data/simulated/sample.config'' under your installation directory). 
  
-Some extra information are also stored in other sections of the config file. For example, 
+Some extra information (not available in commandline) can also be configured in other sections of the configuration file. For example, 
 
 \ins{[pplacer]\\
-path = /some/path\\
+path = /some/path
 }
-tells \sepp that \pplacer can be found under "/some/path".
+
+tells \sepp that \pplacer can be found under \file{/some/path}.
+
+An example config file is available as part of the distribution under the test directory (\file{test/unittest/data/simulated/sample.config}). 
 A {\em main} configuration file under \file{\{home\}/.sepp/main.config} is used
 to store some basic configurations such as the location of extra programs, etc.
-This main config file is read first. Next the config file provided throuth \ins{-c} option is read, and finally commandline options are read.
-Therefore, when conflicting options are given, presedence is with those provided through commandline, then those of the config file provided using \ins{-c} and finally those of main config file. 
+When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file. 
 
-\item By default \sepp tries to use all available cores on your machine in each run. If you run multiple instances of \sepp simultaneously, or if you want it to use fewer cores, be sure
-to set the number of cpus used by \sepp using \ins{-x} option. 
-\item Currently \sepp has a checkpointing functionality built in.
+\item Currently \sepp has a built-in checkpointing functionality.
 By default, this functionality is turned off, but can be turned on using \ins{-cp} option, 
 and the checkpointing interval can be adjusted using \ins{-cpi} option.
 Please note that checkpointing options have been tested only lightly and might have unknown issues. 
