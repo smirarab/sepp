@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 from distutils.core import setup, Command
 from distutils.command.install import install
 
-version = "2.1.1"
+version = "2.2"
 
 class ConfigSepp(Command):
     """setuptools Command"""
