@@ -453,7 +453,8 @@ class PplacerJob(ExternalSeppJob):
             invoc.extend(self._kwargs["user_options"].split())
         
         if self.setup_setting == "File:TrInEx":
-            invoc.extend(["-r", self.backbone_alignment_file, 
+            invoc.extend(["-j", "1",
+                          "-r", self.backbone_alignment_file, 
                          "-s", self.info_file, 
                          "-t", self.tree_file,
                          self.extended_alignment_file])
@@ -494,7 +495,7 @@ class MergeJsonJob(ExternalSeppJob):
         self._kwargs = kwargs      
 
     def get_invocation(self):
-        invoc = [self.path, 
+        invoc = ["java", "-jar", self.path, 
                  "-", "-", self.out_file]   
         return invoc
 

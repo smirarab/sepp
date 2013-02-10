@@ -59,6 +59,7 @@
 \newcommand{\hmmer}{HMMER\xspace}
 \newcommand{\raxml}{RAxML\xspace}
 \newcommand{\arch}{Archaeopteryx\xspace}
+\newcommand{\sbun}{\textasciitilde/.sepp/bundled-v2.2}
 
 
 %%% The "real" document content comes below...
@@ -72,19 +73,20 @@
 \maketitle
 \tableofcontents
 \section{Introduction to \sepp}
-\sepp stands for \sate-Enabled Phylogenetic Placement and addresses the problem of phylogenetic placement for meta-genomic short reads. More precisely, \sepp addresses the following problem.
+\sepp stands for \sate-Enabled Phylogenetic Placement~\cite{sepp} and addresses the problem of phylogenetic placement for meta-genomic short reads. More precisely, \sepp addresses the following problem.
 
 \begin{description}
-\item [Input:] tree T and alignment A for a set of full-length gene sequences, and set X of fragmentary sequences for the same gene
+\item [Input:] {\em backbone} tree T and alignment A for a set of full-length gene sequences, and set X of fragmentary sequences for the same gene
 
 \item [Output:] placement of each fragment in X into the tree T, and alignment of each fragment in X to the alignment A.
 
 \end{description}
 
-Phylogenetic placement puts unknown short fragments in a phylogenetic context, and hence helps identifying species included in a metagenomic dataset.  
+Phylogenetic placement puts unknown short fragments into a phylogenetic context, and hence helps identifying species included in a metagenomic dataset.  
 Phylogenetic placement involves two steps: alignment of short fragments to full length sequence alignment A (also called the {\em backbone} alignment), and then placement of aligned short reads on the fixed tree T (also called the {\em backbone} tree). 
 
-\sepp operates by using a divide-and-conquer strategy adopted from \sate \cite{liu09science} to improve alignment of fragments (produced by running \hmmer (\cite{hmmer}). It then places each fragment into the user-provided tree using \pplacer (\cite{pplacer}). Our study shows that \sepp provides improved accuracy for quickly evolving genes as compared to other methods. For more information refer to our publish paper (\url{http://www.ncbi.nlm.nih.gov/pubmed/22174280})
+\sepp operates by using a divide-and-conquer strategy adopted from \sate \cite{liu09science} to improve alignment of fragments (produced by running \hmmer (\cite{hmmer}). It then places each fragment into the user-provided tree using \pplacer (\cite{pplacer}). 
+Our study shows that \sepp provides improved accuracy for quickly evolving genes as compared to other methods. For more information refer to our publish paper \cite{sepp}. (available at: \url{http://www.ncbi.nlm.nih.gov/pubmed/22174280})
 
 \section{Installing \sepp}
 First you are going to setup \sepp on your machines. \sepp currently runs only on Linux and Mac. Those running a Windows need to either use cygwin (\url{http://www.cygwin.com/}), or a Ubuntu virtual machine image we have created. 
@@ -103,6 +105,13 @@ If you don't have root access, instead use the following command (or use \ins{--
 
 \ins{python setup.py install --user}
 
+\item Run the following command:\\
+
+\ins{python setup.py config}\\
+
+Note that while step 1-4 can be done once per machine (if installed with root access), step 5 needs to be run by each individual user.
+This step creates a \file{main.config} file in your home directory. This file contains defaults settings of sepp, and can be modified by users if needed.
+
 \end{enumerate}
 Refer to the README file for more information regarding the installation, and solutions to common installation problems. 
 
@@ -120,13 +129,14 @@ In this section we will run \sepp on a sample dataset provided with the software
 \item Make sure you have a terminal open.
 \item Make a directory where you will run \sepp and cd into it (e.g. \ins{mkdir seppRuns; cd seppRuns;} )
 \item run \sepp with -h option to see a help:\\
+
 \ins{run\_sepp.py -h}
 \end{itemize}
 
 
 \subsection{Sample Datasets - Default parameters}
 \begin{itemize}
-\item Copy test datasets into your directory. Test datasets can be found under \file{sepp/test/testdata} under the directory where you unpacked \sepp archive. On the vital machine, you can find test files at \file{\$HOME/SEPP/sepp/test/testdata}. 
+\item Copy test datasets into your directory. Test datasets can be found under \file{sepp/test/unittest/data} under the directory where you unpacked \sepp archive (e.g. on Unix run ``\ins{cp -R sepp\_installation\_directory/sepp/test/unittest/data/*  .}''). On the vital machine, you can find test files at \file{\$HOME/SEPP/sepp/test/unittest/data}. 
 \item Execute the following command to run \sepp on a sample biological dataset.\\
 
 \ins{run\_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML\_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas} \\
@@ -136,7 +146,7 @@ In this section we will run \sepp on a sample dataset provided with the software
 
 This runs \sepp on the given example dataset. All the options provided to \sepp in this example run are mandatory. As you can see, there are few inputs required to run \sepp. The following describes the minimum input of \sepp:
 \begin {description}
-\item[Backbone tree] is the tree on which \sepp places short fragments. This tree should be a ML tree, estimated using \raxml~\cite{raxml} or phyml~\cite{phyml}\footnote{we haven't tested \sepp with phyml trees yet.} based on the backbone alignment (see below). The input tree is given to \sepp using -t option, and needs to be in newick format (as outputted by \raxml for example). 
+\item[Backbone tree] is the tree on which \sepp places short fragments. This tree should be a binary ML tree, estimated using \raxml~\cite{raxml} or phyml~\cite{phyml}\footnote{we haven't tested \sepp with phyml trees yet.} based on the backbone alignment (see below). The input tree is given to \sepp using -t option, and needs to be in newick format (as outputted by \raxml for example). 
 \item[Backbone Alignment] is a multiple sequence alignment of full length sequences. Full length sequences and the placed fragments should all come from the same gene, and placement usually makes sense only if the identity of the full length sequences is known. Backbone alignment is used as a reference for alignment of fragments. The backbone alignment and tree should be on the same exact set of taxa, and backbone tree should be estimated based on the backbone alignment. Backbone alignment is provided to \sepp using -a option, and should be in Fasta format (refseq available  at \url{http://www.ncbi.nlm.nih.gov/RefSeq/} is a nice tool for conversion between different alignment formats). 
 \item[Stats or info file] is the info file generated by RAxML (or phyml) when backbone tree was being estimated from the backbone alignment. This file is required by pplacer (run internally by \sepp) in order to avoid re-estimation of ML parameters. To be able to use \sepp you need to make sure you keep your info file when you are generating the backbone tree. If you do not have the info file (or if you used other software programs such as \sate to get your trees), you can always use RAxML's \ins{-f e} option to quickly estimate model parameters (including branch lengths) on your fixed tree topology. RAxML info file should be provided to \sepp using -r option. 
 \item[Fragments file] is a Fasta file containing the actual short fragments that are going to be placed. Fragments file should be given to \sepp using -f option. 
@@ -164,42 +174,81 @@ Imagine we cannot wait 2 minutes to get results on our test dataset. We are goin
 \end{itemize}
 
 In the above run note the -o option. This option controls the prefix of the output files generated by \sepp. We have not looked at \sepp output yet, and we will do so in a moment. For now, just be aware that \sepp generates a bunch of output files, and prefixes those with a given string, which defaults to "output". These outputs are by default generated in the current directory, but that can be changed using the -d option. Had we not changed the output prefix, \sepp would have refused to run to avoid overwriting results of your previous run saved with "output" prefix. Try this, and you would get the following error:\\
-\ins{ directory [.] already contains files with prefix [output]...
+
+\ins{ Output directory [a\_drecotry] already contains files with prefix [output]...
 Terminating to avoid loss of existing files.
 }
 
 %We are now ready to look the outputs of \sepp, but before we do that, let's start a \sepp run on a large dataset.
 
 \subsection{Running \sepp on a larger dataset}
-Under \file{mock/rpsS} folder there is another dataset with more than 1,200 full length sequences and 2000 fragments. We are going to start a \sepp run on this dataset (please skip this if you are sharing a server with other users and are short on memory). Run the following command:\\
+Under \file{mock/rpsS} folder there is another dataset with more than 1,200 full length sequences and 2000 fragments. We are going to start a \sepp run on this dataset. Run the following command:\\
 
 \ins{run\_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML\_info \\ -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default}\\
 
 This run is going to take about 4 minutes. While this is running, we are going to look at \sepp outputs. 
 
 \subsection{\sepp output }
-\sepp has two outputs: an alignment of fragments to full length sequences (or subsets of the full length sequences), and placements of fragments on the given backbone tree. When \sepp finishes running, it generates two or more output files, all prefixed with a string given using -o option, and placed in a directory given using -d option. One of these output files is \file{[prefix].json} file. This is the results of the placement algorithm, and is in a format devised by the \pplacer software. This .json file is a human-readable text file. However in most cases you want to look at those results in a visualization tool. \pplacer comes with a suit of software tools called \guppy. \guppy reads a \file{.json} file, and among other things, produced nice visualizations of the results. We are going to first manually look at the plain \file{.json} file to understand its content, and then will use \guppy to visualize results.   
+\sepp has two outputs: an alignment of fragments to full length sequences (or subsets of the full length sequences), and placements of fragments on the given backbone tree. When \sepp finishes running, it generates two or more output files, all prefixed with a string given using -o option, and placed in a directory given using -d option. One of these output files is \file{[prefix]\_placement.json} file. This is the results of the placement algorithm, and is in a format devised by the \pplacer software. This .json file is a human-readable text file. However in most cases you want to look at those results in a visualization tool. \pplacer comes with a suit of software tools called \guppy. \guppy reads a \file{.json} file, and among other things, produced nice visualizations of the results. We are going to first manually look at the plain \file{.json} file to understand its content, and then will use \guppy to visualize results.   
 
 \begin{itemize}
-\item Open the file called \file{output.json} using a text editor. 
+\item Open the file called \file{output\_placement.json} using a text editor. 
 \item Notice at the top of the file there is a newick tree with edges labeled with numbers inside brackets. 
 \item Following the tree, placement results are given for each fragment.  Everything between \{ and \} marks describes the placement of a single fragment. Each fragment can have multiple placements, with different likelihoods. Each line under the "p" attribute indicates one placement of the fragment. The first value gives the edge label, the second value gives the log likelihood, the third value gives probability of that placement, and the final two values give the position on the edge where the fragment is placed, and the length of the pendant edge for the fragment.
 \end{itemize}
 
 Next we will use \guppy to turn this text file to a visualization of the results. Issue the following command to generate a tree that has fragments placed on the backbone tree based only on {\em the best placement} of each fragment.\\
 
-\ins{guppy tog --xml output.json}\\
+\ins{\sbun/guppy tog --xml output\_placement.json}\\
 
-This command generates a new file called \file{output.tog.xml}. This is an XML file in NexML format (\url{http://www.nexml.org/}) and can be opened with \arch software {available at \url{http://www.phylosoft.org/archaeopteryx/}}. You can find \arch also on the USB drive provided to you by organizers of the workshop. Run \arch and use \ins{File/Read Tree from File} to open \file{output.tog.xml}. Select "colorize branch color" checkbox on the right hand side panel. The white branches represent the backbone tree, and branches in red correspond to the maximum likelihood placement of fragments on the backbone tree. 
+This command generates a new file called \file{out\_placement.tog.xml}. This is an XML file in NexML format (\url{http://www.nexml.org/}) and can be opened with \arch software {available at \url{http://www.phylosoft.org/archaeopteryx/}}. 
+%You can find \arch also on the USB drive provided to you by organizers of the workshop. 
+Run \arch and use \ins{File/Read Tree from File} to open \file{out\_placement.tog.xml}. Select "colorize branch" checkbox on the right hand side panel. The white branches represent the backbone tree, and branches in red correspond to the maximum likelihood placement of fragments on the backbone tree. 
 
 By now the run we started on the larger dataset (rpsS gene) should have finished as well (it takes about 5 minutes). You can use \guppy to visualize the results of that run as well. 
 
 Please refer to \pplacer and \guppy documentation at \url{http://matsen.github.com/pplacer/generated_rst/pplacer.html} for more information about \file{.json} format and visualization options available in \guppy. 
 %Running SEPP using a configuration file
 
-In addition to the placement file, one or more alignment files are also generated. These alignment files show how fragments are aligned to the backbone alignment (or subsets of the backbone alignment). These are simple Fasta files, and can be viewed in any alignment visualization tool (e.g. JalView available at \url{http://www.jalview.org/}). 
+In addition to the placement file, an extended alignment file is also generated. This extended alignment shows how fragments are aligned to the backbone alignment. The extended alignment is a simple Fasta file, and can be viewed in any alignment visualization tool (e.g. JalView available at \url{http://www.jalview.org/}). 
 
 %Running SEPP on other datasets
+
+\subsection{\sepp Miscellaneous }
+The following are some other points that are worth mentioning and testing.
+\begin{itemize}
+\item By default input is assumed to be DNA. To analyze amino acid datasets use \ins{-m} option (i.e. \ins{-m amino} for amino acid and \ins{-m rna} for RNA).
+\item By default \sepp tries to use all available cores on your machine in each run. If you run multiple instances of \sepp simultaneously, or if you want it to use fewer cores, be sure
+to set the number of cpus used by \sepp using \ins{-x} option. 
+\item In addition to commandline, \sepp can be 
+controlled through a configuration file, passed to \sepp using \ins{-c} option. 
+Commandline options can be specified in a configuration file under the \ins{[commandline]} section.
+For specifying options under \ins{[commandline]}, you need to use their long format name (as show in the \sepp help invoked by \ins{-h}).
+For example, to set the alignment size to 10 use:
+
+\ins{
+[commandline]\\
+alignmentSize = 10} 
+ 
+Some extra information (not available in commandline) can also be configured in other sections of the configuration file. For example, 
+
+\ins{[pplacer]\\
+path = /some/path
+}
+
+tells \sepp that \pplacer can be found under \file{/some/path}.
+
+An example config file is available as part of the distribution under the test directory (\file{test/unittest/data/simulated/sample.config}). 
+A {\em main} configuration file under \file{\{home\}/.sepp/main.config} is used
+to store some basic configurations such as the location of extra programs, etc.
+When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file. 
+
+\item Currently \sepp has a built-in checkpointing functionality.
+By default, this functionality is turned off, but can be turned on using \ins{-cp} option, 
+and the checkpointing interval can be adjusted using \ins{-cpi} option.
+Please note that checkpointing options have been tested only lightly and might have unknown issues. 
+\end{itemize}
+
 
 \bibliographystyle{plain}
 \bibliography{cite}
