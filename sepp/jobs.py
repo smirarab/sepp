@@ -485,8 +485,7 @@ class MergeJsonJob(ExternalSeppJob):
 
     def __init__(self, **kwargs):       
         self.job_type = 'jsonmerger'
-        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
-        self.input_string = None          
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)          
         self.out_file = None 
         
     def setup(self, inString, output_file, **kwargs):
@@ -496,11 +495,11 @@ class MergeJsonJob(ExternalSeppJob):
 
     def get_invocation(self):
         invoc = ["java", "-jar", self.path, 
-                 "-", "-", self.out_file]   
+                 "-", "-", self.out_file, "-r", "4"]   
         return invoc
 
     def characterize_input(self):
-        return "input:pipe output:%s" %(self.out_file)
+        return "input:pipe output:%s; Pipe:\n%s" %(self.out_file,self.stdindata)
  
     def read_results(self):
         '''

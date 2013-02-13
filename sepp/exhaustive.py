@@ -17,6 +17,7 @@ from sepp.math_utils import lcm
 
 _LOG = get_logger(__name__)
 
+
 class JoinSearchJobs(Join):
     '''
     After all search jobs have finished on tips, we need to figure out which 
@@ -30,38 +31,48 @@ class JoinSearchJobs(Join):
         self.root_problem = root_problem            
         for p in root_problem.iter_leaves():
             self.add_job(p.jobs["hmmsearch"])         
-    
+        
     def figureout_fragment_subset(self):
         ''' Figure out which fragment should go to which subproblem'''
+        # We need to keep and check the following flag because of checkpoining scenarios (join already done before!)
         if self.root_problem.annotations.has_key("fragments.distribution.done"):
             return
-        max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])    
+        bitscores = dict([(name, []) for name in self.root_problem.fragments.keys()])    
         for fragment_chunk_problem in self.root_problem.iter_leaves():
             align_problem = fragment_chunk_problem.get_parent()
             assert isinstance(align_problem, SeppProblem)
             '''For each subproblem start with an empty set of fragments, 
             and add to them as we encounter new best hits for that subproblem'''
             if align_problem.fragments is None: 
-                align_problem.fragments = self.root_problem.fragments.get_soft_sub_alignment([])
+                align_problem.fragments = MutableAlignment()
             search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
             for key in search_res.keys():
-                (best_value, prev_align_problem) = max_evalues[key]
-                ''' If this is better than previous best hit, remove this
-                fragment from the previous hit, and add it to this subproblem 
-                '''
-                if best_value is None or (best_value < search_res[key][1]):
-                    max_evalues[key] = (search_res[key][1], align_problem)
-                    align_problem.fragments.seq_names.append(key)
-                    if prev_align_problem is not None:
-                        prev_align_problem.fragments.seq_names.remove(key)
+                ''' keep a list of all hits, and their bit scores'''
+                bitscores[key].append( (search_res[key][1], align_problem) )
+                
+        for frag, tuplelist in bitscores.iteritems():
+            ''' TODO: what to do with those that are not?  For now, only output warning message'''
+            if len(tuplelist) == 0:
+                _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
+                continue                        
+            ''' convert bit scores to probabilities '''
+            denum = sum(pow(2, x[0]) for x in tuplelist)
+            tuplelist = [(int(pow(2,x[0])/denum*1000000),x[1]) for x in tuplelist]            
+            ''' Sort subsets by their probability'''
+            tuplelist.sort(reverse=True)
+            ''' Find enough subsets to reach the threshold '''
+            selected = tuplelist[ 0 : max(1, 
+                reduce(lambda x, y: (x[0],None) if x[1] is None else 
+                                    (y[0],x[1]+y[1]) if x[1] < 950000 else 
+                                    (y[0],None), 
+                       enumerate([x[0] for x in tuplelist]))[0]) ]
+            _LOG.debug("Fragment %s assigned to %d subsets" %(frag,len(selected)))
+            ''' Rename the fragment and assign it to the respective subsets'''
+            for (prob,align_problem) in selected:
+                frag_rename = "%s_%s_%d" %(frag,align_problem.label,prob)
+                align_problem.fragments[frag_rename] =  self.root_problem.fragments[frag]
         
-        self.root_problem.annotations["fragments.distribution.done"] = 1
-
-        ''' Make sure all fragments are in at least one subproblem. 
-        TODO: what to do with those that are not?  For now, only output warning message'''
-        notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
-        _LOG.warning("Fragments %s are not scored against any subset" %str(notScored))
-        #assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
+        self.root_problem.annotations["fragments.distribution.done"] = 1        
 
     def perform(self):
         '''
@@ -156,7 +167,7 @@ class JoinAlignJobs(Join):
         pj = pp.jobs["pplacer"]
         assert isinstance(pj,PplacerJob)
         if (queryExtendedAlignment.is_empty()):
-          pj.fake_run = True
+            pj.fake_run = True
         
         #Write out the extended alignments, split into query and full-length for pplacer
         queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
@@ -187,8 +198,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.molecule = self.options.molecule
 
     def merge_results(self):
-        ''' TODO: implement this 
-        '''        
+  
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
@@ -205,7 +215,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         for pp in self.root_problem.get_children():
             assert isinstance(pp,SeppProblem)
             if (pp.get_job_result_by_name("pplacer") is None):
-              continue
+                continue
             '''Append subset trees and json locations to merge input'''
             mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
                               pp.get_job_result_by_name("pplacer")))
@@ -222,7 +232,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             full extended alignment already created in merge_results function
         '''
         outfilename = self.get_output_filename("alignment.fasta")
-        self.results .write_to_path(outfilename)
+        self.results.write_to_path(outfilename)
         self.results.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         self.results.write_to_path(outfilename)
@@ -281,8 +291,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             for (a_key, a_tree) in alignment_tree_map.items():
                 assert isinstance(a_tree, PhylogeneticTree)  
                 self.modify_tree(a_tree)
-                alignment_problem  = SeppProblem(a_tree.leaf_node_names(), 
-                                                  placement_problem)
+                alignment_problem  = SeppProblem(a_tree.leaf_node_names(), placement_problem)
                 alignment_problem.subtree = a_tree
                 alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                                                       
         
