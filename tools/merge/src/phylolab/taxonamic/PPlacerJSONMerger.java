@@ -238,7 +238,7 @@ public class PPlacerJSONMerger {
 	}
     }
 
-    private void mergeEqualPlacements(JSONArray all) {
+    private void mergePlacementsOFSameFragments(JSONArray all) {
 
 	for (String fragment : this.nameToAllPlacements.keySet()) {
 	    JSONArray placements = nameToAllPlacements.get(fragment);
@@ -248,8 +248,8 @@ public class PPlacerJSONMerger {
 	     * Normalize weighted likelihood ratios
 	     */
 	    for (Iterator<JSONArray> itp = placements.iterator(); itp.hasNext();) {
-		    JSONArray pr = itp.next();		    
-		    pr.set(2, new Double(pr.getDouble(2) / sum));
+		JSONArray pr = itp.next();		    
+		pr.set(2, new Double(pr.getDouble(2) / sum));
 	    }		
 	    JSONObject placement = new JSONObject();
 	    placement.put("p", placements);
@@ -261,7 +261,7 @@ public class PPlacerJSONMerger {
 	}
     }
 
-    private static void writeGSONFile(String fileName, JSONObject json) throws IOException{
+    private void writeGSONFile(String fileName, JSONObject json) throws IOException{
 	FileWriter writer = new FileWriter(fileName);
 	String string = json.toString();
 	Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -293,7 +293,87 @@ public class PPlacerJSONMerger {
 	System.exit(1);
     }
 
+    public JSONObject mergeJsonFiles(String mainTree, List<String> trees, 
+	    List<String> jsonLocations, boolean sorted, int rmUnderscore) throws IOException {
+	HashMap<String, Double> mainEdgeLen = new HashMap<String, Double>();
+	/*
+	 * Find the length of individual edges in the main tree
+	 */
+	mainTree = mainTree.replaceAll("'","");
+	Matcher edgeLenMatcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
+		.matcher(mainTree);
+	while (edgeLenMatcher.find()) {
+	    mainEdgeLen.put(edgeLenMatcher.group(2), new Double(edgeLenMatcher.group(1)));
+	}
+
+	JSONObject resultsJson = new JSONObject();
+	/*
+	* Make the main tree, the "tree" of output json
+	*/
+	resultsJson.put("tree", mainTree);
+	JSONArray resultsPlacements = new JSONArray();
+	JSONArray fields = null;
+
+	/*
+	 * Read json files one by one, relabel them, and merge their placements into the output
+	 */
+	for (int i = 0; i < trees.size(); i++) {
+	    try {					
+		String jsonFile = jsonLocations.get(i);
+		BufferedReader in = new BufferedReader(new FileReader(jsonFile));
+		StringBuffer jsonString = new StringBuffer();
+		String str;
+		while ((str = in.readLine()) != null) {
+		    jsonString.append(str);
+		}
+		JSONObject json = JSONObject.fromObject(jsonString.toString());
+
+		String baseTree = trees.get(i);
+
+		// Update the placement section of the json			
+		this.relabelAndUpdatePlacements(baseTree, json, mainEdgeLen, rmUnderscore);							
+		// UPDATE the global merge file
+		// resultsPlacements.addAll(json.getJSONArray("placements"));
+
+		fields = json.getJSONArray("fields");
+
+		// Unnecessary IO
+		//writeGSONFile(jsonFile.replace(".json", ".merged.json"),json);
+
+	    } catch (JsonSyntaxException e) {
+		System.err.println(e.getLocalizedMessage());
+		System.err.println("The above warnning ignored. continue ...");
+	    }
+	}	
+	
+	/*
+	 * Merge multiple placements for the same fragment
+	 */
+	this.mergePlacementsOFSameFragments(resultsPlacements);
+
+	if (sorted) {
+	    TreeSet<JSONObject> sortedPlacements = new TreeSet<JSONObject>(new Comparator<JSONObject>() {
+		@Override
+		public int compare(JSONObject o1, JSONObject o2) {					
+		    String name1 = o1.optString("n") + o1.optString("nm");
+		    String name2 = o2.optString("n") + o2.optString("nm");
+		    return name1.compareTo(name2);
+		}
+	    });
+	    sortedPlacements.addAll(resultsPlacements);
+	    resultsPlacements = new JSONArray();
+	    resultsPlacements.addAll(sortedPlacements);
+	}
+	resultsJson.put("placements", resultsPlacements);
+	resultsJson.put("metadata", JSONObject.fromObject("{\"invocation\":" +
+		"\"SEPP-generated json file (sepp 2).\"}"));
+	resultsJson.put("version", 1);
+	resultsJson.put("fields", fields);
+	return resultsJson;
+    }
+    
     public static void main(String[] args) {			    
+
 	if (args.length < 3) { 
 	    errout();
 	}
@@ -304,8 +384,6 @@ public class PPlacerJSONMerger {
 	boolean sorted = false;
 	int rmUnderscore = 0;
 	String mainTree = "";
-	HashMap<String, Double> mainEdgeLen = new HashMap<String, Double>();
-	String name;
 	List<String> trees = new ArrayList<String>();
 	List<String> jsonLocations = new ArrayList<String>();			
 
@@ -377,85 +455,11 @@ public class PPlacerJSONMerger {
 	    }
 	    //System.err.println("json locations: " + jsonLocations);
 
-	    /*
-	     * Find the length of individual edges in the main tree
-	     */
-	    mainTree = mainTree.replaceAll("'","");
-	    Matcher edgeLenMatcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
-		    .matcher(mainTree);
-	    while (edgeLenMatcher.find()) {
-		Double len = new Double(edgeLenMatcher.group(1));
-		name = edgeLenMatcher.group(2);
-		mainEdgeLen.put(name, len);
-	    }
 
-	    /*
-	     * Make the main tree, the "tree" of output json
-	     */
 	    PPlacerJSONMerger merger = new PPlacerJSONMerger();
-	    JSONObject resultsJson = new JSONObject();
-	    resultsJson.put("tree", mainTree);
-	    JSONArray resultsPlacements = new JSONArray();
-	    JSONArray fields = null;
+	    JSONObject merged = merger.mergeJsonFiles(mainTree, trees, jsonLocations, sorted, rmUnderscore);
+	    merger.writeGSONFile(outfilename, merged);
 
-	    /*
-	     * Read json files one by one, relabel them, and merge their placements into the output
-	     */
-	    for (int i = 0; i < trees.size(); i++) {
-		try {					
-		    String jsonFile = jsonLocations.get(i);
-		    BufferedReader in = new BufferedReader(new FileReader(jsonFile));
-		    StringBuffer jsonString = new StringBuffer();
-		    String str;
-		    while ((str = in.readLine()) != null) {
-			jsonString.append(str);
-		    }
-		    JSONObject json = JSONObject.fromObject(jsonString.toString());
-
-		    String baseTree = trees.get(i);
-
-		    // Update the placement section of the json			
-		    merger.relabelAndUpdatePlacements(baseTree, json, mainEdgeLen, rmUnderscore);							
-		    // UPDATE the global merge file
-		    // resultsPlacements.addAll(json.getJSONArray("placements"));
-
-		    fields = json.getJSONArray("fields");
-
-		    // Unnecessary IO
-		    //writeGSONFile(jsonFile.replace(".json", ".merged.json"),json);
-
-		} catch (JsonSyntaxException e) {
-		    System.err.println(e.getLocalizedMessage());
-		    System.err.println("The above warnning ignored. continue ...");
-		}
-	    }	
-	    /*
-	     * Merge muliple placements for the same fragment
-	     */
-	    merger.mergeEqualPlacements(resultsPlacements);
-
-	    if (sorted) {
-		TreeSet<JSONObject> sortedPlacements = new TreeSet<JSONObject>(new Comparator<JSONObject>() {
-		    @Override
-		    public int compare(JSONObject o1, JSONObject o2) {					
-			String name1 = o1.optString("n") + o1.optString("nm");
-			String name2 = o2.optString("n") + o2.optString("nm");
-			return name1.compareTo(name2);
-		    }
-		});
-		sortedPlacements.addAll(resultsPlacements);
-		resultsPlacements = new JSONArray();
-		resultsPlacements.addAll(sortedPlacements);
-	    }
-	    resultsJson.put("placements", resultsPlacements);
-	    resultsJson.put("metadata", JSONObject.fromObject("{\"invocation\":" +
-		    "\"SEPP-generated json file (sepp 2).\"}"));
-	    resultsJson.put("version", 1);
-	    resultsJson.put("fields", fields);
-	    writeGSONFile(outfilename, resultsJson);
-	} catch (FileNotFoundException e) {
-	    System.err.println("File not found: \n" + e.getMessage());
-	    System.exit(1);
 	} catch (IOException e) {
 	    System.err.println("I/O Error: \n" + e.getMessage());
 	    System.exit(1);
