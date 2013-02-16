@@ -9,6 +9,7 @@ col_delimiter = '\t|\t'
 row_delimiter = '\t|\n'
 url = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
 tree_filename = 'ncbi_taxonomy.newick'
+tree_format = 'newick'
 
 # download the taxonomy archive
 filename = url.split('/')[-1]
@@ -62,13 +63,16 @@ print 'Building tree...'
 for node_id, this_node in nodes.items():
     if node_id == this_node.parent:
         root_node = this_node
-        print root_node
+        print 'Found root.'
     else:
         parent_node = nodes[this_node.parent]
         parent_node.clades.append(this_node)
     del this_node.parent
 
 tree = Newick.Tree(root=root_node)
-bp.write([tree], tree_filename, 'newick')
+
+# write tree to file
+print 'Writing %s tree to %s...' % (tree_format, tree_filename)
+bp.write([tree], tree_filename, tree_format)
 
 print 'Done!'
