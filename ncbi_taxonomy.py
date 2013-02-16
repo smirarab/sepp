@@ -30,6 +30,7 @@ for filename in ('nodes.dmp', 'names.dmp'):
         archive.extract(filename)
 
 # get names for all tax_ids from names.dmp
+print "Getting names..."
 scientific_names = {}
 common_names = {}
 with open('names.dmp') as names_file:
@@ -42,4 +43,23 @@ with open('names.dmp') as names_file:
         elif name_type == 'common name':
             common_names[tax_id] = name_txt
 
-# create tree from nodes.dmp
+# read all node info from nodes.dmp
+print "Reading taxonomy..."
+nodes = {}
+with open('nodes.dmp') as nodes_file:
+    for line in nodes_file:
+        line = line.rstrip(row_delimiter)
+        values = line.split(col_delimiter)
+        tax_id, parent_id = values[:2]
+        this_node = Newick.Clade(scientific_names[tax_id])
+        nodes[tax_id] = this_node
+        this_node.parent = parent_id
+
+# create tree from nodes dictionary
+print "Building tree..."
+for this_node in nodes.values():
+    parent_node = nodes[this_node.parent]
+    parent_node.clades.append(this_node)
+    del this_node.parent
+
+print "Done!"
