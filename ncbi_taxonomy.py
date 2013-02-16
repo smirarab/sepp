@@ -55,6 +55,8 @@ with open('nodes.dmp') as nodes_file:
         values = line.split(col_delimiter)
         tax_id, parent_id = values[:2]
         this_node = Newick.Clade(name=scientific_names[tax_id])
+        if tax_id in common_names:
+            this_node.comment = common_names[tax_id]
         nodes[tax_id] = this_node
         this_node.parent = parent_id
 
