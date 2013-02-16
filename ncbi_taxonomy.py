@@ -1,4 +1,5 @@
 import urllib2
+import Bio.Phylo as bp
 from Bio.Phylo import Newick
 import os
 import tarfile
@@ -6,9 +7,10 @@ import tarfile
 
 col_delimiter = '\t|\t'
 row_delimiter = '\t|\n'
+url = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
+tree_filename = 'ncbi_taxonomy.newick'
 
 # download the taxonomy archive
-url = 'ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz'
 filename = url.split('/')[-1]
 if os.path.exists(filename):
     print 'Using existing copy of %s' % filename
@@ -30,7 +32,7 @@ for filename in ('nodes.dmp', 'names.dmp'):
         archive.extract(filename)
 
 # get names for all tax_ids from names.dmp
-print "Getting names..."
+print 'Getting names...'
 scientific_names = {}
 common_names = {}
 with open('names.dmp') as names_file:
@@ -44,22 +46,29 @@ with open('names.dmp') as names_file:
             common_names[tax_id] = name_txt
 
 # read all node info from nodes.dmp
-print "Reading taxonomy..."
+print 'Reading taxonomy...'
 nodes = {}
 with open('nodes.dmp') as nodes_file:
     for line in nodes_file:
         line = line.rstrip(row_delimiter)
         values = line.split(col_delimiter)
         tax_id, parent_id = values[:2]
-        this_node = Newick.Clade(scientific_names[tax_id])
+        this_node = Newick.Clade(name=scientific_names[tax_id])
         nodes[tax_id] = this_node
         this_node.parent = parent_id
 
 # create tree from nodes dictionary
-print "Building tree..."
-for this_node in nodes.values():
-    parent_node = nodes[this_node.parent]
-    parent_node.clades.append(this_node)
+print 'Building tree...'
+for node_id, this_node in nodes.items():
+    if node_id == this_node.parent:
+        root_node = this_node
+        print root_node
+    else:
+        parent_node = nodes[this_node.parent]
+        parent_node.clades.append(this_node)
     del this_node.parent
 
-print "Done!"
+tree = Newick.Tree(root=root_node)
+bp.write([tree], tree_filename, 'newick')
+
+print 'Done!'
