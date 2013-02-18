@@ -62,7 +62,7 @@ with open('nodes.dmp') as nodes_file:
 
 # create tree from nodes dictionary
 print 'Building tree...'
-for node_id, this_node in nodes.items():
+for node_id, this_node in nodes.iteritems():
     if node_id == this_node.parent:
         root_node = this_node
         print 'Found root.'
