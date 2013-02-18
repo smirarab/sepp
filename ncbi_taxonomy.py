@@ -24,13 +24,13 @@ else:
     r.close()
 
 # extract the text dump
-for filename in ('nodes.dmp', 'names.dmp'):
-    if os.path.exists(filename):
-        print 'Using existing copy of %s' % filename
+for extract in ('nodes.dmp', 'names.dmp'):
+    if os.path.exists(extract):
+        print 'Using existing copy of %s' % extract
     else:
-        print 'Extracting %s...' % filename
+        print 'Extracting %s from %s...' % (extract, filename)
         archive = tarfile.open(name=filename, mode='r:gz')
-        archive.extract(filename)
+        archive.extract(extract)
 
 # get names for all tax_ids from names.dmp
 print 'Getting names...'
