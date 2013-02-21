@@ -436,7 +436,7 @@ class PplacerJob(ExternalSeppJob):
         self.extended_alignment_file = \
                          sepp.filemgr.tempfile_for_subproblem("pplacer.extended.", 
                                                        subproblem, ".fasta")
-        self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
+        self.out_file = os.path.join(sepp.filemgr.relativr_tempdir_for_subproblem(subproblem),
                              self.extended_alignment_file.replace("fasta","jplace"))                       
         assert isinstance(subproblem.subtree, PhylogeneticTree)
         subproblem.subtree.write_newick_to_path(self.tree_file)
@@ -480,6 +480,81 @@ class PplacerJob(ExternalSeppJob):
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
         return self.out_file
+
+class EPAJob(ExternalSeppJob):
+
+    def __init__(self, **kwargs):       
+        self.job_type = 'EPA'
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.tree_file = None   
+        self.extended_alignment_file = None 
+        self.out_name = None 
+        self.out_file = None
+        self.out_dir = None
+        
+        """    def setup(self, tree_file,  extended_alignment_file, output_name, **kwargs):
+        self.tree_file = tree_file        
+        self.extended_alignment_file = extended_alignment_file
+        self.out_name = output_name
+        self._kwargs = kwargs   """                     
+
+    def partial_setup_for_subproblem(self, subproblem, molecule, **kwargs):
+        ''' Automatically sets up a job given a subproblem object. 
+        Note that extended alignment and the is just a file name, referring to an empty
+        file at this point. This file needs to be created before the job is queued. 
+        '''
+        assert isinstance(subproblem, sepp.problem.SeppProblem)        
+        self.tree_file = sepp.filemgr.tempfile_for_subproblem("EPA.tree.", 
+                                                       subproblem, ".tre")
+        self.extended_alignment_file = \
+                         sepp.filemgr.tempfile_for_subproblem("EPA.extended.", 
+                                                       subproblem, ".phylip")
+        self.out_dir = sepp.filemgr.get_tempdir_for_subproblem(subproblem)     
+        self.out_name = str(subproblem.label)
+        self.out_file = os.path.join(self.out_dir,"RAxML_portableTree.%s.jplace" %self.out_name)                                        
+        assert isinstance(subproblem.subtree, PhylogeneticTree)
+        subproblem.subtree.write_newick_to_path(self.tree_file)
+        
+        self.molecule = molecule
+        
+        self._kwargs = kwargs      
+
+        
+    def get_invocation(self):
+        invoc = [self.path, 
+                 "-w", self.out_dir,
+                 "-n", self.out_name,
+                 "-f", "v",
+                 "-t", self.tree_file,
+                 "-s", self.extended_alignment_file,
+                 "-m", "PROTGAMMAJTTF" if self.molecule == "amino" else "GTRGAMMA"]
+        #TODO: Figure out RNA
+
+        if self._kwargs.has_key("user_options"):
+            invoc.extend(self._kwargs["user_options"].split())        
+        
+        return invoc
+
+    def characterize_input(self):
+        return "extended_alignment_file:%s, tree_file:%s, output:%s"\
+                %(self.extended_alignment_file, self.tree_file, self.out_file)
+
+
+    def read_results(self):
+        '''
+        Since the output file can be huge, we don't want to read it here, because
+        it will need to get pickled and unpickled. Instead, we just send
+        back the file name, and will let the caller figure out what to do with it. 
+        
+        But if it is a fake job, then return nothing
+        '''
+        if (self.fake_run):
+            return None
+        assert os.path.exists(self.out_file)
+        assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
+        return self.out_file
+
+
 
 class MergeJsonJob(ExternalSeppJob):
 

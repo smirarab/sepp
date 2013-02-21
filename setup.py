@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 from distutils.core import setup, Command
 from distutils.command.install import install
 
-version = "3.0.0"
+version = "3.1.0"
 
 class ConfigSepp(Command):
     """setuptools Command"""
@@ -83,6 +83,7 @@ class ConfigSepp(Command):
         # Copy tools to a bundled directory inside .sepp
         copy_tool_to_lib("guppy")
         copy_tool_to_lib("pplacer")
+        copy_tool_to_lib("raxmlHPC")
         copy_tool_to_lib("hmmalign")
         copy_tool_to_lib("hmmsearch")
         copy_tool_to_lib("hmmbuild")

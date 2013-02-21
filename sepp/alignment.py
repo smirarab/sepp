@@ -74,6 +74,18 @@ def _read_fasta(src):
     if isinstance(src, str):
         file_obj.close()
 
+def _write_phylip(alignment, dest):
+    """Writes the `alignment` in relaxed PHYLIP format to either a file object or file"""
+    file_obj = None
+    if isinstance(dest, str):
+        file_obj = open(dest, "w")
+    else:
+        file_obj = dest
+    file_obj.write('%d %d\n' % (alignment.get_num_taxa(), alignment.get_length()))
+    for name, seq in alignment.items():
+        file_obj.write('%s %s\n' % (name, seq))
+    if isinstance(dest, str):
+        file_obj.close()
 
 def _write_fasta(alignment, dest):
     """Writes the `alignment` in FASTA format to either a file object or file"""
@@ -127,8 +139,8 @@ class ReadOnlyAlignment(Mapping, object):
             write_func = _write_fasta
 #        elif (file_format.upper() == 'NEXUS'):
 #            write_func = write_nexus
-#        elif (file_format.upper() == 'PHYLIP'):
-#            write_func = write_phylip
+        elif (file_format.upper() == 'PHYLIP'):
+            write_func = _write_phylip
         else:
             write_func = _write_fasta
         write_func(self, file_obj)

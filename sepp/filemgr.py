@@ -55,13 +55,18 @@ def get_temp_file(prefix, relative_path, suffix = ""):
                            suffix = suffix, 
                            dir = d)
 
-def tempdir_for_subproblem(subproblem):
+def relativr_tempdir_for_subproblem(subproblem):
     '''
-    Returns the path to a temporary directory for a given subproblem.
+    Returns the relative path to a temporary directory for a given subproblem.
     '''
-    largs = [x.label for x in reversed(subproblem.get_path_to_root())]
-    return os.path.join(*largs)
-    
+    names = [x.label for x in reversed(subproblem.get_path_to_root())]
+    return os.path.join(*names)
+
+def get_tempdir_for_subproblem(subproblem):
+    '''
+    Returns the absolute path to a temporary directory for a given subproblem.
+    '''
+    return os.path.join(get_root_temp_dir(), relativr_tempdir_for_subproblem(subproblem)) 
 
 def tempfile_for_subproblem(prefix, subproblem, suffix = ""):
     '''
@@ -69,7 +74,7 @@ def tempfile_for_subproblem(prefix, subproblem, suffix = ""):
     '''
     from sepp.problem import SeppProblem
     assert isinstance(subproblem, SeppProblem)
-    return get_temp_file(prefix, tempdir_for_subproblem(subproblem), suffix)
+    return get_temp_file(prefix, relativr_tempdir_for_subproblem(subproblem), suffix)
     
 
 def is_my_temp_file(path):
