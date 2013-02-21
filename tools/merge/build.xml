@@ -11,7 +11,7 @@
   <property name="src.home" value="src" />  
   
   <!-- Main class -->  
-  <property name="main.class" value="phylolab.taxonamic.PPlacerJSONMerger" />  
+  <property name="main.class" value="phylolab.taxonamic.JSONMerger" />  
    
   <!-- The base directory for all libraries (jar) files -->  
   <property name="lib.home" value="lib" />  

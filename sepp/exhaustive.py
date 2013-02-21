@@ -24,8 +24,9 @@ class JoinSearchJobs(Join):
     fragment goes  to which subset and start aligning fragments. 
     This join takes care of that step. 
     '''
-    def __init__(self):
+    def __init__(self, alignment_threshold):
         Join.__init__(self)
+        self.alignment_threshold = alignment_threshold
         
     def setup_with_root_problem(self, root_problem):
         self.root_problem = root_problem            
@@ -63,13 +64,14 @@ class JoinSearchJobs(Join):
             ''' Find enough subsets to reach the threshold '''
             selected = tuplelist[ 0 : max(1, 
                 reduce(lambda x, y: (x[0],None) if x[1] is None else 
-                                    (y[0],x[1]+y[1]) if x[1] < 950000 else 
+                                    (y[0],x[1]+y[1]) if x[1] < int(1000000 * self.alignment_threshold)  else 
                                     (y[0],None), 
                        enumerate([x[0] for x in tuplelist]))[0]) ]
             _LOG.debug("Fragment %s assigned to %d subsets" %(frag,len(selected)))
-            ''' Rename the fragment and assign it to the respective subsets'''
+            ''' Rename the fragment and assign it to the respective subsets'''            
             for (prob,align_problem) in selected:
-                frag_rename = "%s_%s_%d" %(frag,align_problem.label,prob)
+                postfix = prob if options().exhaustive.weight_placement_by_alignment.lower() == "true" else 1000000
+                frag_rename = "%s_%s_%d" %(frag,align_problem.label,postfix)
                 align_problem.fragments[frag_rename] =  self.root_problem.fragments[frag]
         
         self.root_problem.annotations["fragments.distribution.done"] = 1        
@@ -188,15 +190,26 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     '''
     def __init__(self):
         AbstractAlgorithm.__init__(self)
-        self.place_nomatch_fragments = False
+        #self.place_nomatch_fragments = False
         ''' Hardcoded E-Lim for hmmsearch ''' #TODO: what to do with this
-        self.elim = 99999999
-        self.filters = False
+        self.elim = float(self.options.hmmsearch.elim)
+        self.filters = True if self.options.hmmsearch.filters.upper() == "TRUE" else False if self.options.hmmsearch.filters.upper() == "FALSE" else None
+        if self.filters is None:
+            raise Exception("Expecting true/false for options.hmmsearch.filters")  
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
+        self.alignment_threshold = float(self.options.exhaustive.sepp_alignment_threshold)
         #Temp fix for now, 
         self.molecule = self.options.molecule
 
+
+    def get_merge_job(self, meregeinputstring):
+        mergeJsonJob = MergeJsonJob()
+        mergeJsonJob.setup(meregeinputstring, 
+                           self.get_output_filename("placement.json"))
+        return mergeJsonJob
+    
+    
     def merge_results(self):
   
         assert isinstance(self.root_problem,SeppProblem)
@@ -222,9 +235,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         mergeinput.append("")
         mergeinput.append("")
         meregeinputstring = "\n".join(mergeinput)
-        mergeJsonJob = MergeJsonJob()
-        mergeJsonJob.setup(meregeinputstring, 
-                           self.get_output_filename("placement.json"))
+        mergeJsonJob = self.get_merge_job(meregeinputstring)
         mergeJsonJob.run()
 
     def output_results(self):
@@ -237,8 +248,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         outfilename = self.get_output_filename("alignment_masked.fasta")
         self.results.write_to_path(outfilename)
 
-    def check_options(self):
-        AbstractAlgorithm.check_options(self)
+    def check_options(self, supply):
+        AbstractAlgorithm.check_options(self, supply)
 
     def modify_tree(self,a_tree):
         pass
@@ -364,7 +375,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             jaj = self._get_new_Join_Align_Job()
             jaj.setup_with_placement_problem(placement_problem)                        
         ''' Join all search jobs together (enqueues align jobs)'''
-        jsj = JoinSearchJobs()
+        jsj = JoinSearchJobs(self.alignment_threshold)
         jsj.setup_with_root_problem(self.root_problem)        
         
     def enqueue_firstlevel_job(self):

@@ -476,7 +476,7 @@ class PplacerJob(ExternalSeppJob):
         But if it is a fake job, then return nothing
         '''
         if (self.fake_run):
-          return None
+            return None
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
         return self.out_file
@@ -487,15 +487,36 @@ class MergeJsonJob(ExternalSeppJob):
         self.job_type = 'jsonmerger'
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)          
         self.out_file = None 
+        self.taxonomy = None
+        self.mapping = None
+        self.threshold = None
+        self.classification_file = None
         
     def setup(self, inString, output_file, **kwargs):
         self.stdindata = inString
         self.out_file = output_file
         self._kwargs = kwargs      
 
+    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, **kwargs):
+        self.stdindata = inString
+        self.out_file = output_file
+        self.taxonomy = taxonomy.name
+        self.mapping = mapping.name
+        self.threshold = str(threshold)
+        self.classification_file = classification_file
+        self._kwargs = kwargs             
+        
     def get_invocation(self):
         invoc = ["java", "-jar", self.path, 
-                 "-", "-", self.out_file, "-r", "4"]   
+                 "-", "-", self.out_file, "-r", "4"] 
+        if self.taxonomy is not None:
+            invoc.extend(["-t", self.taxonomy])  
+        if self.mapping is not None:
+            invoc.extend(["-m", self.mapping])  
+        if self.threshold is not None:
+            invoc.extend(["-p", self.threshold])  
+        if self.classification_file is not None:
+            invoc.extend(["-c", self.classification_file])  
         return invoc
 
     def characterize_input(self):
@@ -509,4 +530,4 @@ class MergeJsonJob(ExternalSeppJob):
         '''
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
-        return self.out_file
+        return (self.out_file, self.stdoutdata)

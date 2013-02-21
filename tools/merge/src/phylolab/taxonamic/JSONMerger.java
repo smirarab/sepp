@@ -2,10 +2,16 @@ package phylolab.taxonamic;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+
+import edu.rice.cs.bioinfo.programs.phylonet.algos.lca.SchieberVishkinLCA;
+import edu.rice.cs.bioinfo.programs.phylonet.structs.tree.io.ParseException;
+import edu.rice.cs.bioinfo.programs.phylonet.structs.tree.model.TNode;
+import edu.rice.cs.bioinfo.programs.phylonet.structs.tree.model.sti.STINode;
+import edu.rice.cs.bioinfo.programs.phylonet.structs.tree.model.sti.STITree;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,12 +21,16 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,12 +44,22 @@ import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 import phylolab.NewickTokenizer;
 
-public class PPlacerJSONMerger {
-    private Pattern seqNamePattern;
-    private Pattern edgeNumPattern;
+public class JSONMerger {
+    private Pattern seqNamePattern = Pattern.compile("'*([^:']*)'*(:.*)*");
+    private Pattern edgeNumPattern = Pattern.compile(".*[\\[\\{]([0-9]*)[\\]\\}]");
 
     private HashMap<String,JSONArray> nameToAllPlacements = new HashMap<String, JSONArray>();
     private HashMap<String,Double> nameToCummulativeLWR = new HashMap<String, Double>();
+    private String mainTree;
+    private List<String> trees;
+    private List<String> jsonLocations;
+    private boolean sorted;
+    private int rmUnderscore;
+    private HashMap<String, Double> mainEdgeLen;
+    private STITree<TaxonomyData> taxonomy;
+    private Hashtable<String, String> jsonNameToTaxonId;
+    private Double threshold = 0.95D;
+    private FileWriter cw;
 
     static String join(Collection<String> s, String delimiter) {
 	StringBuilder builder = new StringBuilder();
@@ -54,11 +74,27 @@ public class PPlacerJSONMerger {
 	return builder.toString();
     }
 
-    public PPlacerJSONMerger() {
-	this.edgeNumPattern = Pattern.compile(".*[\\[\\{]([0-9]*)[\\]\\}]");
-	this.seqNamePattern = Pattern.compile("'*([^:']*)'*(:.*)*");
+    public JSONMerger(String mainTree, List<String> trees, 
+	    List<String> jsonLocations, boolean sorted, int rmUnderscore, 
+	    STITree<TaxonomyData> taxonomy, Hashtable<String,String> jsonNameToTaxonId, Double threshold, FileWriter classificationWriter) {
+	mainEdgeLen = new HashMap<String, Double>();
+	this.mainTree = mainTree;
+	this.trees  = trees;
+	this.jsonLocations = jsonLocations;
+	this.sorted = sorted;
+	this.rmUnderscore = rmUnderscore;
+	this.taxonomy = taxonomy;
+	this.jsonNameToTaxonId = jsonNameToTaxonId;
+	this.threshold = threshold;
+	this.cw = classificationWriter;
     }
 
+    /**
+     * Reads the tree, and adds the sequence names to sequences
+     * @param tree
+     * @param sequences
+     * @return
+     */
     public HashMap<String, String> readTree(String tree, Set<String> sequences) {
 	HashMap<String, String> res = new HashMap<String, String>();
 	LinkedList<SortedSet<String>> stack = new LinkedList<SortedSet<String>>();
@@ -86,7 +122,6 @@ public class PPlacerJSONMerger {
 		    continue;
 		}
 		String seqId = this.seqNamePattern.matcher(token).replaceAll("$1");
-		//System.out.println(seqId);
 		if (stack.size() > 0) {
 		    stack.getLast().add(seqId);
 		}
@@ -156,11 +191,10 @@ public class PPlacerJSONMerger {
 	return res;
     }
 
-    private void relabelAndUpdatePlacements(String baseTree, JSONObject json,
-	    HashMap<String, Double> mainEdgeLen, int rmUnerscore) {
+    private void processJson(String originalTree, JSONObject json) {
 
 	String jsonTree = json.getString("tree");
-	HashMap<String, String> labelMap = mapTreeBranchNames(jsonTree, baseTree);
+	HashMap<String, String> labelMap = mapTreeBranchNames(jsonTree, originalTree);
 
 	JSONArray placements = json.getJSONArray("placements");
 
@@ -182,10 +216,10 @@ public class PPlacerJSONMerger {
 		String name = n.getString(i);
 		String newName = name;
 		Double prior = 1.;
-		if (rmUnerscore != 0) {
+		if (rmUnderscore != 0) {
 		    String [] nameSplit = name.split("_");
-		    if (nameSplit.length < rmUnerscore + 1) {
-			throw new RuntimeException("Fragments names should have at least " + (rmUnerscore) + " underscores.");
+		    if (nameSplit.length < rmUnderscore + 1) {
+			throw new RuntimeException("Fragments names should have at least " + (rmUnderscore) + " underscores.");
 		    }
 		    /*
 		     * Find and update new Name
@@ -238,18 +272,80 @@ public class PPlacerJSONMerger {
 	}
     }
 
-    private void mergePlacementsOFSameFragments(JSONArray all) {
+    private HashMap<String, STINode<TaxonomyData>> mapJsonTreeToTaxonomy () throws IOException, ParseException {
+	SchieberVishkinLCA lookup = new SchieberVishkinLCA(taxonomy);	
+	HashMap<String, STINode<TaxonomyData>> jsonToTaxonomy = new HashMap<String, STINode<TaxonomyData>>();	
+	LinkedList<Set<TNode>> stack = new LinkedList<Set<TNode>>();
+	NewickTokenizer tokenizer = new NewickTokenizer(this.mainTree, false);
+	
+	if (!"(".equals(tokenizer.nextToken())) {
+	    throw new RuntimeException("The main tree does not start with a (");
+	}
+	do {
+	    String token = tokenizer.nextToken();
+	    if ("(".equals(token)) {
+		stack.addLast(new HashSet<TNode>());
+	    } else if (token.startsWith(")")) {
+		if (stack.size() > 0) {
+		    String edgeNum = getEdgeNum(token);
+		    Set<TNode> top = stack.getLast();
+		    TNode taxonomyNode = lookup.getLCA(top);
+		    jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
+		    stack.removeLast();
+		    if (stack.size() > 0){ 
+			stack.getLast().add(taxonomyNode);
+		    }
+		}
+	    } else {
+		if (";".equals(token)) {
+		    continue;
+		}
+		String seqId = this.seqNamePattern.matcher(token).replaceAll("$1");
+		String taxonID = this.jsonNameToTaxonId.get(seqId);
+		TNode taxonomyNode = this.taxonomy.getNode(taxonID);
+
+		if (stack.size() > 0) {
+		    stack.getLast().add(taxonomyNode);
+		}
+		String edgeNum = getEdgeNum(token);
+
+		jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
+	    }
+	} while (tokenizer.hasNext());
+
+	return jsonToTaxonomy;
+    }
+    
+    
+    private void createMergedPlacements(JSONArray all) throws IOException, ParseException {
+	
+	HashMap<String, STINode<TaxonomyData>> jsonTreeIDToTaxonomyNode = null;
+	if (taxonomy != null) {	    
+	    jsonTreeIDToTaxonomyNode = mapJsonTreeToTaxonomy();
+	}
 
 	for (String fragment : this.nameToAllPlacements.keySet()) {
 	    JSONArray placements = nameToAllPlacements.get(fragment);
 	    Double sum = nameToCummulativeLWR.get(fragment);
+	    Set<STINode<TaxonomyData>> lineages = new HashSet<STINode<TaxonomyData>>();
+	    
 	    System.err.println(fragment + " " + placements.size());
 	    /*
 	     * Normalize weighted likelihood ratios
 	     */
 	    for (Iterator<JSONArray> itp = placements.iterator(); itp.hasNext();) {
-		JSONArray pr = itp.next();		    
-		pr.set(2, new Double(pr.getDouble(2) / sum));
+		JSONArray placementRecord = itp.next();
+		Double probability = placementRecord.getDouble(2) / sum;
+		if (jsonTreeIDToTaxonomyNode != null) {
+		    STINode<TaxonomyData> node = jsonTreeIDToTaxonomyNode.get(placementRecord.getString(0));
+		    while (node != null){
+			node.getData().probability += probability;
+			lineages.add(node);
+			node = node.getParent();
+		    }
+		}
+		placementRecord.set(2, probability);
+		
 	    }		
 	    JSONObject placement = new JSONObject();
 	    placement.put("p", placements);
@@ -258,6 +354,22 @@ public class PPlacerJSONMerger {
 	    placement.put("n", n);
 	    all.add(placement);
 
+	    if (jsonTreeIDToTaxonomyNode != null) {
+		for (STINode<TaxonomyData> lineage : lineages) {
+		    TaxonomyData data = lineage.getData();
+		    if (data.probability >= threshold) {
+			
+			cw.write(join(Arrays.asList(new String [] {
+				fragment,
+				data.id,
+				data.name,
+				data.rank,
+				new DecimalFormat("##.0000").format(data.probability)
+			}),",")+"\n");
+		    }
+		    data.probability = 0D;
+		}
+	    }
 	}
     }
 
@@ -275,12 +387,20 @@ public class PPlacerJSONMerger {
 
 
     public static void errout(){
-	System.out
+	System.err
 	.println("Usage: merge.jar <json files directory> <base tree file> <output> [-r N] [-s]\n" +
 		"\t\t<json files directory>: the directory with all pplacer results (.json files)\n" +
 		"\t\t<base tree file>: The base tree file\n" +
 		"\t\t<output>: output json file name\n" +
 		"\t\t-s: (optional) sort the fragments by name.\n" +
+		"\t\t-t <taxonomy file>: (optional) The name of a taxonomy file. If provided, classification is also performed,\n" +
+		"\t\t                     and results are written out to standard output.\n" +		
+		"\t\t-p N: (optional) A value between 0 and 1. When given with -t option, this specifies\n" +
+		"\t\t      the minimum probability threshold for lineages appearing in ouput.\n" +		
+		"\t\t-m <name mapping file>: (optional) when given with -t option, this provides a comma-seperated\n" +
+		"\t\t                        mapping between names in given taxonomy and json files.\n" +
+		"\t\t-c <classification output file>: (optional) when given with -t option, results of classification are written\n" +
+		"\t\t                        to this file.\n" +						
 		"\t\t-r N: (optional) rename fragments to remove everything after Nth _ from the end.\n" +
 		"\t\t       Merge multiple placement of the same fragment into one entry, considering prior probabilities.\n" +
 		"\t\t       Treat everything after the last _ as a prior probability out of 1000,000.\n\n" + 
@@ -293,9 +413,7 @@ public class PPlacerJSONMerger {
 	System.exit(1);
     }
 
-    public JSONObject mergeJsonFiles(String mainTree, List<String> trees, 
-	    List<String> jsonLocations, boolean sorted, int rmUnderscore) throws IOException {
-	HashMap<String, Double> mainEdgeLen = new HashMap<String, Double>();
+    public JSONObject mergeJsonFiles() throws IOException, ParseException {
 	/*
 	 * Find the length of individual edges in the main tree
 	 */
@@ -329,16 +447,10 @@ public class PPlacerJSONMerger {
 		JSONObject json = JSONObject.fromObject(jsonString.toString());
 
 		String baseTree = trees.get(i);
-
-		// Update the placement section of the json			
-		this.relabelAndUpdatePlacements(baseTree, json, mainEdgeLen, rmUnderscore);							
-		// UPDATE the global merge file
-		// resultsPlacements.addAll(json.getJSONArray("placements"));
+		
+		this.processJson(baseTree, json);							
 
 		fields = json.getJSONArray("fields");
-
-		// Unnecessary IO
-		//writeGSONFile(jsonFile.replace(".json", ".merged.json"),json);
 
 	    } catch (JsonSyntaxException e) {
 		System.err.println(e.getLocalizedMessage());
@@ -349,7 +461,7 @@ public class PPlacerJSONMerger {
 	/*
 	 * Merge multiple placements for the same fragment
 	 */
-	this.mergePlacementsOFSameFragments(resultsPlacements);
+	this.createMergedPlacements(resultsPlacements);
 
 	if (sorted) {
 	    TreeSet<JSONObject> sortedPlacements = new TreeSet<JSONObject>(new Comparator<JSONObject>() {
@@ -371,7 +483,7 @@ public class PPlacerJSONMerger {
 	resultsJson.put("fields", fields);
 	return resultsJson;
     }
-    
+
     public static void main(String[] args) {			    
 
 	if (args.length < 3) { 
@@ -386,8 +498,11 @@ public class PPlacerJSONMerger {
 	String mainTree = "";
 	List<String> trees = new ArrayList<String>();
 	List<String> jsonLocations = new ArrayList<String>();			
-
-
+	STITree<TaxonomyData> taxonomy = null;
+	Hashtable<String, String> jsonNameToTaxonId = null;
+	Double threshold = null;
+	FileWriter classificationWriter = null;
+	
 	/*
 	 * Parse optional arguments
 	 */
@@ -401,6 +516,50 @@ public class PPlacerJSONMerger {
 		}
 		i++;
 		rmUnderscore = Integer.parseInt(args[i]);
+	    } else if (args[i].equals("-t")) {
+		if (i+1 >= args.length) {
+		    System.out.println("-t needs to be followd by a file name (taxonomy).");
+		    System.exit(1);
+		}
+		i++;				
+		try {		    
+		    taxonomy = TaxonomyData.readTaxonomy(args[i]);
+		} catch(IOException ioe) {
+			System.err.println("ERROR: Unable to read file from " + args[i]);
+			return;
+		}
+	    } else if (args[i].equals("-c")) {
+		if (i+1 >= args.length) {
+		    System.out.println("-c needs to be followd by a file name (classification output).");
+		    System.exit(1);
+		}
+		i++;				
+		try {		    
+		    classificationWriter = new FileWriter(args[i]);
+		} catch(IOException ioe) {
+			System.err.println("ERROR: Unable to read file from " + args[i]);
+			return;
+		}
+	    } else if (args[i].equals("-p")) {
+		if (i+1 >= args.length) {
+		    System.out.println("-p needs to be followd by a number.");
+		    System.exit(1);
+		}
+		i++;				
+		threshold = new Double(args[i]);
+
+	    }  else if (args[i].equals("-m")) {
+		if (i+1 >= args.length) {
+		    System.out.println("-m needs to be followd by a file name (mapping between taxonomy ids and json names).");
+		    System.exit(1);
+		}
+		i++;				
+		try {		    
+		    jsonNameToTaxonId = TaxonomyData.readMapping(args[i]);
+		} catch(IOException ioe) {
+			System.err.println("ERROR: Unable to read file from " + args[i]);
+			return;
+		}
 	    }
 	}
 
@@ -456,12 +615,21 @@ public class PPlacerJSONMerger {
 	    //System.err.println("json locations: " + jsonLocations);
 
 
-	    PPlacerJSONMerger merger = new PPlacerJSONMerger();
-	    JSONObject merged = merger.mergeJsonFiles(mainTree, trees, jsonLocations, sorted, rmUnderscore);
+	    JSONMerger merger = new JSONMerger(mainTree, trees, 
+		    jsonLocations, sorted, rmUnderscore, taxonomy, jsonNameToTaxonId, 
+		    threshold, classificationWriter);
+	    JSONObject merged = merger.mergeJsonFiles();
 	    merger.writeGSONFile(outfilename, merged);
+	    
+	    if (classificationWriter != null) {
+		classificationWriter.close();
+	    }
 
 	} catch (IOException e) {
 	    System.err.println("I/O Error: \n" + e.getMessage());
+	    System.exit(1);
+	} catch (ParseException e) {
+	    System.err.println("Newick Parse Error: \n" + e.getMessage());
 	    System.exit(1);
 	}		
     }
