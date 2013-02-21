@@ -254,8 +254,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def modify_tree(self,a_tree):
         pass
 
-    def build_subproblems(self):
-        (alignment, tree) = self.read_alignment_and_tree()
+    def decompose_to_placement_problems(self, alignment, tree):
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
 
@@ -279,6 +278,16 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
         _LOG.info("Breaking into %d placement subsets." %len(placement_tree_map))
+        
+        return placement_tree_map
+
+    def get_alignment_decomposition_tree(self, p_tree):
+        return PhylogeneticTree(Tree(p_tree.den_tree))
+        
+    def build_subproblems(self):
+        (alignment, tree) = self.read_alignment_and_tree()
+        
+        placement_tree_map = self.decompose_to_placement_problems(alignment, tree)
 
         ''' For placement subsets create a placement subproblem, and decompose further'''
         for (p_key,p_tree) in placement_tree_map.items():
@@ -287,8 +296,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             placement_problem.subtree = p_tree
             placement_problem.label = "P_%s" %str(p_key)
             _LOG.debug("Placement subset %s has %d nodes" %(placement_problem.label,len(p_tree.leaf_node_names())))
+            
             ''' Further decompose to alignment subsets '''
-            alignment_tree_map = PhylogeneticTree(Tree(p_tree.den_tree)).decompose_tree(
+            alignment_tree_map = self.get_alignment_decomposition_tree(p_tree).decompose_tree(
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,

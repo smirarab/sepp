@@ -3,7 +3,7 @@ Created on Oct 2, 2012
 
 @author: smirarab
 '''
-from sepp.config import options
+from sepp.config import options, default_settings
 from abc import abstractmethod, ABCMeta
 from sepp.scheduler import JobPool
 from sepp.filemgr import directory_has_files_with_prefix, get_temp_file
@@ -18,7 +18,7 @@ import time
 from sepp.checkpointing import CheckPointManager
 
 _LOG = get_logger(__name__)
-    
+
 
 class AbstractAlgorithm(object):
     '''
@@ -202,9 +202,9 @@ class AbstractAlgorithm(object):
         #If sizes are not set, then use 10% rule
         options = self.options
         if (options.alignment_size is None):
-            options.alignment_size = int(total*.10)
+            options.alignment_size = int( total * (default_settings["DEF_A"][0]/100.0) )
         if (options.placement_size is None):
-            options.placement_size = options.alignment_size
+            options.placement_size = max (options.alignment_size, int( total * (default_settings["DEF_P"][0]/100.0) ))
         if options.placement_size is not None and options.placement_size < options.alignment_size:
             raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
         if options.placement_size > total or options.placement_size > total:

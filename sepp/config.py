@@ -41,6 +41,14 @@ from multiprocessing import cpu_count
 from sepp import scheduler
 
 _LOG = get_logger(__name__)
+
+''' We need these extra settings for default alignment and placement subsets
+because these are percentages, and have to be treated differently than normal
+defaults. '''
+default_settings = {
+                    'DEF_A' : (10,"10%% of the total number of taxa"),
+                    'DEF_P' : (10,"The maximum of 10%% of the total number of taxa and alignment subset size")
+                    }
    
 main_config_path = os.path.expanduser("~/.sepp/main.config")   
 
@@ -111,12 +119,12 @@ def _init_parser():
                       dest = "alignment_size", metavar = "N", 
                       default = None,
                       help = "max alignment subset size of N "
-                             "[default: 10%% of the total number of taxa]")    
+                             "[default: %s]" %default_settings["DEF_A"][1])    
     decompGroup.add_argument("-P", "--placementSize", type = int, 
                       dest = "placement_size", metavar = "N",
                       default = None, 
                       help = "max placement subset size of N "
-                             "[default: 10%% of the total number of taxa]")                              
+                             "[default: %s]" %default_settings["DEF_P"][1])                            
         
     outputGroup = _parser.add_argument_group( "Output Options".upper(), 
                          "These options control output.")                                     
@@ -152,7 +160,7 @@ def _init_parser():
     inputGroup.add_argument("-t", "--tree", 
                       dest = "tree_file", metavar = "TREE",
                       type = argparse.FileType('r'), 
-                      help = "Input tree file (newick format) "
+                      help = "Backbone tree file (newick format) "
                              "[default: %(default)s]")    
     inputGroup.add_argument("-r", "--raxml", 
                       dest = "info_file", metavar = "RAXML",
@@ -162,7 +170,7 @@ def _init_parser():
     inputGroup.add_argument("-a", "--alignment", 
                       dest = "alignment_file", metavar = "ALIGN",
                       type = argparse.FileType('r'), 
-                      help = "Aligned fasta file "
+                      help = "Backbone alignment file (fasta)"
                              "[default: %(default)s]")    
     inputGroup.add_argument("-f", "--fragment",
                       dest = "fragment_file", metavar = "FRAG",

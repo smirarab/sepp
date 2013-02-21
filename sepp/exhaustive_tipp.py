@@ -1,10 +1,15 @@
 from sepp.exhaustive import ExhaustiveAlgorithm
 import sepp
-from sepp.config import options
+from sepp.config import options, default_settings
 import argparse
 from sepp.algorithm import AbstractAlgorithm
 from sepp.jobs import MergeJsonJob
+from sepp.tree import PhylogeneticTree
+from dendropy.dataobject.tree import Tree
+import dendropy
+from sepp import get_logger
 
+_LOG = get_logger(__name__)
 
 class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
@@ -39,8 +44,23 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                            self.options.placement_threshold,
                            self.get_output_filename("classification.txt"))
         return mergeJsonJob
-        
+
+    def get_alignment_decomposition_tree(self, p_tree):
+        assert isinstance(p_tree, PhylogeneticTree)
+        if self.options.alignment_decomposition_tree is None:
+            return PhylogeneticTree(Tree(p_tree.den_tree))
+        elif p_tree.count_leaves() != self.root_problem.subtree.count_leaves():
+            raise ValueError("Alignment decomposition tree can be different from placement tree only if placement subset size is set to the number of taxa (i.e. entire tree)")
+        else:
+            _LOG.info("Reading alignment decomposition input tree: %s" %(self.options.alignment_decomposition_tree))        
+            d_tree = PhylogeneticTree( dendropy.Tree(stream=self.options.alignment_decomposition_tree, 
+                                               schema="newick", 
+                                               preserve_underscores=True,
+                                               taxon_set=self.root_problem.subtree.get_tree().taxon_set))               
+            return d_tree
+            
 def augment_parser():
+    default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
     uppGroup = parser.add_argument_group("TIPP Options".upper(), 
                          "These arguments set settings specific to TIPP")                                 
@@ -62,13 +82,18 @@ def augment_parser():
                       help = "A file describing the taxonomy. This is a comma-separated text file that has the following fields: "
                              "taxon_id,parent_id,taxon_name,rank. " 
                              "If there are other columns, they are ignored. The first line is also ignored.")
-
+    
     uppGroup.add_argument("-txm", "--taxonomyNameMapping", type = argparse.FileType('r'), 
                       dest = "taxonomy_name_mapping_file", metavar = "MAPPING", 
-                      help = "A file containing the mapping between the alignment entries and taxonomic ids. "
-                      "This is a comma-separated text file that has the following fields: "
+                      help = "A comma-separated text file mapping alignment sequence names to taxonomic ids. "
+                      "Formats (each line): "
                              "sequence_name,taxon_id. " 
                              "If there are other columns, they are ignored. The first line is also ignored.")
+
+    uppGroup.add_argument("-adt", "--alignmentDecompositionTree", type = argparse.FileType('r'), 
+                      dest = "alignment_decomposition_tree", metavar = "TREE", default = None,
+                      help = "A newick tree file used for decomposing taxa into alignment subsets. " 
+                             "[default: the backbone tree]")
         
 def main():
     augment_parser() 
