@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 from distutils.core import setup, Command
 from distutils.command.install import install
 
-version = "2.2"
+version = "3.0.0"
 
 class ConfigSepp(Command):
     """setuptools Command"""
@@ -102,7 +102,7 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py"],
+      scripts = ["run_sepp.py","run_tipp.py"],
       cmdclass = {"config": ConfigSepp},
       
       classifiers = ["Environment :: Console",

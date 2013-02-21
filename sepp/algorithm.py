@@ -152,7 +152,7 @@ class AbstractAlgorithm(object):
             self.check_outputprefix()
         else:                
             '''check input arguments'''
-            self.check_options()
+            self.check_options([])
             
             '''build the problem structure'''
             self.root_problem = self.build_subproblems()

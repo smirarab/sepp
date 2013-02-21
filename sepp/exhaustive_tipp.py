@@ -70,8 +70,9 @@ def augment_parser():
                              "sequence_name,taxon_id. " 
                              "If there are other columns, they are ignored. The first line is also ignored.")
         
-
-
-if __name__ == '__main__':   
+def main():
     augment_parser() 
     TIPPExhaustiveAlgorithm().run()
+
+if __name__ == '__main__':   
+    main()
