@@ -207,8 +207,12 @@ class AbstractAlgorithm(object):
             options.placement_size = max (options.alignment_size, int( total * (default_settings["DEF_P"][0]/100.0) ))
         if options.placement_size is not None and options.placement_size < options.alignment_size:
             raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
-        if options.placement_size > total or options.placement_size > total:
-            raise ValueError("alignment_size (%d) and placement_size (%d) should be smaller than total number of taxa (%d). " %(options.alignment_size,options.placement_size,total))
+        if options.alignment_size > total:
+            _LOG.warning("alignment_size (%d) should be smaller than total number of taxa (%d). Setting alignment size to the total number of taxa" %(options.alignment_size,total))
+            options.alignment_size = total
+        if options.placement_size > total:
+            _LOG.warning("placement_size (%d) should be smaller than total number of taxa (%d). Setting placement size to the total number of taxa" %(options.placement_size,total))
+            options.placement_size = total
         
         _LOG.info("Decomposition Sizes are set to alignment: %d placement: %d" %(options.alignment_size, options.placement_size)) 
 

@@ -182,12 +182,14 @@ class HMMBuildJob(ExternalSeppJob):
     def __init__(self, **kwargs):
         self.job_type = "hmmbuild"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
-        self.infile = None #input reference alignment
+        self.infile = None #input reference alignment, gapped columns removed
+        self.gappedinfile = None #input reference alignment, gapped columns still in
         self.informat = None #format of input reference alignment
         self.outfile = None #location of output file
         self.molecule = None #type of molecule used
+        self.filter_gaps = sepp.config.options().hmmbuild.filter_gaps.strip().lower() == "true" if hasattr(sepp.config.options().hmmbuild, "filter_gaps") else False
 
-    def setup(self, infile, outfile, informat = "fasta", molecule = "dna",**kwargs):
+    def setup(self, infile, outfile, gappedinfile, informat = "fasta", molecule = "dna",**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
         Use setup_for_subproblem when possible. 
@@ -195,6 +197,7 @@ class HMMBuildJob(ExternalSeppJob):
         self.infile = infile
         self.informat = informat
         self.outfile = outfile
+        self.gappedinfile = gappedinfile
         self.molecule = molecule
         self._kwargs = kwargs        
 
@@ -209,8 +212,11 @@ class HMMBuildJob(ExternalSeppJob):
         self.infile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.input.", 
                                                        subproblem,
                                                        ".fasta")
-        
+        self.gappedinfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.input.gapped.", 
+                                                       subproblem,
+                                                       ".fasta")                                                       
         subproblem.write_subalignment_without_allgap_columns(self.infile)
+        subproblem.subalignment.write_to_path(self.gappedinfile)
         
         self.informat = "fasta"
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.model.", 
@@ -224,7 +230,10 @@ class HMMBuildJob(ExternalSeppJob):
             invoc.extend(self._kwargs["user_options"].split())
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
-        invoc.extend([self.outfile, self.infile])
+        if (self.filter_gaps == True):
+            invoc.extend([self.outfile, self.infile])
+        else:
+            invoc.extend([self.outfile, self.gappedinfile])
         return invoc
 
     def characterize_input(self):
