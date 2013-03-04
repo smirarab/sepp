@@ -20,6 +20,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)    
         self.alignment_threshold = self.options.alignment_threshold 
+        self.push_down = True if self.options.tipp.push_down.lower() == "true" else False
+        _LOG.info("Will push fragments %s from their placement edge." %("down" if self.push_down else "up"))
 
     def check_options(self, supply=[]):
         if (options().taxonomy_file is None):
@@ -42,7 +44,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                            self.options.taxonomy_file, 
                            self.options.taxonomy_name_mapping_file, 
                            self.options.placement_threshold,
-                           self.get_output_filename("classification.txt"))
+                           self.get_output_filename("classification.txt"),
+                           self.push_down)
         return mergeJsonJob
 
     def get_alignment_decomposition_tree(self, p_tree):
@@ -76,7 +79,7 @@ def augment_parser():
                       default = 0.95,
                       help = "Enough placements are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
-
+    
     uppGroup.add_argument("-tx", "--taxonomy", type = argparse.FileType('r'), 
                       dest = "taxonomy_file", metavar = "TAXONOMY", 
                       help = "A file describing the taxonomy. This is a comma-separated text file that has the following fields: "

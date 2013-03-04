@@ -72,43 +72,43 @@ class AbstractAlgorithm(object):
         '''
         This method should read the config.options() and build a hierarchy of
         subproblems (see sepp.problem). This hierarchy will be used by 
-        build_job_dag to create a DAG of jobs (see sepp.jobs and sepp.scheduler)        
+        :py:meth:`build_jobs` to create a DAG of jobs (see :py:class:`sepp.jobs` and :py:class:`sepp.scheduler`)        
         '''
         raise NotImplementedError()
     
     @abstractmethod
     def connect_jobs(self):
-        '''
-        Join Jobs are joined together to form a DAG using Joins (see sepp.scheduler)
-        and call_back functions (see sepp.scheduler.Job). 
-
+        ''' Join Jobs are joined together to form a DAG using Joins (see :py:class:`sepp.scheduler`)
+        and call_back functions (see :py:class:`sepp.scheduler.Job`). 
+        
         Once the first level of jobs (those with no dependency) are enqueued
-        (using enqueue_firstlevel_job) everything else should be automatically 
+        (using :py:meth:`enqueue_firstlevel_job`) everything else should be automatically 
         enqueued when all their dependencies are satisfied. 
-        For example, if the conceptual DAG is:
-        A----> E---|--> F
-                   |
-        B--|-> D---|
-        C--| 
-        then enqueue_firstlevel_job should enqueue A B and C. When A finishes,
+        For example, if the conceptual DAG is the following        
+        ::
+            A----> E---|--> F
+                       |
+            B--|-> D---|
+            C--| 
+        
+        then :py:meth:`enqueue_firstlevel_job` should enqueue A B and C. When A finishes,
         it should enqueue E (either using a callback or a Join with only one
         dependency). B and C should be joined together using a Join, and that 
         Join needs to enqueue D. Also E and D need to be joined, and their join
         needs to enqueue F.        
-        build_jobs is called before this, and all jobs are saved as part of the
+        :py:meth:`build_jobs` is called before this, and all jobs are saved as part of the
         subproblem hierarchy. This function only connects those jobs.
         This is called after recovery from a checkpoint, because joins and callbacks
-        are not checkpointed.     
-        '''
+        are not checkpointed.'''
         raise NotImplementedError()
             
     @abstractmethod
     def build_jobs(self):
         '''
         Builds separate jobs for different tasks that need to be done. 
-        This just creates jobs, without connecting them. connect_jobs is used
+        This just creates jobs, without connecting them. :py:meth:`connect_jobs` is used
         to create jobs. 
-        build_job is not called after checkpoints are recovered, because the 
+        :py:meth:`build_jobs` is not called after checkpoints are recovered, because the 
         jobs are checkpointed (their connections are not).         
         '''
         raise NotImplementedError()
@@ -116,7 +116,7 @@ class AbstractAlgorithm(object):
     @abstractmethod
     def enqueue_firstlevel_job(self):
         '''
-        This is called after the DAG is created (see buld_job_dag) to enqueue
+        This is called after the DAG is created (see :py:meth:`build_jobs`) to enqueue
         the first level of jobs (those with no dependency). These jobs should
         automatically enqueue the rest of the DAG upon completion.        
         '''

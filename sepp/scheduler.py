@@ -140,13 +140,14 @@ class Join(object):
     
     It is important to note that a Join's perform method is called basically 
     as the last callback function of the last job in the join. As such, 
-    1) it is run on the main process
-    2) when it is performed, all the jobs have finished, and their results are
+    
+    #. it is run on the main process
+    #. when it is performed, all the jobs have finished, and their results are
        set in the job objects, but the last job that finished does not yet have 
        its status set to ready. This is crucial because otherwise the link could 
        break (i.e. if a wait_for_all_job gets unblocked because there is no more
        jobs in the queue before this job is run)
-    3) It needs to be relatively fast. In particular, it should not perform 
+    #. It needs to be relatively fast. In particular, it should not perform 
        heavy duty tasks, and it should not block or wait on other events. 
     '''
     def __init__(self):

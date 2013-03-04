@@ -492,12 +492,6 @@ class EPAJob(ExternalSeppJob):
         self.out_file = None
         self.out_dir = None
         
-        """    def setup(self, tree_file,  extended_alignment_file, output_name, **kwargs):
-        self.tree_file = tree_file        
-        self.extended_alignment_file = extended_alignment_file
-        self.out_name = output_name
-        self._kwargs = kwargs   """                     
-
     def partial_setup_for_subproblem(self, subproblem, molecule, **kwargs):
         ''' Automatically sets up a job given a subproblem object. 
         Note that extended alignment and the is just a file name, referring to an empty
@@ -572,13 +566,14 @@ class MergeJsonJob(ExternalSeppJob):
         self.out_file = output_file
         self._kwargs = kwargs      
 
-    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, **kwargs):
+    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, push_down, **kwargs):
         self.stdindata = inString
         self.out_file = output_file
         self.taxonomy = taxonomy.name
         self.mapping = mapping.name
         self.threshold = str(threshold)
         self.classification_file = classification_file
+        self.push_down = push_down
         self._kwargs = kwargs             
         
     def get_invocation(self):
@@ -592,6 +587,8 @@ class MergeJsonJob(ExternalSeppJob):
             invoc.extend(["-p", self.threshold])  
         if self.classification_file is not None:
             invoc.extend(["-c", self.classification_file])  
+        if not self.push_down:
+            invoc.extend(["-u"])
         return invoc
 
     def characterize_input(self):

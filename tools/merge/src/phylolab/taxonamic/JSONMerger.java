@@ -21,7 +21,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,8 +57,9 @@ public class JSONMerger {
     private HashMap<String, Double> mainEdgeLen;
     private STITree<TaxonomyData> taxonomy;
     private Hashtable<String, String> jsonNameToTaxonId;
-    private Double threshold = 0.95D;
+    private Double threshold;
     private FileWriter cw;
+    private boolean pushDown;
 
     static String join(Collection<String> s, String delimiter) {
 	StringBuilder builder = new StringBuilder();
@@ -76,7 +76,7 @@ public class JSONMerger {
 
     public JSONMerger(String mainTree, List<String> trees, 
 	    List<String> jsonLocations, boolean sorted, int rmUnderscore, 
-	    STITree<TaxonomyData> taxonomy, Hashtable<String,String> jsonNameToTaxonId, Double threshold, FileWriter classificationWriter) {
+	    STITree<TaxonomyData> taxonomy, Hashtable<String,String> jsonNameToTaxonId, Double threshold, FileWriter classificationWriter, boolean pushUp) {
 	mainEdgeLen = new HashMap<String, Double>();
 	this.mainTree = mainTree;
 	this.trees  = trees;
@@ -87,6 +87,7 @@ public class JSONMerger {
 	this.jsonNameToTaxonId = jsonNameToTaxonId;
 	this.threshold = threshold;
 	this.cw = classificationWriter;
+	this.pushDown = ! pushUp;
     }
 
     /**
@@ -272,28 +273,47 @@ public class JSONMerger {
 	}
     }
 
+    /**
+     * Maps from json tree edges to the taxonomic tree
+     * @return
+     * @throws IOException
+     * @throws ParseException
+     */
+    
     private HashMap<String, STINode<TaxonomyData>> mapJsonTreeToTaxonomy () throws IOException, ParseException {
+	
 	SchieberVishkinLCA lookup = new SchieberVishkinLCA(taxonomy);	
-	HashMap<String, STINode<TaxonomyData>> jsonToTaxonomy = new HashMap<String, STINode<TaxonomyData>>();	
-	LinkedList<Set<TNode>> stack = new LinkedList<Set<TNode>>();
+	HashMap<String, STINode<TaxonomyData>> jsonToTaxonomy = new HashMap<String, STINode<TaxonomyData>>();
+	// stack 
+	LinkedList<Set<TNode>> taxonomyNodeStack = new LinkedList<Set<TNode>>();
+	LinkedList<String> unmappedEdgeStack = new LinkedList<String>();
 	NewickTokenizer tokenizer = new NewickTokenizer(this.mainTree, false);
 	
 	if (!"(".equals(tokenizer.nextToken())) {
 	    throw new RuntimeException("The main tree does not start with a (");
 	}
+	// Read the json tree, and use LCA lookup to map between the two trees.
 	do {
 	    String token = tokenizer.nextToken();
 	    if ("(".equals(token)) {
-		stack.addLast(new HashSet<TNode>());
+		taxonomyNodeStack.addLast(new HashSet<TNode>());
 	    } else if (token.startsWith(")")) {
-		if (stack.size() > 0) {
+		if (taxonomyNodeStack.size() > 0) {
 		    String edgeNum = getEdgeNum(token);
-		    Set<TNode> top = stack.getLast();
+		    Set<TNode> top = taxonomyNodeStack.getLast();
 		    TNode taxonomyNode = lookup.getLCA(top);
-		    jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
-		    stack.removeLast();
-		    if (stack.size() > 0){ 
-			stack.getLast().add(taxonomyNode);
+		    if (pushDown) {
+			jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
+		    } else {			
+			for (String edge : unmappedEdgeStack) {
+			    jsonToTaxonomy.put(edge, (STINode<TaxonomyData>) taxonomyNode);
+			}
+			unmappedEdgeStack.remove();
+			unmappedEdgeStack.addLast(edgeNum);
+		    }
+		    taxonomyNodeStack.removeLast();
+		    if (taxonomyNodeStack.size() > 0){ 
+			taxonomyNodeStack.getLast().add(taxonomyNode);
 		    }
 		}
 	    } else {
@@ -304,14 +324,20 @@ public class JSONMerger {
 		String taxonID = this.jsonNameToTaxonId.get(seqId);
 		TNode taxonomyNode = this.taxonomy.getNode(taxonID);
 
-		if (stack.size() > 0) {
-		    stack.getLast().add(taxonomyNode);
+		if (taxonomyNodeStack.size() > 0) {
+		    taxonomyNodeStack.getLast().add(taxonomyNode);
 		}
 		String edgeNum = getEdgeNum(token);
-
-		jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
+		
+		if (pushDown) {
+		    jsonToTaxonomy.put(edgeNum, (STINode<TaxonomyData>) taxonomyNode);
+		} else {
+		    unmappedEdgeStack.push(edgeNum);
+		}
 	    }
 	} while (tokenizer.hasNext());
+	
+	System.err.println(jsonToTaxonomy);
 
 	return jsonToTaxonomy;
     }
@@ -329,15 +355,17 @@ public class JSONMerger {
 	    Double sum = nameToCummulativeLWR.get(fragment);
 	    Set<STINode<TaxonomyData>> lineages = new HashSet<STINode<TaxonomyData>>();
 	    
-	    System.err.println(fragment + " " + placements.size());
+	    //System.err.println(fragment + " " + placements.size());
 	    /*
-	     * Normalize weighted likelihood ratios
+	     * 1- Normalize weighted likelihood ratios
+	     * 2- update the probabilities for this fragment on the taxonomic tree.
 	     */
 	    for (Iterator<JSONArray> itp = placements.iterator(); itp.hasNext();) {
 		JSONArray placementRecord = itp.next();
 		Double probability = placementRecord.getDouble(2) / sum;
 		if (jsonTreeIDToTaxonomyNode != null) {
-		    STINode<TaxonomyData> node = jsonTreeIDToTaxonomyNode.get(placementRecord.getString(0));
+		    String edgeNumber = placementRecord.getString(0);
+		    STINode<TaxonomyData> node = jsonTreeIDToTaxonomyNode.get(edgeNumber);
 		    while (node != null){
 			node.getData().probability += probability;
 			lineages.add(node);
@@ -353,7 +381,10 @@ public class JSONMerger {
 	    n.add(fragment);
 	    placement.put("n", n);
 	    all.add(placement);
-
+	    
+	    /*
+	     * Write out classification results for a current fragment
+	     */
 	    if (jsonTreeIDToTaxonomyNode != null) {
 		for (STINode<TaxonomyData> lineage : lineages) {
 		    TaxonomyData data = lineage.getData();
@@ -393,6 +424,7 @@ public class JSONMerger {
 		"\t\t<base tree file>: The base tree file\n" +
 		"\t\t<output>: output json file name\n" +
 		"\t\t-s: (optional) sort the fragments by name.\n" +
+		"\t\t-u: (optional) push the fragments up the placement edge instead of pushing them down.\n" +
 		"\t\t-t <taxonomy file>: (optional) The name of a taxonomy file. If provided, classification is also performed,\n" +
 		"\t\t                     and results are written out to standard output.\n" +		
 		"\t\t-p N: (optional) A value between 0 and 1. When given with -t option, this specifies\n" +
@@ -494,13 +526,14 @@ public class JSONMerger {
 	String baseFn = args[1];
 	String outfilename = args[2];
 	boolean sorted = false;
+	boolean pushUp = false;
 	int rmUnderscore = 0;
 	String mainTree = "";
 	List<String> trees = new ArrayList<String>();
 	List<String> jsonLocations = new ArrayList<String>();			
 	STITree<TaxonomyData> taxonomy = null;
 	Hashtable<String, String> jsonNameToTaxonId = null;
-	Double threshold = null;
+	Double threshold = 0.95D;
 	FileWriter classificationWriter = null;
 	
 	/*
@@ -509,6 +542,8 @@ public class JSONMerger {
 	for (int i = 3; i < args.length; i++) {
 	    if (args[i].equals("-s")) {
 		sorted = true;
+	    } else if (args[i].equals("-u")) {
+		pushUp = true;
 	    } else if (args[i].equals("-r")) {
 		if (i+1 >= args.length) {
 		    System.out.println("-r needs to be followd by a number.");
@@ -560,7 +595,8 @@ public class JSONMerger {
 			System.err.println("ERROR: Unable to read file from " + args[i]);
 			return;
 		}
-	    }
+	    } 
+	    
 	}
 
 	try {
@@ -617,7 +653,7 @@ public class JSONMerger {
 
 	    JSONMerger merger = new JSONMerger(mainTree, trees, 
 		    jsonLocations, sorted, rmUnderscore, taxonomy, jsonNameToTaxonId, 
-		    threshold, classificationWriter);
+		    threshold, classificationWriter, pushUp);
 	    JSONObject merged = merger.mergeJsonFiles();
 	    merger.writeGSONFile(outfilename, merged);
 	    
