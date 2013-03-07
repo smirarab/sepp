@@ -345,8 +345,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         return self.root_problem
     
     def create_fragment_files(self):
-        alg_subset_count = len(list(self.root_problem.iter_leaves()))
-        frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
+        plc_subset_count = len(list(self.root_problem.get_children()))
+        frag_chunk_count = lcm(plc_subset_count,self.options.cpu)//plc_subset_count
         return self.read_and_divide_fragments(frag_chunk_count)
          
     def _get_new_Join_Align_Job(self):
