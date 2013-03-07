@@ -49,8 +49,10 @@ def get_temp_file(prefix, relative_path, suffix = ""):
     directory) and a suffix. Use tempfile_for_subproblem when possible. 
     '''
     d = os.path.join(get_root_temp_dir(), relative_path)
-    if not os.path.exists(d):
+    try:
         os.makedirs(d)
+    except OSError as e:
+        pass
     return tempfile.mktemp(prefix = prefix,
                            suffix = suffix, 
                            dir = d)
