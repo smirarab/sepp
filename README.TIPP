@@ -12,10 +12,10 @@ Therefore, TIPP requires that the set of input fragments `X` belong to the refer
 
 TIPP operates as follows.
 
-1. Uses SEPP (http://www.cs.utexas.edu/~phylo/software/sepp) to align and place fragments to the reference alignment and on the reference tree, in multiple ways (to account for uncertainty), and estimates support for each placement
+1. Uses [SEPP](http://www.cs.utexas.edu/~phylo/software/sepp) to align and place fragments to the reference alignment and on the reference tree, in multiple ways (to account for uncertainty), and estimates support for each placement
 2. Maps each placement into the taxonomy `T'` and calculats a total support for classification of the fragment at every node in the taxonomy. The support values can then be used to find the classification with highest support at every level. Classifications below a certain level can be ignored.
 
-TIPP internally uses SEPP for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. al., Science, 2009 (http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
+TIPP internally uses SEPP for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
@@ -24,9 +24,9 @@ Not published yet!
 
 ### Notes and Acknowledgment: 
 - TIPP bundles the following two programs into its distribution:
-  1. pplacer: http://matsen.fhcrc.org/pplacer/
-  2. hmmer: http://hmmer.janelia.org/
-  3. epa: http://sco.h-its.org/exelixis/software.html
+  1. [pplacer](http://matsen.fhcrc.org/pplacer/)
+  2. [hmmer](http://hmmer.janelia.org/)
+  3. [EPA](http://sco.h-its.org/exelixis/software.html)
 
 -------------------------------------
 Installation
@@ -57,9 +57,9 @@ The last step creates a `~/.sepp/ directory` and puts a default config file unde
 1. The steps described above require root access to the system. If you do not have root access, invoke the setup script as follows: ```python setup.py install --prefix=/some/path/on/your/system```, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your `$PYTHONPATH` environment variable.
 
 2. TIPP relies on pplacer or EPA and HMMER for alignment and placement steps. These tools are packaged with TIPP. If for some reason the packaged version of HMMER, EPA, or pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point TIPP to them. To point TIPP to your installation of epa, hmmer and pllacer modify ~/.sepp/main.config. 
-  *  pplacer: http://matsen.fhcrc.org/pplacer/
-  *  hmmer://hmmer.janelia.org/
-  *  epa: http://sco.h-its.org/exelixis/software.html
+  1. [pplacer](http://matsen.fhcrc.org/pplacer/)
+  2. [hmmer](http://hmmer.janelia.org/)
+  3. [EPA](http://sco.h-its.org/exelixis/software.html)
 
 
 ---------------------------------------------
@@ -79,7 +79,7 @@ The general command for running TIPP is:
 
 To learn more about the input options refer to TIPP help (``run_tipp.py -h``). 
 
-All the input parameters, except for fragment file are specific to a marker gene. We have put together reference packages for 30 marker genes used in the TIPP paper, and have made those marker datasets available as part of our submission web-site at http://www.cs.utexas.edu/~phylo/software/sepp/tipp-submission/. 
+All the input parameters, except for fragment file are specific to a marker gene. We have put together reference packages for 30 marker genes used in the TIPP paper, and have made those marker datasets available as part of our [submission web-site](http://www.cs.utexas.edu/~phylo/software/sepp/tipp-submission/). 
 
 If you download our 30 marker genes, you can use those for running TIPP on fragments belonging to those markers. For example To run TIPP-def, i.e. (95%,95%,100), on rspB marker genes for fragmentary reads in a fil ecalled fragments.fas, you can use the following command:
 
@@ -107,7 +107,7 @@ By default TIPP uses pplacer for the phylogenetic placement step. But it can als
 The main output of TIPP is a file called *<output_prefix>_classification.txt*. In this file, each line shows a potential classification of a fragment and its probability. Each line is a comma-separated list of values. The first value is the fragment name, the second value is the taxonid (according to input taxonomy) for the classification, the third value is the name of the OTU, the fourth value is the taxonomic rank, and the last value is the TIPP-estimated probability that the fragment belongs to that OTU. For example, ``EAS25_26_1_75_674_1432_0_2,28890,Euryarchaeota,phylum,.6141`` means TIPP estimates that there is a 61% chance that fragment *EAS25_26_1_75_674_1432_0_2* belong to phylum *Euryarchaeota* from the NCBI taxonomy (which has taxon id 28890). 
 
 
-Since TIPP is based on running SEPP, it also produces extended alignments and placements of the fragments on the placement tree. These outputs are generated in the same directory as the main output, with names *<output_prefix>_placement.json* and *<output_prefix>_alignment.fasta*. Extended alignments are in Fasta format. Placement results are in the *jplace* format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the jplace files. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+Since TIPP is based on running SEPP, it also produces extended alignments and placements of the fragments on the placement tree. These outputs are generated in the same directory as the main output, with names *<output_prefix>_placement.json* and *<output_prefix>_alignment.fasta*. Extended alignments are in Fasta format. Placement results are in the *jplace* format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification '(currently here)') for more information on the format of the jplace files. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
 
 By setting TIPP_DEBUG environmental variable to "True", you can instruct TIPP to output more information that can be helpful for debugging.  
 
