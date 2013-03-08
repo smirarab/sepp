@@ -46,7 +46,7 @@ TIPP has dependency on some other python packages (e.g. dendropy), which it will
 
 TIPP is distributed as Python source code. Once you have the above required software installed, do the following. 
 
-1. Obtain the latest TIPP distribution from the paper submission page (in future from a git repository). Uncompress the archive file into your favorite location, open a terminal and cd into to that location.
+1. Obtain the latest TIPP distribution from the paper submission page (in future from a git repository). Uncompress the archive file, open a terminal, and cd into the `sepp-tipp` directory where you unzipped the zip file. 
 2. Install: run ```sudo python setup.py install```. 
 3. Configure: run ```sudo python setup.py config```. 
 
@@ -67,15 +67,21 @@ Running TIPP
 ---------------------------------------------
 To run TIPP, invoke the `run_tipp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
 
-```python <bin>/run_tipp.py -h```
+```
+python <bin>/run_tipp.py -h
+```
 
 or simply:
 
-```run_tipp.py -h```
+```
+run_tipp.py -h
+```
 
 The general command for running TIPP is:
 
-```python <bin>/run_tipp.py -t <placement_tree_file> -a <ref_alignment_file> -f <fragment_file> -r <raxml_info_file> -tx <taxonomy_file> -txm <mapping_taxonomy_to_gene_file> [-adt reference_tree_file>] [-A <alignment_set_size>] [-P <placement_set_size>] [-at <alignment_support>] [-pt placement_support]```
+```
+python <bin>/run_tipp.py -t <placement_tree_file> -a <ref_alignment_file> -f <fragment_file> -r <raxml_info_file> -tx <taxonomy_file> -txm <mapping_taxonomy_to_gene_file> [-adt reference_tree_file>] [-A <alignment_set_size>] [-P <placement_set_size>] [-at <alignment_support>] [-pt placement_support]
+```
 
 To learn more about the input options refer to TIPP help (``run_tipp.py -h``). 
 
@@ -83,22 +89,30 @@ All the input parameters, except for fragment file are specific to a marker gene
 
 If you download our 30 marker genes, you can use those for running TIPP on fragments belonging to those markers. For example To run TIPP-def, i.e. (95%,95%,100), on rspB marker genes for fragmentary reads in a fil ecalled fragments.fas, you can use the following command:
 
-```run_tipp.py -t rpsB.refpkg/sate.taxonomy -a rpsB.refpkg/sate.fasta -r rpsB.refpkg/sate.taxonomy.RAxML_info -at 0.95 -pt 0.95 -tx rpsB.refpkg/all_taxon.taxonomy -txm rpsB.refpkg/species.mapping -adt rpsB.refpkg/sate.tree.ml -A 100 -f fragments.fas -o rpsB_run```
+```
+run_tipp.py -t rpsB.refpkg/sate.taxonomy -a rpsB.refpkg/sate.fasta -r rpsB.refpkg/sate.taxonomy.RAxML_info -at 0.95 -pt 0.95 -tx rpsB.refpkg/all_taxon.taxonomy -txm rpsB.refpkg/species.mapping -adt rpsB.refpkg/sate.tree.ml -A 100 -f fragments.fas -o rpsB_run
+```
 (assuming rpsB.refpkg from our distriubtion is under the current directory)
 
 Note that here, the placement tree, given using `-t` is different from the alignment decomposition tree, given using `-adt`. A refined taxonomy is used as the placement tree, but the actual ML tree is used for alignment decomposition. 
 
 To run TIPP-large (described in manuscript) on 16S bacteria, you can use the following command:
 
-```run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fasta -r 16S_bacteria.refpkg/sate.taxonomy.RAxML_info -at 0.95  -pt 0.95 -tx  16S_bacteria.refpkg/all_taxon.taxonomy -txm 16S_bacteria.refpkg/species.mapping -adt 16S_bacteria.refpkg/sate.tree.ml -A 100 -P 1000 -f fragments.fas -o 16S_bacteria_run```
+```
+run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fasta -r 16S_bacteria.refpkg/sate.taxonomy.RAxML_info -at 0.95  -pt 0.95 -tx  16S_bacteria.refpkg/all_taxon.taxonomy -txm 16S_bacteria.refpkg/species.mapping -adt 16S_bacteria.refpkg/sate.tree.ml -A 100 -P 1000 -f fragments.fas -o 16S_bacteria_run
+```
 
 TIPP can also be run using a configuration file. Two sample configuration files can be found under `test/unittest/data/tipp` directory in the distribution package. To run TIPP using command options, using a configuration file similar to the command used before on rspB gene, run:
 
-``python <bin>/run_tipp.py -c test.pplacer.config``
+```
+python <bin>/run_tipp.py -c test.pplacer.config
+```
 
 By default TIPP uses pplacer for the phylogenetic placement step. But it can also use EPA. Currently, the only way to instruct TIPP to use EPA is by usign a configuration file. Run the following command in order to use EPA instead of pplacer. 
 
-``python <bin>/run_tipp.py -c test.epa.config``
+```
+python <bin>/run_tipp.py -c test.epa.config
+```
 
 ( note that EPA is currently bundled only for Linus. On MAC, you can install your own version of EPA, and point TIPP to your version by modifying the `~/.sepp/main.config` file.) 
 
