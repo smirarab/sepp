@@ -60,7 +60,7 @@ Running TIPP
 ---------------------------------------------
 To run TIPP, invoke the "run_tipp.py" script from the "bin" sub-directory of the location in which you installed the Python packages (it should be automatically added to your path). To see options for running the script, use the command:
 
-"python <bin>/run_tipp.py -h"
+``python <bin>/run_tipp.py -h``
 
 or simply:
 
