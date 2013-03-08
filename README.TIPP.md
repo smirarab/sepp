@@ -105,7 +105,7 @@ run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fas
 TIPP can also be run using a configuration file. Two sample configuration files can be found under `test/unittest/data/tipp` directory in the distribution package. To run TIPP using command options, using a configuration file similar to the command used before on rspB gene, run:
 
 ```
-python <bin>/run_tipp.py -c test.pplacer.config
+run_tipp.py -c test.pplacer.config
 ```
 
 By default TIPP uses pplacer for the phylogenetic placement step. But it can also use EPA. Currently, the only way to instruct TIPP to use EPA is by usign a configuration file. Run the following command in order to use EPA instead of pplacer. 
