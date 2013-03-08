@@ -130,8 +130,10 @@ def check_or_make_dir_path(path):
     Make sure a path to a directory exists, and return the normalized path.
     If the path is to a file, or if it cannot be made, return None. 
     '''
-    if not os.path.exists(path):
+    try:
         os.mkdir(path)
+    except OSError as e:
+        pass
     if os.path.exists(path) and os.path.isdir(path):
         return os.path.normpath(os.path.abspath(path))        
     return None
