@@ -1,3 +1,6 @@
+
+NOTE: This is a README for SEPP. See README.TIPP if you are interested in TIPP.
+
 ------------------------------------
 Summary
 ------------------------------------
@@ -18,6 +21,7 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement,
 Note and Acknowledgment: SEPP bundles the following two programs into its distribution:
 1- pplacer: http://matsen.fhcrc.org/pplacer/
 2- hmmer: http://hmmer.janelia.org/
+
 
 -------------------------------------
 Installation
