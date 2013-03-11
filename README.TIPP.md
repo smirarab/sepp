@@ -15,7 +15,7 @@ TIPP operates as follows.
 1. Uses [SEPP](http://www.cs.utexas.edu/~phylo/software/sepp) to align and place fragments to the reference alignment and on the reference tree, in multiple ways (to account for uncertainty), and estimates support for each placement
 2. Maps each placement into the taxonomy `T'` and calculats a total support for classification of the fragment at every node in the taxonomy. The support values can then be used to find the classification with highest support at every level. Classifications below a certain level can be ignored.
 
-TIPP internally uses SEPP for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
+TIPP internally uses SEPP [Mirarab et. al., PSB, 2012](http://www.ncbi.nlm.nih.gov/pubmed/22174280) for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from [SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
@@ -23,7 +23,7 @@ Publication:
 Not published yet!
 
 ### Notes and Acknowledgment: 
-- TIPP bundles the following two programs into its distribution:
+- TIPP bundles the following three programs into its distribution:
   1. [pplacer](http://matsen.fhcrc.org/pplacer/)
   2. [hmmer](http://hmmer.janelia.org/)
   3. [EPA](http://sco.h-its.org/exelixis/software.html)
@@ -50,7 +50,7 @@ TIPP is distributed as Python source code. Once you have the above required soft
 2. Install: run ```sudo python setup.py install```. 
 3. Configure: run ```sudo python setup.py config```. 
 
-The last step creates a `~/.sepp/ directory` and puts a default config file under ~/.sepp/main.config. Since this is specific to a user, each user that runs TIPP needs to execute the last step. 
+The last step creates a `~/.sepp/ directory` and puts a default config file under ~/.sepp/main.config. Since this is specific to a user, each user who runs TIPP needs to execute the last step. 
 
 ### Common Problems:
 
