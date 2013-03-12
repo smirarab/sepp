@@ -2,11 +2,10 @@
 Summary
 ------------------------------------
 
-TIPP stands for "Taxon Identification using Phylogenetic Placement". TIPP classifies unknown fragmentary sequences into a given taxonomy. TIPP uses phylogenetic placement on a reference alignment/tree for classification. It requires that input fragments come from the same gene as the full length sequences in the reference alignment. 
+TIPP stands for "Taxon Identification using Phylogenetic Placement". TIPP classifies unknown fragmentary sequences into a given taxonomy using phylogenetic placement on a reference alignment and a reference tree. It requires that input fragments come from the same gene as the full length sequences in the reference alignment/tree. 
 
-- Input: a placement tree `T` and alignment `A` for a set of full-length sequences corresponding to a (marker) gene, a taxonomy `T'`, a mapping `M` between sequence names and species labels in the taxonomy, and finally set `X` of fragmentary sequences for the same gene.
-
-- Output: classification of each fragment in `X` according to taxonomy `T'`.
+- Input: a placement tree `T` and a reference alignment `A` for a set of full-length sequences corresponding to a (marker) gene, a taxonomy `T'` that includes all species present in `A`, a mapping `M` between sequence names in `A` and species names in `T'`, and finally a set `X` of fragmentary sequences all coming from the same gene.
+- Output: classification of each fragment in `X` according to the taxonomy `T'`, with a support value between 0 and 1 indicating the confidence in each classification.
 
 Therefore, TIPP requires that the set of input fragments `X` belong to the reference (marker) gene. 
 
@@ -15,11 +14,12 @@ TIPP operates as follows.
 1. Uses [SEPP](http://www.cs.utexas.edu/~phylo/software/sepp) to align and place fragments to the reference alignment and on the reference tree, in multiple ways (to account for uncertainty), and estimates support for each placement
 2. Maps each placement into the taxonomy `T'` and calculats a total support for classification of the fragment at every node in the taxonomy. The support values can then be used to find the classification with highest support at every level. Classifications below a certain level can be ignored.
 
-TIPP internally uses SEPP [Mirarab et. al., PSB, 2012](http://www.ncbi.nlm.nih.gov/pubmed/22174280) for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from [SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
+TIPP internally uses SEPP [[Mirarab et. al., PSB, 2012]](http://www.ncbi.nlm.nih.gov/pubmed/22174280) for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from [SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
-Publication:
+###Publication:
+
 Not published yet!
 
 ### Notes and Acknowledgment: 
@@ -27,6 +27,8 @@ Not published yet!
   1. [pplacer](http://matsen.fhcrc.org/pplacer/)
   2. [hmmer](http://hmmer.janelia.org/)
   3. [EPA](http://sco.h-its.org/exelixis/software.html)
+- TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
+- TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 -------------------------------------
 Installation
