@@ -12,13 +12,16 @@ SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. 
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
-Publication:
+###Publication:
 S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 (http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
 
 ### Note and Acknowledgment: 
 - SEPP bundles the following two programs into its distribution:
-  1- pplacer: http://matsen.fhcrc.org/pplacer/
-  2- hmmer: http://hmmer.janelia.org/
+  1. pplacer: http://matsen.fhcrc.org/pplacer/
+  2. hmmer: http://hmmer.janelia.org/
+  3. EPA: http://sco.h-its.org/exelixis/software.html
+- TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
+- TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 
 -------------------------------------
