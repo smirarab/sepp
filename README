@@ -18,6 +18,8 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement,
 Note and Acknowledgment: SEPP bundles the following two programs into its distribution:
 1- pplacer: http://matsen.fhcrc.org/pplacer/
 2- hmmer: http://hmmer.janelia.org/
+- TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
+- TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 -------------------------------------
 Installation
