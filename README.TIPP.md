@@ -87,22 +87,24 @@ python <bin>/run_tipp.py -t <placement_tree_file> -a <ref_alignment_file> -f <fr
 
 To learn more about the input options refer to TIPP help (``run_tipp.py -h``). 
 
-All the input parameters, except for fragment file are specific to a marker gene. We have put together reference packages for 30 marker genes used in the TIPP paper, and have made those marker datasets available as part of our [submission web-site](http://www.cs.utexas.edu/~phylo/software/sepp/tipp-submission/). 
+All the input parameters, except for fragment file are specific to a marker gene. We have put together reference packages for 30 marker genes used in the TIPP paper, and have made those marker datasets available as part of our [submission web-site](http://www.cs.utexas.edu/~phylo/software/sepp/tipp-submission/).  The simulated fragments for the markers can also be downloaded from the submission website.
 
-If you download our 30 marker genes, you can use those for running TIPP on fragments belonging to those markers. For example To run TIPP-def, i.e. (95%,95%,100), on rspB marker genes for fragmentary reads in a fil ecalled fragments.fas, you can use the following command:
+If you download our 30 marker genes, you can use those for running TIPP on fragments belonging to those markers.  For example To run TIPP-def, i.e. (95%,95%,100), on rspB marker genes for the simulated Illumina reads, you can use the following command:
 
 ```
-run_tipp.py -t rpsB.refpkg/sate.taxonomy -a rpsB.refpkg/sate.fasta -r rpsB.refpkg/sate.taxonomy.RAxML_info -at 0.95 -pt 0.95 -tx rpsB.refpkg/all_taxon.taxonomy -txm rpsB.refpkg/species.mapping -adt rpsB.refpkg/sate.tree.ml -A 100 -f fragments.fas -o rpsB_run
+run_tipp.py -t rpsB.refpkg/sate.taxonomy -a rpsB.refpkg/sate.fasta -r rpsB.refpkg/sate.taxonomy.RAxML_info -at 0.95 -pt 0.95 -tx rpsB.refpkg/all_taxon.taxonomy -txm rpsB.refpkg/species.mapping -adt rpsB.refpkg/sate.tree.ml -A 100 -f leaveout/rpsB.100bp.illumina.1 -o rpsB_run
 ```
-(assuming rpsB.refpkg from our distriubtion is under the current directory)
+(assuming rpsB.refpkg and the simulated fragments from our distriubtion are under the current directory)
 
 Note that here, the placement tree, given using `-t` is different from the alignment decomposition tree, given using `-adt`. A refined taxonomy is used as the placement tree, but the actual ML tree is used for alignment decomposition. 
 
 To run TIPP-large (described in manuscript) on 16S bacteria, you can use the following command:
 
 ```
-run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fasta -r 16S_bacteria.refpkg/sate.taxonomy.RAxML_info -at 0.95  -pt 0.95 -tx  16S_bacteria.refpkg/all_taxon.taxonomy -txm 16S_bacteria.refpkg/species.mapping -adt 16S_bacteria.refpkg/sate.tree.ml -A 100 -P 1000 -f fragments.fas -o 16S_bacteria_run
+run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fasta -r 16S_bacteria.refpkg/sate.taxonomy.RAxML_info -at 0.95  -pt 0.95 -tx  16S_bacteria.refpkg/all_taxon.taxonomy -txm 16S_bacteria.refpkg/species.mapping -A 100 -P 1000 -f leaveout/16S_bacteria.100bp.illumina.1 -o 16S_bacteria_run
 ```
+
+Note that in this example, the alignment decomposition tree is not given.  This is because when placing on placement subsets, we require that the alignment decomposition tree is identical to the placement tree.  This restriction is due to computational reasons; when the alignment decomposition tree does not match the placement decomposition tree and we're placing on placement subsets, this can result in an extremely large number of placements.  We plan to eventually relax this restriction once we develop a better way to handle this issue.
 
 TIPP can also be run using a configuration file. Two sample configuration files can be found under `test/unittest/data/tipp` directory in the distribution package. To run TIPP using command options, using a configuration file similar to the command used before on rspB gene, run:
 
