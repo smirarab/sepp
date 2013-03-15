@@ -14,7 +14,7 @@ TIPP operates as follows.
 1. Uses [SEPP](http://www.cs.utexas.edu/~phylo/software/sepp) to align and place fragments to the reference alignment and on the reference tree, in multiple ways (to account for uncertainty), and estimates support for each placement
 2. Maps each placement into the taxonomy `T'` and calculats a total support for classification of the fragment at every node in the taxonomy. The support values can then be used to find the classification with highest support at every level. Classifications below a certain level can be ignored.
 
-TIPP internally uses SEPP [[Mirarab et. al., PSB, 2012]](http://www.ncbi.nlm.nih.gov/pubmed/22174280) for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from [SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
+TIPP internally uses SEPP [[Mirarab et. al., PSB, 2012]](http://www.ncbi.nlm.nih.gov/pubmed/22174280) for phylogenetic placement. SEPP operates by using a divide-and-conquer strategy adopted from [[SATe](http://phylo.bio.ku.edu/software/sate/sate.html) [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract), [Liu et. al., Systematic Biology, 2011](http://sysbio.oxfordjournals.org/content/61/1/90.abstract?sid=58895a54-2686-4b58-a676-3cc4d73a3b76)] to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen), or EPA. 
 
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
