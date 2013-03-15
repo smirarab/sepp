@@ -32,8 +32,8 @@ Not published yet!
 
 -------------------------------------
 Installation
+This section details steps for installing and running TIPP. We have run TIPP on Linux and MAC, but have done the majority of testing on Linux machies. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 -------------------------------------
-This section details steps for installing and running TIPP. We have run TIP on Linux and MAC, but have done the majority of testing on Linux machies. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
 ### Requirements:
 
@@ -104,7 +104,7 @@ To run TIPP-large (described in manuscript) on 16S bacteria, you can use the fol
 run_tipp.py -t 16S_bacteria.refpkg/sate.taxonomy -a 16S_bacteria.refpkg/sate.fasta -r 16S_bacteria.refpkg/sate.taxonomy.RAxML_info -at 0.95  -pt 0.95 -tx  16S_bacteria.refpkg/all_taxon.taxonomy -txm 16S_bacteria.refpkg/species.mapping -A 100 -P 1000 -f leaveout/16S_bacteria.100bp.illumina.1 -o 16S_bacteria_run
 ```
 
-Note that in this example, the alignment decomposition tree is not given.  This is because when placing on placement subsets, we require that the alignment decomposition tree to be identical to the placement tree.  This restriction that the alignment decomposition tre match the placement tree is purely artificial; we have not had time to implement this feature yet.  This feature is currently under development.
+Note that in this example, the alignment decomposition tree is not given.  This is because when placing on placement subsets, we require that the alignment decomposition tree be identical to the placement tree.  This restriction that the alignment decomposition tre match the placement tree is purely artificial; we have not had time to implement this feature yet.  This feature is currently under development.
 
 TIPP can also be run using a configuration file. Two sample configuration files can be found under `test/unittest/data/tipp` directory in the distribution package. To run TIPP using command options, using a configuration file similar to the command used before on rspB gene, run:
 
@@ -118,7 +118,7 @@ By default TIPP uses pplacer for the phylogenetic placement step. But it can als
 python <bin>/run_tipp.py -c test.epa.config
 ```
 
-( note that EPA is currently bundled only for Linus. On MAC, you can install your own version of EPA, and point TIPP to your version by modifying the `~/.sepp/main.config` file.) 
+( note that EPA is currently bundled only for Linux. On MAC, you can install your own version of EPA, and point TIPP to your version by modifying the `~/.sepp/main.config` file.) 
 
 ## TIPP Output
 
