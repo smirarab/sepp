@@ -188,6 +188,7 @@ class HMMBuildJob(ExternalSeppJob):
         self.outfile = None #location of output file
         self.molecule = None #type of molecule used
         self.filter_gaps = sepp.config.options().hmmbuild.filter_gaps.strip().lower() == "true" if hasattr(sepp.config.options().hmmbuild, "filter_gaps") else False
+        self.options = sepp.config.options().hmmbuild.options.strip().lower() if hasattr(sepp.config.options().hmmbuild, "options") else ''
 
     def setup(self, infile, outfile, gappedinfile, informat = "fasta", molecule = "dna",**kwargs):
         '''
@@ -230,6 +231,8 @@ class HMMBuildJob(ExternalSeppJob):
             invoc.extend(self._kwargs["user_options"].split())
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
+        if self.options != "":
+            invoc.extend(self.options.split())
         if (self.filter_gaps == True):
             invoc.extend([self.outfile, self.infile])
         else:
@@ -409,6 +412,7 @@ class HMMSearchJob(ExternalSeppJob):
 class PplacerJob(ExternalSeppJob):
 
     def __init__(self, **kwargs):       
+        _LOG.debug("Init job")
         self.job_type = 'pplacer'
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
         '''The following is just a string indicating the type of input provided 
@@ -423,6 +427,7 @@ class PplacerJob(ExternalSeppJob):
         self.out_file = None 
         
     def setup(self, backbone_alignment_file, tree_file, info_file, extended_alignment_file, output_file, **kwargs):
+        _LOG.debug("Setup job")
         self.backbone_alignment_file = backbone_alignment_file
         self.tree_file = tree_file        
         self.info_file = info_file
@@ -432,6 +437,7 @@ class PplacerJob(ExternalSeppJob):
         self.setup_setting = "File:TrInEx"                  
 
     def partial_setup_for_subproblem(self, subproblem, info_file, **kwargs):
+        _LOG.debug("setup sub job")
         ''' Automatically sets up a job given a subproblem object. 
         Note that extended alignment and the backbone_alignment_file are just file names, referring to empty
         files at this point. These files needs to be created before the job is queued. 
@@ -456,6 +462,7 @@ class PplacerJob(ExternalSeppJob):
 
         
     def get_invocation(self):
+        _LOG.debug("get invocation")
         invoc = [self.path, 
                  "--out-dir", os.path.dirname(self.out_file)]   
         if self._kwargs.has_key("user_options"):
