@@ -4,7 +4,6 @@ Created on Oct 10, 2012
 @author: smirarab
 '''
 import sys
-sys.path.insert(0,'/projects/sate9/namphuon/sepp/sepp/')
 from sepp import get_logger
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob
