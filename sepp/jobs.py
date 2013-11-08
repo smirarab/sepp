@@ -8,7 +8,7 @@ from sepp import get_logger
 from abc import abstractmethod, ABCMeta
 from subprocess import Popen
 
-import os
+import os,shutil
 import subprocess
 import stat
 import re
@@ -616,25 +616,30 @@ class SateAlignJob(ExternalSeppJob):
     '''
 
     def __init__(self, **kwargs):
-        self.job_type = "satealign"
+        self.job_type = "sate"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
         self.alignment = None #input alignment
         self.tree = None #input tree
         self.size = None #size of backbone
         self.molecule = None #type of molecule
         self.output = None
+        self.config = None
+        self.threads = None
         
-    def setup(self, alignment, tree, size, output, molecule,**kwargs):
+    def setup(self, alignment, tree, size, output, molecule,threads,**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
         Use setup_for_subproblem when possible. 
         '''
-        self.alignment = infile
-        self.tree = informat
+        self.alignment = alignment
+        self.tree = tree
         self.size = size
         self.output = output
         self.molecule = molecule
-        self._kwargs = kwargs
+        if (molecule == 'aa'):
+            self.molecule == 'protein'
+        self.threads = threads
+        self._kwargs = kwargs                
 
     def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
         '''
@@ -643,26 +648,34 @@ class SateAlignJob(ExternalSeppJob):
         return
         
     def get_invocation(self):
-        #invoc = [self.path
-        #~/.sate/sate_tool_paths.cfg
-        invoc = [self.path, "--symfrac" ,"0.0" ,"--%s" % self.molecule]
-        if self._kwargs.has_key("user_options"):
-            invoc.extend(self._kwargs["user_options"].split())
-        if self.informat == "fasta":
-            invoc.extend(['--informat', 'afa'])
-        invoc.extend([self.outfile, self.infile])
+        size_str = '--max-subproblem-size=200'  
+        if (self.size <= 200):
+          size_str = '--max-subproblem-frac=0.50'  
+        invoc = [self.path,'-i',self.alignment,'-t',self.tree,'--merger=opal','--aligner=mafft','--tree-estimator=fasttree', '--num-cpus=%d' % self.threads, "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'--break-strategy=centroid',size_str,'--time-limit=-1','--iter-without-imp-limit=1','-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
         return invoc
 
     def characterize_input(self):
-        return self.infile
+        return self.get_invocation()
 
     def read_results(self):
         '''
-        Simply make sure the file exists and is not empty. Don't need to load
-        the file into memory or anything else. Just return the location of the
-        file. 
+        Read the Sate log file and get the alignment and tree from file, copy to output directory
         '''
-        assert os.path.exists(self.outfile)
-        assert os.stat(self.outfile)[stat.ST_SIZE] != 0
-        return self.outfile        
-        
+        assert os.path.exists('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())
+        assert os.stat('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
+        outfile = open('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir(), 'r');
+        alignment_pattern = re.compile('Writing resulting alignment to (.*)')
+        tree_pattern = re.compile('Writing resulting tree to (.*)')
+        tree_file = ''
+        alignment_file = ''        
+        for line in outfile:            
+            line = line.strip()            
+            result = alignment_pattern.findall(line)
+            if (len(result) != 0):
+                alignment_file = result[0]
+            result = tree_pattern.findall(line)
+            if (len(result) != 0):
+                tree_file = result[0]
+        shutil.copyfile(tree_file, "%s/sate.fasttree" % self.output)
+        shutil.copyfile(alignment_file, "%s/sate.fasta" % self.output)
+        return (tree_file,alignment_file)

@@ -63,28 +63,33 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         [sequences.pop(i) for i in backbone_sequences.keys()]
         
         _LOG.info("Writing query and backbone set. ")
-        query = get_temp_file("backbone", "query", ".fas")
+        query = get_temp_file("query", "backbone", ".fas")
         backbone = get_temp_file("backbone", "backbone", ".fas")
         _write_fasta(sequences, query)
         _write_fasta(backbone_sequences, backbone)
         
         _LOG.info("Generating mafft backbone alignment and tree. ")
         mafftJob = MafftAlignJob()
-        mafft_alignment = "/projects/sate5/ultra_large/temp/upp_100_10_size_alignment.WkuZl3/mafft/backboneZ7DgWh.fasta"#get_temp_file("backbone", "mafft", ".fasta")
-        mafft_tree = '/projects/sate5/ultra_large/temp/upp_100_10_size_alignment.WkuZl3/mafft/backboneZ7DgWh.fasttree' #get_temp_file("backbone", "mafft", ".fasttree")        
-        #mafftJob.setup(backbone,options().backbone_size,mafft_alignment,options().cpu)
-        #mafftJob.run()
-        #mafftJob.read_results()
+        mafft_alignment = get_temp_file("backbone", "mafft", ".fasta")
+        mafft_tree = get_temp_file("backbone", "mafft", ".fasttree")        
+        mafftJob.setup(backbone,options().backbone_size,mafft_alignment,options().cpu)
+        mafftJob.run()
+        mafftJob.read_results()
         fasttreeJob = FastTreeJob()
         fasttreeJob.setup(mafft_alignment,mafft_tree,options().molecule)
         fasttreeJob.run()
         fasttreeJob.read_results()
         
-        backbone_alignment = self.options.outdir + "/backbone.fasta"
-        backbone_tree = self.options.outdir + "/backbone.fasttree"
+        _LOG.info("Generating sate backbone alignment and tree. ")
+        satealignJob = SateAlignJob()
+        satealignJob.setup(mafft_alignment,mafft_tree,options().backbone_size,self.options.outdir,options().molecule,options().cpu)
+        satealignJob.run()
+        satealignJob.read_results()
         
-        outfilename = self.get_output_filename("alignment.fasta")
-        extended_alignment.write_to_path(outfilename)               
+        options().placement_size = self.options.backbone_size
+        options().alignment_file = open(self.options.outdir + "/sate.fasta")
+        options().tree_file = open(self.options.outdir + "/sate.fasttree")
+        options().fragment_file = query
 
     def check_options(self):
         options().info_file = "A_dummy_value"
@@ -93,7 +98,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         #from sequence file        
         if (options().tree_file is None and options().alignment_file is None and options().fragment_file is None and not options().sequence_file is None):
             self.generate_backbone()
-        
         return ExhaustiveAlgorithm.check_options(self)
         
     def merge_results(self):
