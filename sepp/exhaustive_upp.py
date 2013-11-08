@@ -3,10 +3,13 @@ Created on Oct 10, 2012
 
 @author: smirarab
 '''
-import sys
+import sys,random,argparse
+from argparse import ArgumentParser, Namespace
 from sepp import get_logger
+from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
-from sepp.jobs import PplacerJob
+from sepp.jobs import PplacerJob,MafftAlignJob,FastTreeJob,SateAlignJob
+from sepp.filemgr import get_temp_file
 from sepp.config import options
 import sepp.config
 from sepp.math_utils import lcm
@@ -51,12 +54,48 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)     
+        
+    def generate_backbone(self):
+        _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
+        sequences = MutableAlignment()
+        sequences.read_file_object(self.options.sequence_file)
+        backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
+        [sequences.pop(i) for i in backbone_sequences.keys()]
+        
+        _LOG.info("Writing query and backbone set. ")
+        query = get_temp_file("backbone", "query", ".fas")
+        backbone = get_temp_file("backbone", "backbone", ".fas")
+        _write_fasta(sequences, query)
+        _write_fasta(backbone_sequences, backbone)
+        
+        _LOG.info("Generating mafft backbone alignment and tree. ")
+        mafftJob = MafftAlignJob()
+        mafft_alignment = "/projects/sate5/ultra_large/temp/upp_100_10_size_alignment.WkuZl3/mafft/backboneZ7DgWh.fasta"#get_temp_file("backbone", "mafft", ".fasta")
+        mafft_tree = '/projects/sate5/ultra_large/temp/upp_100_10_size_alignment.WkuZl3/mafft/backboneZ7DgWh.fasttree' #get_temp_file("backbone", "mafft", ".fasttree")        
+        #mafftJob.setup(backbone,options().backbone_size,mafft_alignment,options().cpu)
+        #mafftJob.run()
+        #mafftJob.read_results()
+        fasttreeJob = FastTreeJob()
+        fasttreeJob.setup(mafft_alignment,mafft_tree,options().molecule)
+        fasttreeJob.run()
+        fasttreeJob.read_results()
+        
+        backbone_alignment = self.options.outdir + "/backbone.fasta"
+        backbone_tree = self.options.outdir + "/backbone.fasttree"
+        
+        outfilename = self.get_output_filename("alignment.fasta")
+        extended_alignment.write_to_path(outfilename)               
 
     def check_options(self):
         options().info_file = "A_dummy_value"
+        
+        #Check to see if tree/alignment/fragment file provided, if not, generate it
+        #from sequence file        
+        if (options().tree_file is None and options().alignment_file is None and options().fragment_file is None and not options().sequence_file is None):
+            self.generate_backbone()
+        
         return ExhaustiveAlgorithm.check_options(self)
-
-
+        
     def merge_results(self):
         assert len(self.root_problem.get_children()) == 1, "Currently UPP works with only one placement subset."
         '''
@@ -174,6 +213,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 
 def augment_parser():
     parser = sepp.config.get_parser()
+    
     uppGroup = parser.add_argument_group("UPP Options".upper(), 
                          "These options set settings specific to UPP")                                 
     
@@ -181,8 +221,34 @@ def augment_parser():
                       dest = "long_branch_filter", metavar = "N", 
                       default = None,
                       help = "Branches longer than N times the median branch length are filtered from backbone and added to fragments."
-                             " [default: None (no filtering)]")                            
+                             " [default: None (no filtering)]")
+                             
+    uppGroup.add_argument("-s", "--sequence_file", type = argparse.FileType('r'),
+                      dest = "sequence_file", metavar = "SEQ", 
+                      default = None,
+                      help = "(Optional) unaligned sequence file"
+                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to P) and query set (remaining sequences), [default: None]")
 
+    uppGroup.add_argument("-B", "--backboneSize", type = int,
+                      dest = "backbone_size", metavar = "N", 
+                      default = 100,
+                      help = "(Optional) size of backbone set"
+                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to N) and query set (remaining sequences), [default: None]")    
+                             
+
+    seppGroup = parser.add_argument_group("SEPP Options".upper(), 
+                         "These options set settings specific to SEPP and are not used for UPP.")                                 
+    seppGroup.add_argument("-P", "--placementSize", type = int, 
+                      dest = "placement_size", metavar = "N",
+                      default = None, 
+                      help = "max placement subset size of N "
+                             "[default: 10%% of the total number of taxa]")                              
+    seppGroup.add_argument("-r", "--raxml", 
+                      dest = "info_file", metavar = "RAXML",
+                      type = argparse.FileType('r'), 
+                      help = "RAxML_info file including model parameters, generated by RAxML."
+                             "[default: %(default)s]")    
+                                                   
 if __name__ == '__main__':   
     augment_parser() 
     UPPExhaustiveAlgorithm().run()

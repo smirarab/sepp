@@ -97,7 +97,7 @@ def _init_parser():
     global _parser
     _parser = ArgumentParser(description= 
                             "This script runs the SEPP algorithm on an input "
-                            "tree, alignment, fragment file, and RAxML info file.")    
+                            "tree, alignment, fragment file, and RAxML info file.", conflict_handler='resolve')    
     
     _parser.add_argument("-v", "--version", action='version', version= "%(prog)s " + version)
 
@@ -106,7 +106,7 @@ def _init_parser():
                                  "taxon insertion size.  If None is given, then the default",
                                  "is to align/place at 10% of total taxa.  The alignment decomosition size must be",
                                  "less than the taxon insertion size."]))                                 
-    
+                                 
     decompGroup.add_argument("-A", "--alignmentSize", type = int, 
                       dest = "alignment_size", metavar = "N", 
                       default = None,
