@@ -544,7 +544,7 @@ class MafftAlignJob(ExternalSeppJob):
         
     def get_invocation(self):      
         invoc = [self.path]      
-        if (self.size > 200 or 1):             
+        if (self.size > 200):             
             invoc.extend(['--parttree','--retree','2','--partsize','1000'])
         else:            
             invoc.extend(['--localpair','--maxiterate', '1000'])
@@ -655,7 +655,7 @@ class SateAlignJob(ExternalSeppJob):
         return invoc
 
     def characterize_input(self):
-        return self.get_invocation()
+        return " ".join(self.get_invocation())
 
     def read_results(self):
         '''
