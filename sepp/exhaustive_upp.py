@@ -100,7 +100,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             alignment = MutableAlignment()
             alignment.read_file_object(open(self.options.alignment_file.name))
             options().alignment_file = open(self.options.outdir + "/sate.fasta")
-            if (options().molecule == 'protein'):
+            if (options().molecule == 'amino'):
                 _LOG.warning("Automated alignment subset selection not implemented fro protein alignment.  Setting to 10.")
                 options().alignment_size = align_size        
             else:
