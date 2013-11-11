@@ -76,7 +76,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         moleculeType = options().molecule
         if (options().molecule == 'amino'):
             moleculeType =  'protein'
-        satealignJob.setup(backbone,options().backbone_size,self.options.outdir,options().molecule,options().cpu)
+        satealignJob.setup(backbone,options().backbone_size,self.options.outdir,moleculeType,options().cpu)
         satealignJob.run()
         satealignJob.read_results()
         
