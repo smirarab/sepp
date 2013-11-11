@@ -80,30 +80,37 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         options().placement_size = self.options.backbone_size
         options().alignment_file = open(self.options.outdir + "/sate.fasta")
         options().tree_file = open(self.options.outdir + "/sate.fasttree")
+        _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
         options().fragment_file = query
 
     def check_options(self):
         options().info_file = "A_dummy_value"
 
-        if not options().tree_file is None and not options().alignment_file is None and not options().sequence_file is None:
-            options().fragment_file = options().sequence_file
-        
         #Check to see if tree/alignment/fragment file provided, if not, generate it
-        #from sequence file        
-        if options().tree_file is None and options().alignment_file is None and not options().sequence_file is None:
-            self.generate_backbone()        
+        #from sequence file                
+        if not options().tree_file is None and not options().alignment_file is None and not options().sequence_file is None:
+            options().fragment_file = options().sequence_file        
+        elif options().tree_file is None and options().alignment_file is None and not options().sequence_file is None:
+            self.generate_backbone()
+        else:
+            _LOG.error("Either specify the backbone alignment and tree and query sequences or only the query sequences.  Any other combination is invalid")
+            exit(-1)
         if options().alignment_size is None:
             _LOG.info("Alignment subset size not given.  Calculating subset size. ")
             alignment = MutableAlignment()
             alignment.read_file_object(open(self.options.alignment_file.name))
             options().alignment_file = open(self.options.outdir + "/sate.fasta")
-            (averagep,maxp) = alignment.get_p_distance()            
-            align_size = 10
-            if (averagep > .60):                
-                while (align_size*2 < alignment.get_num_taxa()):
-                    align_size = align_size * 2            
-            _LOG.info("Average p-distance of backbone is %f0.2.  Alignment subset size set to %d. " % (averagep,align_size))    
-            options().alignment_size = align_size        
+            if (options().molecule == 'protein'):
+                _LOG.warning("Automated alignment subset selection not implemented fro protein alignment.  Setting to 10.")
+                options().alignment_size = align_size        
+            else:
+                (averagep,maxp) = alignment.get_p_distance()            
+                align_size = 10
+                if (averagep > .60):                
+                    while (align_size*2 < alignment.get_num_taxa()):
+                        align_size = align_size * 2            
+                _LOG.info("Average p-distance of backbone is %f0.2.  Alignment subset size set to %d. " % (averagep,align_size))    
+                options().alignment_size = align_size        
         return ExhaustiveAlgorithm.check_options(self)
         
     def merge_results(self):
