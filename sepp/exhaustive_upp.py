@@ -59,6 +59,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
+        if (options().backbone_size is None):            
+            options().backbone_size = min(100,int(.20*sequences.get_num_taxa()))
+            _LOG.info("Backbone size set to: %d" %(options().backbone_size))
         backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
         [sequences.pop(i) for i in backbone_sequences.keys()]
         
@@ -67,22 +70,10 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         backbone = get_temp_file("backbone", "backbone", ".fas")
         _write_fasta(sequences, query)
         _write_fasta(backbone_sequences, backbone)
-        
-        _LOG.info("Generating mafft backbone alignment and tree. ")
-        mafftJob = MafftAlignJob()
-        mafft_alignment = get_temp_file("backbone", "mafft", ".fasta")
-        mafft_tree = get_temp_file("backbone", "mafft", ".fasttree")        
-        mafftJob.setup(backbone,options().backbone_size,mafft_alignment,options().cpu)
-        mafftJob.run()
-        mafftJob.read_results()
-        fasttreeJob = FastTreeJob()
-        fasttreeJob.setup(mafft_alignment,mafft_tree,options().molecule)
-        fasttreeJob.run()
-        fasttreeJob.read_results()
-        
+                
         _LOG.info("Generating sate backbone alignment and tree. ")
         satealignJob = SateAlignJob()
-        satealignJob.setup(mafft_alignment,mafft_tree,options().backbone_size,self.options.outdir,options().molecule,options().cpu)
+        satealignJob.setup(backbone,options().backbone_size,self.options.outdir,options().molecule,options().cpu)
         satealignJob.run()
         satealignJob.read_results()
         
@@ -93,11 +84,26 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
 
     def check_options(self):
         options().info_file = "A_dummy_value"
+
+        if not options().tree_file is None and not options().alignment_file is None and not options().sequence_file is None:
+            options().fragment_file = options().sequence_file
         
         #Check to see if tree/alignment/fragment file provided, if not, generate it
         #from sequence file        
-        if (options().tree_file is None and options().alignment_file is None and options().fragment_file is None and not options().sequence_file is None):
-            self.generate_backbone()
+        if options().tree_file is None and options().alignment_file is None and not options().sequence_file is None:
+            self.generate_backbone()        
+        if options().alignment_size is None:
+            _LOG.info("Alignment subset size not given.  Calculating subset size. ")
+            alignment = MutableAlignment()
+            alignment.read_file_object(open(self.options.alignment_file.name))
+            options().alignment_file = open(self.options.outdir + "/sate.fasta")
+            (averagep,maxp) = alignment.get_p_distance()            
+            align_size = 10
+            if (averagep > .60):                
+                while (align_size*2 < alignment.get_num_taxa()):
+                    align_size = align_size * 2            
+            _LOG.info("Average p-distance of backbone is %f0.2.  Alignment subset size set to %d. " % (averagep,align_size))    
+            options().alignment_size = align_size        
         return ExhaustiveAlgorithm.check_options(self)
         
     def merge_results(self):
@@ -216,8 +222,49 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                                                          self.filtered_taxa))
                 
 def augment_parser():
-    parser = sepp.config.get_parser()
+    parser = sepp.config.get_parser()    
+    parser.description = "This script runs the UPP algorithm on set of sequences.  A backbone alignment and tree can be given as input.  If none is provided, a backbone will be automatically generated."
     
+    decompGroup = parser.groups['decompGroup']                                 
+    decompGroup.__dict__['description'] = ' '.join(["These options",
+        "determine the alignment decomposition size and", 
+        "taxon insertion size.  If None is given, then the alignment size will be",
+        "automatically computed from the backbone p-distance.  The size of the",
+        "backbone will be 100 or 20% of the taxa, whichever is smaller."])
+        
+    
+    decompGroup.add_argument("-A", "--alignmentSize", type = int, 
+                      dest = "alignment_size", metavar = "N", 
+                      default = None,
+                      help = "max alignment subset size of N "
+                             "[default: Will be computed from backbone p-distance]")    
+    decompGroup.add_argument("-B", "--backboneSize", type = int,
+                      dest = "backbone_size", metavar = "N", 
+                      default = None,
+                      help = "(Optional) size of backbone set.  "
+                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to N) and query set (remaining sequences), [default: min(100,20%% of taxa)]")    
+    inputGroup = parser.groups['inputGroup']                             
+    inputGroup .add_argument("-s", "--sequence_file", type = argparse.FileType('r'),
+                      dest = "sequence_file", metavar = "SEQ", 
+                      default = None,
+                      help = "Unaligned sequence file.  "
+                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to B) and query set (remaining sequences), [default: None]")                             
+    inputGroup.add_argument("-c", "--config", 
+                      dest = "config_file", metavar = "CONFIG",
+                      type = argparse.FileType('r'), 
+                      help = "A config file, including options used to run UPP. Options provided as command line arguments overwrite config file values for those options. "
+                             "[default: %(default)s]")    
+    inputGroup.add_argument("-t", "--tree", 
+                      dest = "tree_file", metavar = "TREE",
+                      type = argparse.FileType('r'), 
+                      help = "Input tree file (newick format) "
+                             "[default: %(default)s]")    
+    inputGroup.add_argument("-a", "--alignment", 
+                      dest = "alignment_file", metavar = "ALIGN",
+                      type = argparse.FileType('r'), 
+                      help = "Aligned fasta file "
+                             "[default: %(default)s]")                                 
+                             
     uppGroup = parser.add_argument_group("UPP Options".upper(), 
                          "These options set settings specific to UPP")                                 
     
@@ -227,19 +274,6 @@ def augment_parser():
                       help = "Branches longer than N times the median branch length are filtered from backbone and added to fragments."
                              " [default: None (no filtering)]")
                              
-    uppGroup.add_argument("-s", "--sequence_file", type = argparse.FileType('r'),
-                      dest = "sequence_file", metavar = "SEQ", 
-                      default = None,
-                      help = "(Optional) unaligned sequence file"
-                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to P) and query set (remaining sequences), [default: None]")
-
-    uppGroup.add_argument("-B", "--backboneSize", type = int,
-                      dest = "backbone_size", metavar = "N", 
-                      default = 100,
-                      help = "(Optional) size of backbone set"
-                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to N) and query set (remaining sequences), [default: None]")    
-                             
-
     seppGroup = parser.add_argument_group("SEPP Options".upper(), 
                          "These options set settings specific to SEPP and are not used for UPP.")                                 
     seppGroup.add_argument("-P", "--placementSize", type = int, 
@@ -252,6 +286,12 @@ def augment_parser():
                       type = argparse.FileType('r'), 
                       help = "RAxML_info file including model parameters, generated by RAxML."
                              "[default: %(default)s]")    
+    seppGroup.add_argument("-f", "--fragment",
+                      dest = "fragment_file", metavar = "FRAG",
+                      type = argparse.FileType('r'), 
+                      help = "fragment file "
+                             "[default: %(default)s]")          
+                             
                                                    
 if __name__ == '__main__':   
     augment_parser() 

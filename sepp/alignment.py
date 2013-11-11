@@ -37,6 +37,35 @@ DATASET_CHAR_ATTR = "char_matrices"
 
 _LOG = get_logger(__name__)
 
+def hamming_distance(seq1,seq2):
+    """Returns hamming distance between two sequences"""
+    #xors = [ord(a) ^ ord(b) for a,b in zip(seq1,seq2)]
+    #ors = [ord(a) | ord(b) for a,b in zip(seq1,seq2)]
+    #num_mismatch = 0.0
+    #non_gap = 0.0
+    #for (a,b) in zip(xors,ors):
+        #if (a != 0 & a <= 127):
+            #num_mismatch+=1
+        #if (b != 255):
+            #non_gap+=1
+
+    #if non_gap == 0:
+        #return -1
+    #return num_mismatch/non_gap;
+            
+    length = len(seq1)
+    num_mismatch = 0.0
+    non_gap = 0.0
+    for i in xrange(0,length):
+        if seq1[i] == chr(255) or seq2[i] == chr(255):
+            continue
+        non_gap+=1
+        if seq1[i].lower() !=  seq2[i].lower():
+            num_mismatch+=1
+    if non_gap == 0:
+        return -1
+    return num_mismatch/non_gap;
+
 
 def is_sequence_legal(seq):
     """Check for illegal characters -- TODO:, currently returns True"""
@@ -72,8 +101,7 @@ def _read_fasta(src):
             seq_list.append(seq)
     yield name, ''.join(seq_list)
     if isinstance(src, str):
-        file_obj.close()
-
+        file_obj.close()        
 
 def _write_fasta(alignment, dest):
     """Writes the `alignment` in FASTA format to either a file object or file"""
@@ -104,6 +132,30 @@ class ReadOnlyAlignment(Mapping, object):
         """returns the number sequences"""
         return len(self.get_sequence_names())
     
+    def get_p_distance(self):
+        """returns the average and max p-distance of alignment"""
+        if self.is_empty():
+            raise ValueError("The alignment is empty.\n")
+        max = 0
+        average = 0.0
+        count = 0.0        
+        copy = MutableAlignment()
+        copy.set_alignment(self)
+        names = copy.get_sequence_names()
+        for name in copy.keys():
+            copy[name] = copy[name].replace('-',chr(255)).lower()            
+        
+        for x in xrange(0,self.get_num_taxa()):
+            for y in xrange(x+1,self.get_num_taxa()):
+                distance = hamming_distance(copy[names[x]],copy[names[y]])
+                if distance >= 0:
+                    if distance > max:
+                        max = distance
+                    count+=1
+                    average+=distance
+        average = average/count
+        return (average,max)
+        
     def get_length(self):
         """returns the number of columns in the alignment"""
         if self.is_empty():
