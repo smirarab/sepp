@@ -73,6 +73,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 
         _LOG.info("Generating sate backbone alignment and tree. ")
         satealignJob = SateAlignJob()
+        moleculeType = options().molecule
+        if (options().molecule == 'amino'):
+            moleculeType =  'protein'
         satealignJob.setup(backbone,options().backbone_size,self.options.outdir,options().molecule,options().cpu)
         satealignJob.run()
         satealignJob.read_results()
