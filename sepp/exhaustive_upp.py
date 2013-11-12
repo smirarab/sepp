@@ -98,14 +98,22 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         else:
             _LOG.error("Either specify the backbone alignment and tree and query sequences or only the query sequences.  Any other combination is invalid")
             exit(-1)
+        sequences = MutableAlignment()
+        sequences.read_file_object(open(self.options.alignment_file.name))            
+        backbone_size = sequences.get_num_taxa()
+        if options().backbone_size is None:
+            options().backbone_size = backbone_size
+        assert options().backbone_size == backbone_size, ("Backbone parameter needs to match actual size of backbone; backbone parameter:%s backbone_size:%s" 
+                %(options().backbone_size, backbone_size))                    
+        if options().placement_size is None:
+            options().placement_size = options().backbone_size
         if options().alignment_size is None:
             _LOG.info("Alignment subset size not given.  Calculating subset size. ")
             alignment = MutableAlignment()
             alignment.read_file_object(open(self.options.alignment_file.name))
-            options().alignment_file = open(self.options.outdir + "/sate.fasta")
             if (options().molecule == 'amino'):
-                _LOG.warning("Automated alignment subset selection not implemented fro protein alignment.  Setting to 10.")
-                options().alignment_size = align_size        
+                _LOG.warning("Automated alignment subset selection not implemented for protein alignment.  Setting to 10.")
+                options().alignment_size = 10        
             else:
                 (averagep,maxp) = alignment.get_p_distance()            
                 align_size = 10
@@ -113,7 +121,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                     while (align_size*2 < alignment.get_num_taxa()):
                         align_size = align_size * 2            
                 _LOG.info("Average p-distance of backbone is %f0.2.  Alignment subset size set to %d. " % (averagep,align_size))    
-                options().alignment_size = align_size        
+                options().alignment_size = align_size
         return ExhaustiveAlgorithm.check_options(self)
         
     def merge_results(self):

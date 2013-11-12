@@ -82,7 +82,7 @@ class ConfigSepp(Command):
         for l in c:
             l = l.replace("~",get_tools_dest())
             d.write(l)
-        d.write('[sate]\npath=%s' % os.getenv('SATE'))
+        d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         d.close()
     
         # Copy tools to a bundled directory inside .sepp
@@ -107,7 +107,7 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py"],
+      scripts = ["run_sepp.py","sepp/exhaustive_upp.py"],
       cmdclass = {"config": ConfigSepp},
       
       classifiers = ["Environment :: Console",
