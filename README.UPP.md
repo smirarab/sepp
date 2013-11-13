@@ -17,7 +17,9 @@ N. Nguyen, S. Mirarab, and T. Warnow, UPP: Ultra-large alignment using SEPP, in 
 
 ### Note and Acknowledgment: 
 - UPP bundles the following two programs into its distribution:
-  1. hmmer: http://hmmer.janelia.org/
+  1. pplacer: http://matsen.fhcrc.org/pplacer/
+  2. hmmer: http://hmmer.janelia.org/
+  3. EPA: http://sco.h-its.org/exelixis/software.html
 - UPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
 - UPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 - UPP requires SATe for generating alignments and backbones if none are provided from the user.
