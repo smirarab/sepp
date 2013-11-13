@@ -46,6 +46,10 @@ class ConfigSepp(Command):
     
     def run(self):        
         print "\nCreating main sepp config file at %s " %(self.configfile)
+        if os.getenv('SATE') is None:
+            print "\nMust defined SATE variable and have it pointed to SATE executable \n"
+            exit(-1)
+
         def get_tools_dir(where):    
             platform_name = platform.system()
             if where is None:
@@ -78,6 +82,7 @@ class ConfigSepp(Command):
         for l in c:
             l = l.replace("~",get_tools_dest())
             d.write(l)
+        d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         d.close()
     
         # Copy tools to a bundled directory inside .sepp
@@ -102,7 +107,7 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py"],
+      scripts = ["run_sepp.py","sepp/exhaustive_upp.py"],
       cmdclass = {"config": ConfigSepp},
       
       classifiers = ["Environment :: Console",

@@ -8,7 +8,7 @@ from sepp import get_logger
 from abc import abstractmethod, ABCMeta
 from subprocess import Popen
 
-import os
+import os,shutil
 import subprocess
 import stat
 import re
@@ -511,3 +511,169 @@ class MergeJsonJob(ExternalSeppJob):
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0        
         return self.out_file
+
+class MafftAlignJob(ExternalSeppJob):        
+    '''
+    The Job class that generates a Mafft alignment
+    '''
+
+    def __init__(self, **kwargs):
+        self.job_type = "mafft"
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.sequences = None #input sequences
+        self.size = None #size of backbone
+        self.output = None #output file
+        self.threads = 1 #number of threads
+
+    def setup(self, sequences, size, output, threads,**kwargs):
+        '''
+        Use this to setup the job if you already have input file written to a file.
+        Use setup_for_subproblem when possible. 
+        '''
+        self.sequences = sequences
+        self.output = output
+        self.size = size
+        self.threads = threads
+        self._kwargs = kwargs            
+
+    def setup_for_subproblem(self):
+        '''
+        Use setup for generating backbone alignment
+        '''
+        return
+        
+    def get_invocation(self):      
+        invoc = [self.path]      
+        if (self.size > 200):             
+            invoc.extend(['--parttree','--retree','2','--partsize','1000'])
+        else:            
+            invoc.extend(['--localpair','--maxiterate', '1000'])
+        invoc.extend(['--anysymbol','--thread', str(self.threads), self.sequences])
+        return invoc
+
+    def characterize_input(self):
+        return "mafftalign %s %s" % (self.sequences,self.output)
+
+    def read_results(self):
+        '''
+        Read from standard out, write to file
+        '''
+        output = (self.stdoutdata)
+        outfile = open(self.output, 'w');
+        outfile.write(output)
+        outfile.close()
+        return self.output
+        
+class FastTreeJob(ExternalSeppJob):        
+    '''
+    The Job class that generates a fasttree tree from an alignment
+    '''
+
+    def __init__(self, **kwargs):
+        self.job_type = "fasttree"
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.alignment_file = None #input alignment
+        self.output_file = None #output tree
+        self.molecule = None #type of molecule        
+
+    def setup(self, alignment_file, output_file, molecule, **kwargs):
+        '''
+        Use this to setup the job if you already have input file written to a file.
+        Use setup_for_subproblem when possible. 
+        '''
+        self.alignment_file = alignment_file
+        self.output_file = output_file
+        self.molecule = molecule        
+        self._kwargs = kwargs            
+
+    def setup_for_subproblem(self):
+        '''
+        Use setup for generating backbone tree
+        '''
+        return
+        
+    def get_invocation(self):      
+        invoc = [self.path,'-gtr']      
+        if (self.molecule != 'protein'):             
+            invoc.extend(['-nt'])
+        invoc.extend(['-quiet','-nosupport','-out', self.output_file, self.alignment_file])
+        return invoc
+
+    def characterize_input(self):
+        return "fasttree %s %s %s" % (self.alignment_file,self.output_file,self.molecule)
+
+    def read_results(self):
+        '''
+        Check and return file
+        '''
+        assert os.path.exists(self.output_file)
+        assert os.stat(self.output_file)[stat.ST_SIZE] != 0        
+        return self.output_file        
+        
+class SateAlignJob(ExternalSeppJob):
+    '''
+    The Job class that generates a Sate alignment and tree
+    '''
+
+    def __init__(self, **kwargs):
+        self.job_type = "sate"
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.alignment = None #input alignment
+        self.size = None #size of backbone
+        self.molecule = None #type of molecule
+        self.output = None
+        self.config = None
+        self.threads = None
+        
+    def setup(self, alignment, size, output, molecule,threads,**kwargs):
+        '''
+        Use this to setup the job if you already have input file written to a file.
+        Use setup_for_subproblem when possible. 
+        '''
+        self.alignment = alignment
+        self.size = size
+        self.output = output
+        self.molecule = molecule
+        if (molecule == 'aa'):
+            self.molecule == 'protein'
+        self.threads = threads
+        self._kwargs = kwargs                
+
+    def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
+        '''
+        Use setup for generating backbone tree
+        '''
+        return
+        
+    def get_invocation(self):
+        size_str = '--max-subproblem-size=200'  
+        if (self.size <= 200):
+          size_str = '--max-subproblem-frac=0.50'  
+        invoc = [self.path,'-i',self.alignment,'--merger=opal','--aligner=mafft','--tree-estimator=fasttree', '--num-cpus=%d' % self.threads, "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'--break-strategy=centroid',size_str,'--time-limit=-1','--iter-without-imp-limit=1','-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
+        return invoc
+
+    def characterize_input(self):
+        return " ".join(self.get_invocation())
+
+    def read_results(self):
+        '''
+        Read the Sate log file and get the alignment and tree from file, copy to output directory
+        '''
+        assert os.path.exists('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())
+        assert os.stat('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
+        outfile = open('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir(), 'r');
+        alignment_pattern = re.compile('Writing resulting alignment to (.*)')
+        tree_pattern = re.compile('Writing resulting tree to (.*)')
+        tree_file = ''
+        alignment_file = ''        
+        for line in outfile:            
+            line = line.strip()            
+            result = alignment_pattern.findall(line)
+            if (len(result) != 0):
+                alignment_file = result[0]
+            result = tree_pattern.findall(line)
+            if (len(result) != 0):
+                tree_file = result[0]
+        shutil.copyfile(tree_file, "%s/sate.fasttree" % self.output)
+        shutil.copyfile(alignment_file, "%s/sate.fasta" % self.output)
+        return (tree_file,alignment_file)

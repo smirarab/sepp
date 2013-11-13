@@ -60,9 +60,7 @@ def log_exception(logger):
     traceback.print_exc(None, s)
     logger.debug(s.getvalue())
     
-os.sys.setrecursionlimit(1000000)    
+os.sys.setrecursionlimit(1000000)
 
 def sortByValue(d,reverse=False):
     return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
-
-
