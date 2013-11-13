@@ -27,23 +27,34 @@ Installation
 -------------------------------------
 This section details steps for installing and running UPP. We have run UPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
 
+Note that by installing UPP, you also install SEPP.
+
 Requirements:
 -------------------
 Before installing the software you need to make sure the following programs are installed on your machine.
 
 1. Python: Version > 2.6. 
 2. Java: Version > 1.5
-3. SATe: Version > 2.2.7
+
+Optional (Automatic backbone alignment and tree generation)
+-------------------
+If you want to have UPP automatically estimate backbone alignments and trees for alignment, you need to have SATe version 2.2.7 or greater installed on your machine before the installation of UPP.
+
+Set the SATE environment variable to point to the SATe executable, i.e., the run_sate.py python script.  This will cause the default configuration file to include the SATE location and will allow the automatic use of SATE for backbone alignment and tree generation.
+
+If you want later have the capability of automatically generating backbone alignments and trees, then the default configuration file (found in ~/.sepp/main.config by default) should be changed to include the following line:
+[sate]
+path=/path/to/run_sate.py
+
 
 Installation Steps:
 -------------------
 UPP is distributed as Python source code. Once you have the above required software installed, do the following. 
 
-1. Set the SATE environment variable to point to the SATe executable, i.e., the run_sate.py python script.
-2. Obtain the latest UPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
-3. Go to the distribution directory
-4. Install: run `sudo python setup.py install`. 
-5. Configure: run `sudo python setup.py config`. 
+1. Obtain the latest UPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
+2. Go to the distribution directory
+3. Install: run `sudo python setup.py install`. 
+4. Configure: run `sudo python setup.py config`. 
 
 The last step creates a ~/.sepp/ directory and put the default config file under ~/.sepp/main.config. Since this is specific to a user, each user that runs sepp needs to execute the last step. 
 
