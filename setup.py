@@ -47,8 +47,7 @@ class ConfigSepp(Command):
     def run(self):        
         print "\nCreating main sepp config file at %s " %(self.configfile)
         if os.getenv('SATE') is None:
-            print "\nMust defined SATE variable and have it pointed to SATE executable \n"
-            exit(-1)
+            print "\nWarning! SATE variable is not defined.  If you plan to run UPP and want UPP to automatically generate backbone alignments and trees, then have it pointed to SATE executable.  You can also change your config to point to SATE by including the following line in your config:\n[sate]\npath=/location/of/run_sate.py\n"            
 
         def get_tools_dir(where):    
             platform_name = platform.system()
@@ -82,7 +81,8 @@ class ConfigSepp(Command):
         for l in c:
             l = l.replace("~",get_tools_dest())
             d.write(l)
-        d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
+        if not os.getenv('SATE') is None:
+            d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         d.close()
     
         # Copy tools to a bundled directory inside .sepp
