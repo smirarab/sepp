@@ -59,13 +59,15 @@ Common Problems:
 ---------------------------------------------
 Running UPP
 ---------------------------------------------
-To run UPP, invoke the `exhausive_upp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
+To run UPP, invoke the exhaustive_upp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
 
 `python <bin>/exhausive_upp.py -h`
 
 The general command for running UPP is:
 
 `python <bin>/exhaustive_upp.py -t <tree_file> -a <alignment_file> -s <query_sequence_file>`
+
+where the tree_file is the backbone tree, the alignment_file is the backbone alignment, and the query_sequence_file is the remaining sequences to be aligned.
 
 UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run UPP on the sample files. To run using command options, run
 
