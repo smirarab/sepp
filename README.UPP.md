@@ -40,19 +40,22 @@ Before installing the software you need to make sure the following programs are 
 
 Optional (Automatic backbone alignment and tree generation)
 -------------------
-If you want to have UPP automatically estimate backbone alignments and trees for alignment, you need to have SATe version 2.2.7 or greater installed on your machine before the installation of UPP.
+If you want to have UPP automatically estimate backbone alignments and trees for alignment, you need to have SATe version 2.2.7 or greater (available [here](http://phylo.bio.ku.edu/software/sate/sate.html)) installed on your machine before the installation of UPP.
 
-Set the SATE environment variable to point to the SATe executable, i.e., the run_sate.py python script.  This will cause the default configuration file to include the SATE location and will allow the automatic use of SATE for backbone alignment and tree generation.
+Before you start the installation, set the SATE environment variable to point to the SATe executable, i.e., the run_sate.py python script.  This will cause the default configuration file created during the setup process to include the SATE location and will allow the automatic use of SATE for backbone alignment and tree generation.
 
-If you want later have the capability of automatically generating backbone alignments and trees, then the default configuration file (found in ~/.sepp/main.config by default) should be changed to include the following line:
+If you want later (i.e. after installation) to have the capability of automatically generating backbone alignments and trees, then the default configuration file (found in `~/.sepp/main.config` by default) should be changed to include the following line:
+```
 [sate]
 path=/path/to/run_sate.py
+```
 
 
 Installation Steps:
 -------------------
 UPP is distributed as Python source code. Once you have the above required software installed, do the following. 
 
+0. (optional) install SATe and set SATE environmental variable to its executable (See above).
 1. Obtain the latest UPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
 2. Go to the distribution directory
 3. Install: run `sudo python setup.py install`. 
