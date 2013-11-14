@@ -1,9 +1,9 @@
 ------------------------------------
 Summary
 ------------------------------------
-This repository includes code for SEPP and TIPP.
+This repository includes code for SEPP, UPP, and TIPP.
 
-Each of these related tools have their own README files [README.SEPP.md](README.SEPP.md) and [README.TIPP.md](README.TIPP.md).
+Each of these related tools have their own README files [README.SEPP.md](README.SEPP.md), [README.UPP.md](README.UPP.md), and [README.TIPP.md](README.TIPP.md).
 
 * **SEPP** stands for "SATe-enabled phylogenetic placement", and addresses the problem of phylogenetic placement of short reads into reference alignment and trees. 
 * **UPP** stands for "Ultra-large alignment using SEPP", and addresses the problem of aligning ultra-large alignments, both full length and fragmentary sequences.  UPP randomly samples a backbone set and estimates an alignment and tree on the backbone set.  The remaining sequences are aligned to the backbone set.
