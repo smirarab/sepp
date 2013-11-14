@@ -67,15 +67,14 @@ Common Problems:
 -------------------
 1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: `python setup.py install --prefix=/some/path/on/your/system`, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
-2. UPP relies on HMMER for alignment. This tool is packaged with UPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point UPP to them. To point sepp to your installation of hmmer modify ~/.sepp/main.config. 
-   hmmer://hmmer.janelia.org/
+2. UPP relies on [HMMER](hmmer://hmmer.janelia.org/) for alignment. This tool is packaged with UPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point UPP to them. To point sepp to your installation of hmmer modify `~/.sepp/main.config`. Even if HMMER works perfectly fine on your environment, switching to a version compiled for your machine could improve the performance. 
 
 3. UPP requires SATe installed so that backbone alignments and trees can be generated when none are provided.  SATe is available from [here](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 ---------------------------------------------
 Running UPP
 ---------------------------------------------
-To run UPP, invoke the exhaustive_upp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
+To run UPP, invoke the `exhaustive_upp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
 
 `python <bin>/exhausive_upp.py -h`
 
@@ -83,9 +82,11 @@ The general command for running UPP is:
 
 `python <bin>/exhaustive_upp.py -t <tree_file> -a <alignment_file> -s <query_sequence_file>`
 
-where the tree_file is the backbone tree, the alignment_file is the backbone alignment, and the query_sequence_file is the remaining sequences to be aligned.
+where the `tree_file` is the backbone tree, the `alignment_file` is the backbone alignment, and the `query_sequence_file` is the remaining sequences to be aligned.
 
-UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run UPP on the sample files. To run using command options, run
+UPP can also be run using a configuration file.
+Sample configuration files and input files can be found under `test/unittest/data/upp/`.
+Change to that directory to run UPP on the sample files. To run using command options, run
 
 `python <bin>/exhaustive_upp.py -t test.tree -a test.fasta -s query.fas`
 
@@ -93,15 +94,19 @@ and to run using a configuration file, run
 
 `python <bin>/exhaustive_upp.py -c sample.config`
 
-The main output of UPP are two alignment .fasta files, *_alignment.fasta and *_alignment_masked.fasta.  The first file is the alignment of the query sequences to the backbone.  The second file is the same alignment with insertion columns masked out.  We suggest using the second file for phylogenetic inference as characters found in insertion columns should not be treated as homologous. 
+The main output of UPP are two alignment .fasta files, `*_alignment.fasta` and `*_alignment_masked.fasta`.
+The first file is the alignment of the query sequences to the backbone. 
+The second file is the same alignment with insertion columns masked out.
+We suggest using the second file for phylogenetic inference as characters found in insertion columns should not be treated as homologous. 
 
-Finally, UPP can automatically estimate the backbone alignment and tree.  To do so, run UPP with just the `-s` command; UPP will select a backbone alignment size and generate a backbone alignment and tree on a random sampling of the sequences.  For example, 
+Finally, UPP can automatically estimate the backbone alignment and tree.
+To do so, run UPP with just the `-s` command; UPP will select a backbone alignment size and generate a backbone alignment and tree on a random sampling of the sequences.  For example, 
 
 `python <bin>/exhaustive_upp.py -s initial.fas`
 
-Note that this command may take a while because a SATe tree will be estimated on a backbone size of 100 sequences.  To speed this up, use a backbone of size 20 (`-B 20`).
+Note that this command may take a few minutes to estimate the SATe backbone alignment and tree of size of 100.  To speed this up (suggested for testing but not for actual analyses), you can use a backbone of size 20 (`-B 20`).
 
-By setting SEPP_DEBUG environmental variable to `True`, you can instruct UPP to output more information that can be helpful for debugging.  
+By setting `SEPP_DEBUG` environmental variable to `True`, you can instruct UPP to output more information that can be helpful for debugging.  
 
 ---------------------------------------------
 Bugs and Errors
