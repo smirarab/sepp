@@ -649,7 +649,10 @@ class SateAlignJob(ExternalSeppJob):
         size_str = '--max-subproblem-size=200'  
         if (self.size <= 200):
           size_str = '--max-subproblem-frac=0.50'  
-        invoc = [self.path,'-i',self.alignment,'--merger=opal','--aligner=mafft','--tree-estimator=fasttree', '--num-cpus=%d' % self.threads, "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'--break-strategy=centroid',size_str,'--time-limit=-1','--iter-without-imp-limit=1','-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
+        mergerType = 'opal'
+        if (molecule == 'protein'):
+          mergerType = 'muscle'
+        invoc = [self.path,'-i',self.alignment,'--merger=%s' % mergerType,'--aligner=mafft','--tree-estimator=fasttree', '--num-cpus=%d' % self.threads, "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'--break-strategy=centroid',size_str,'--time-limit=-1','--iter-without-imp-limit=1','-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
         return invoc
 
     def characterize_input(self):
