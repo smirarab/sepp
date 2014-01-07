@@ -35,7 +35,7 @@ class JoinSearchJobs(Join):
         ''' Figure out which fragment should go to which subproblem'''
         if self.root_problem.annotations.has_key("fragments.distribution.done"):
             return
-        max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])    
+        max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])
         for fragment_chunk_problem in self.root_problem.iter_leaves():
             align_problem = fragment_chunk_problem.get_parent()
             assert isinstance(align_problem, SeppProblem)
@@ -51,15 +51,21 @@ class JoinSearchJobs(Join):
                 '''
                 if best_value is None or (best_value < search_res[key][1]):
                     max_evalues[key] = (search_res[key][1], align_problem)
-                    align_problem.fragments.seq_names.append(key)
-                    if prev_align_problem is not None:
-                        prev_align_problem.fragments.seq_names.remove(key)
-        
+                    
+        # TODO: is the following efficient enough? Do we need to make lists
+        # and then turn them to sets?
+        notScored = []
+        for key,v in max_evalues.iteritems():
+            if v[1] is None:
+                notScored.append(key)
+            else:
+                v[1].fragments.seq_names.add(key)
+                    
         self.root_problem.annotations["fragments.distribution.done"] = 1
 
         ''' Make sure all fragments are in at least one subproblem. 
         TODO: what to do with those that are not?  For now, only output warning message'''
-        notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
+        #notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
         _LOG.warning("Fragments %s are not scored against any subset" %str(notScored))
         #assert len(notScored) == 0, "Fragments %s are not scored against any subset" %str(notScored)
 
@@ -123,9 +129,11 @@ class JoinAlignJobs(Join):
         pp = self.placement_problem
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
         ''' First assign fragments to the placement problem'''
-        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
+        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
+        frags = []      
         for ap in pp.get_children():
-            pp.fragments.seq_names.extend(ap.fragments)   
+            frags.extend(ap.fragments)        
+        pp.fragments.seq_names.update(frags)                                 
         ''' Then Build an extended alignment by merging all hmmalign results''' 
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.children:

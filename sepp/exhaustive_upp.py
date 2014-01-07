@@ -133,9 +133,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         pp = self.root_problem.get_children()[0]        
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
         ''' First assign fragments to the placement problem'''
-        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])        
+        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
+        frags = []      
         for ap in pp.get_children():
-            pp.fragments.seq_names.extend(ap.fragments)   
+            frags.extend(ap.fragments)        
+        pp.fragments.seq_names.update(frags)   
         ''' Then Build an extended alignment by merging all hmmalign results''' 
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.children:

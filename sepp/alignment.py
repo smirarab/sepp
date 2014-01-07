@@ -110,7 +110,7 @@ def _write_fasta(alignment, dest):
         file_obj = open(dest, "w")
     else:
         file_obj = dest
-    for name, seq in alignment.items():
+    for name, seq in alignment.iteritems():
         file_obj.write('>%s\n%s\n' % (name, seq))
     if isinstance(dest, str):
         file_obj.close()
@@ -169,6 +169,7 @@ class ReadOnlyAlignment(Mapping, object):
 
     def write_to_path(self, filename, schema='FASTA'):
         """Writes the sequence data in the specified `file_format` to `filename`"""
+        _LOG.debug("Writing alignment of type %s with length %d to file %s" %(str(self.__class__),len(self),filename))
         file_obj = open_with_intermediates(filename, 'w')
         self.write(file_obj, file_format=schema)
         file_obj.close()
@@ -316,12 +317,12 @@ class ReadonlySubalignment(ReadOnlyAlignment):
     '''
     A class that emulates a subalignment of a given alignment. This is a 
     readonly alignment and does not actually hold sequences in memory. It
-    simply keeps the list of sequences that belong to the sub alignment, 
+    simply keeps a set of sequences that belong to the sub alignment, 
     and implements methods of alignment class (and dictionaries) such that 
     only subalignment keys are returned. 
     '''
     def __init__(self, keys, parent_alignment):
-        self.seq_names = keys
+        self.seq_names = set(keys)
         self.parent_alignment = parent_alignment
 
     def __getitem__(self, key):
