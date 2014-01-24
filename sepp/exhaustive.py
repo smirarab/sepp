@@ -279,7 +279,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {})
+                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy)
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))

@@ -24,7 +24,7 @@ from dendropy import DataSet as Dataset
 from dendropy import convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 import cStringIO
-import sys
+import sys,copy
 
 _LOG = get_logger(__name__)
 
@@ -237,7 +237,7 @@ class PhylogeneticTree(object):
         assert snl == tree1.n_leaves + tree2.n_leaves
         return tree1, tree2, e
 
-    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}):
+    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal'):
         """
         This function decomposes the tree until all subtrees are smaller than 
         the max size, but does not decompose below min size.  
@@ -247,11 +247,14 @@ class PhylogeneticTree(object):
         SIDE EFFECT: deroots the tree (TODO: necessary?)
         """          
         self._tree.deroot()
+        if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
+            tree_map[len(tree_map)] = copy.deepcopy(self)
+
         if (self.count_leaves() > maxSize):    
             (t1, t2, e) = self.bisect_tree(strategy, minSize)
             if e is not None:
-                t1.decompose_tree(maxSize, strategy, minSize, tree_map)
-                t2.decompose_tree(maxSize, strategy, minSize, tree_map)
+                t1.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy)
+                t2.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy)
             else:
                 raise Exception("It was not possible to break-down the following tree according to given subset sizes: %d , %d:\n %s" %(minSize, maxSize, self._tree))
         else:

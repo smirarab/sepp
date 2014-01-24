@@ -636,8 +636,9 @@ class ExtendedAlignment(MutableAlignment):
         
         selfother={}
         for k,v in other.iteritems():
-            assert k not in self, "Merging overlapping alignments not implemented"
-            selfother[k] = bytearray(v)
+            #assert k not in self, "Merging overlapping alignments not implemented"
+            if (k not in self):
+              selfother[k] = bytearray(v)
                         
         while True:
             #print me, she, me_len, she_len

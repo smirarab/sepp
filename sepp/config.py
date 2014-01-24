@@ -76,6 +76,13 @@ def valid_molecule(molecule):
     if ret == False:
         raise argparse.ArgumentTypeError("%s is not a valid molecule type.  Must be 'dna', 'rna', or 'amino'." % molecule)
     return molecule
+    
+def valid_decomp_strategy(molecule):
+    ret = molecule in ['hierarchical','normal']
+    if ret == False:
+        raise argparse.ArgumentTypeError("%s is not a valid molecule type.  Must be 'normal', 'hierarchical'." % molecule)
+    return molecule
+    
 
 def valid_file_prefix(prefix):
     if os.path.dirname(prefix) != "":
@@ -118,7 +125,13 @@ def _init_parser():
                       dest = "placement_size", metavar = "N",
                       default = None, 
                       help = "max placement subset size of N "
-                             "[default: 10%% of the total number of taxa]")                              
+                             "[default: 10%% of the total number of taxa]")
+                             
+    decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
+                      dest = "decomp_strategy", metavar = "DECOMP",
+                      default = "normal", 
+                      help = "decomposition strategy "
+                             "[default: only include smallest subsets]")                             
         
     outputGroup = _parser.add_argument_group( "Output Options".upper(), 
                          "These options control output.") 
