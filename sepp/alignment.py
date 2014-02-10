@@ -436,7 +436,7 @@ class ExtendedAlignment(MutableAlignment):
     def _read_sto(self, handle):
         '''
         Reads a sto file and populates this current object. Figures out
-        insertion columns by finding lower case letters and dots. 
+        insertion columns by finding lower case letters, asterisks, and dots. 
         '''
         p = re.compile(r'[a-z*.]')
         insertions = []
@@ -452,7 +452,7 @@ class ExtendedAlignment(MutableAlignment):
                 key, seq = line.split()
                 current = self.get(key,"")
                 startind = len(current)
-                if startind != lastStartInd:
+                if startind != lastStartInd: # finding insertion columns in limited to first sequence
                     #s = sum(len(x) for x in current)
                     insertions.extend([m.start()+startind for m in p.finditer(seq)])
                     lastStartInd = startind                                            
