@@ -438,7 +438,7 @@ class ExtendedAlignment(MutableAlignment):
         Reads a sto file and populates this current object. Figures out
         insertion columns by finding lower case letters and dots. 
         '''
-        p = re.compile(r'[a-z.]')
+        p = re.compile(r'[a-z*.]')
         insertions = []
         lastStartInd = -1
         for line in handle:
