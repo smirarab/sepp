@@ -545,7 +545,7 @@ class ExtendedAlignment(MutableAlignment):
         for i in xrange(0,self.get_length()):
             if not self._is_insertion_label(self.col_labels[i]):
                 assert j < len(original_labels), ("Not enough labels"
-                           " %d %d" %(j,len(original_labels)))
+                           " %d %d.\n %s" %(j,len(original_labels),str(self._col_labels)))
                 self.col_labels[i] = original_labels[j]
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."
