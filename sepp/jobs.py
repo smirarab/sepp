@@ -608,7 +608,74 @@ class FastTreeJob(ExternalSeppJob):
         '''
         assert os.path.exists(self.output_file)
         assert os.stat(self.output_file)[stat.ST_SIZE] != 0        
-        return self.output_file        
+        return self.output_file     
+
+class PastaAlignJob(ExternalSeppJob):
+    '''
+    The Job class that generates a Pasta alignment and tree
+    '''
+
+    def __init__(self, **kwargs):
+        self.job_type = "pasta"
+        ExternalSeppJob.__init__(self, self.job_type, **kwargs)
+        self.alignment = None #input alignment
+        self.size = None #size of backbone
+        self.molecule = None #type of molecule
+        self.output = None
+        self.config = None
+        self.threads = None
+        
+    def setup(self, alignment, size, output, molecule,threads,**kwargs):
+        '''
+        Use this to setup the job if you already have input file written to a file.
+        Use setup_for_subproblem when possible. 
+        '''
+        self.alignment = alignment
+        self.size = size
+        self.output = output
+        self.molecule = molecule
+        if (molecule == 'aa'):
+            self.molecule == 'protein'
+        self.threads = threads
+        self._kwargs = kwargs                
+
+    def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
+        '''
+        Use setup for generating backbone tree
+        '''
+        return
+        
+    def get_invocation(self):
+        
+        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment,'--auto', "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
+        return invoc
+
+    def characterize_input(self):
+        return " ".join(self.get_invocation())
+
+    def read_results(self):
+        '''
+        Read the Sate log file and get the alignment and tree from file, copy to output directory
+        '''
+        assert os.path.exists('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())
+        assert os.stat('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
+        outfile = open('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir(), 'r');
+        alignment_pattern = re.compile('Writing resulting alignment to (.*)')
+        tree_pattern = re.compile('Writing resulting tree to (.*)')
+        tree_file = ''
+        alignment_file = ''        
+        for line in outfile:            
+            line = line.strip()            
+            result = alignment_pattern.findall(line)
+            if (len(result) != 0):
+                alignment_file = result[0]
+            result = tree_pattern.findall(line)
+            if (len(result) != 0):
+                tree_file = result[0]
+        shutil.copyfile(tree_file, "%s/pasta.fasttree" % self.output)
+        shutil.copyfile(alignment_file, "%s/pasta.fasta" % self.output)
+        return (tree_file,alignment_file)
+        
         
 class SateAlignJob(ExternalSeppJob):
     '''

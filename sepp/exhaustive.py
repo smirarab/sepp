@@ -235,8 +235,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         outfilename = self.get_output_filename("alignment_masked.fasta")
         self.results.write_to_path(outfilename)
 
-    def check_options(self):
-        AbstractAlgorithm.check_options(self)
+    def check_options(self, supply = []):
+        AbstractAlgorithm.check_options(self,supply)
 
     def modify_tree(self,a_tree):
         pass

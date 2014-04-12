@@ -41,7 +41,7 @@ class AbstractAlgorithm(object):
         pass
     
     
-    def check_options(self):
+    def check_options(self, supply=[]):
         '''
         This method should check the input values stored in config.option to make
         sure every necessary argument is provided, and that the provided values
@@ -51,8 +51,7 @@ class AbstractAlgorithm(object):
         (maybe an ArgumentError) should be raised. 
         
         By default expects tree_file, raxml_file, and fragment_file. Overwrite if required. 
-        '''
-        supply = []
+        '''        
         if (options().tree_file is None):
             supply = supply + ["tree file"]
         if (options().alignment_file is None):
