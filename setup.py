@@ -107,7 +107,7 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py","sepp/exhaustive_upp.py"],
+      scripts = ["run_sepp.py","split_sequences.py"],
       cmdclass = {"config": ConfigSepp},
       
       classifiers = ["Environment :: Console",
