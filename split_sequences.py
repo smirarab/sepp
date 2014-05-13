@@ -2,24 +2,25 @@
 Created on May 13, 2014
 @author: namphuon
 '''
-import sys,argparse
+import sys,argparse,os
 from argparse import ArgumentParser, Namespace
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 
 def parse_args():
   parser = argparse.ArgumentParser(description='Separates sequences out based upon length threshold.')
-  parser.add_argument('-t', '--threshold', help='threshold for fragmentary sequences, inclusive',   
+  parser.add_argument('-t', '--threshold', default=150, metavar='T', help='threshold for fragmentary sequences, inclusive (default=150)',   
                    type=int,dest='threshold')
-  parser.add_argument('-i', '--input', help='input sequence file',   
+  parser.add_argument('-i', '--input', default=None,metavar='INPUT',help='INPUT sequence file (default=None)',required=True,
                    type=str,dest='input')
-  parser.add_argument('-o', '--output', help='output prefix, will write fragmentary file to OUTPUT.frag.fas and full-length file to OUTPUT.full.fas',   
+  parser.add_argument('-o', '--output', default='output',metavar='OUTPUT', help='OUTPUT prefix, will write fragmentary file to OUTPUT.frag.fas and full-length file to OUTPUT.full.fas (default=output)',   
                    type=str,dest='output')
-  args = parser.parse_args()                   
+  args = parser.parse_args()                     
   return args
 
 def main():
   args = parse_args()
   sequences = MutableAlignment()
+  assert os.path.isfile(args.input) and os.access(args.input, os.R_OK), "Input file %s does not exist\n" % args.input
   sequences.read_file_object(args.input)
   frag = MutableAlignment()
   full = MutableAlignment()
