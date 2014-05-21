@@ -151,7 +151,7 @@ The fragment file we provide includes only 106 fragments that we found to possib
 \begin{itemize}
 \item Copy test datasets into your directory. Test datasets are part of the distribution and can be found under \file{\sepphome/test/unittest/data} (use the directory where you unpacked \sepp instead of \sepphome).
 For example, on Unix run:\\ \ins{cp -R \sepphome/test/unittest/data/*  .}\\
-Note that on the VM, the files to copy are found in \~/testdata/sepp/. 
+Note that on the VM, the files to copy are found in \textasciitilde/testdata/sepp/. 
 
 
 
@@ -343,7 +343,7 @@ An example config file is available as part of the distribution under the test d
 A main configuration file under \file{\{home\}/.sepp/main.config} is used
 to store some basic configurations such as the location of extra programs, etc.
 When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file.  To test running from the config file, \ins{cd simulated} directory and run\\
-\ins{run_sepp.py -c test.config}
+\ins{run\_sepp.py -c test.config}
 
 \item Currently \sepp has a built-in checkpointing functionality.
 By default, this functionality is turned off, but can be turned on using \ins{-cp [checkpoint file name]}, 
@@ -351,7 +351,7 @@ and the time interval between two consecutive checkpoints can be adjusted using 
 Please note that checkpointing options have been tested only lightly and might have unknown issues. 
 
 \item For datasets containing both fragmentary and full-legnth sequences, the sequences much be separated out into a backbone set on the full-length sequences and a query set on the fragmentary sequences.  From there, an alignment and tree can be estimated on the backbone set, and SEPP can be used to insert the query sequences back into the backbone tree.  Run 
-\ins{split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100}\\
+\ins{split\_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100}\\
 
 This will split the sequences into two files, split.full.fas (all sequences longer than 100 bps) and split.frag.fas *(all sequences shorter than or equal to 100 bps).  From here, PASTA can be used to estimate the backbone alignment and RAxML can be used to estimate the backbone tree.  The query sequences can be inserted into the tree.
 \end{itemize}
