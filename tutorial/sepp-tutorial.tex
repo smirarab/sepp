@@ -59,7 +59,7 @@
 \newcommand{\hmmer}{HMMER\xspace}
 \newcommand{\raxml}{RAxML\xspace}
 \newcommand{\arch}{Archaeopteryx\xspace}
-\newcommand{\sbun}{\textasciitilde/.sepp/bundled-v2.2}
+\newcommand{\sbun}{\textasciitilde/.sepp/bundled-v2.2.1}
 \newcommand{\sepphome} {\file{{\raise.17ex\hbox{$\scriptstyle\sim$}}/sepp}\xspace}
 
 
@@ -150,7 +150,10 @@ The fragment file we provide includes only 106 fragments that we found to possib
 \subsection{Sample Datasets - Default parameters}
 \begin{itemize}
 \item Copy test datasets into your directory. Test datasets are part of the distribution and can be found under \file{\sepphome/test/unittest/data} (use the directory where you unpacked \sepp instead of \sepphome).
-For example, on Unix run:\\ \ins{cp -R \sepphome/test/unittest/data/*  .} 
+For example, on Unix run:\\ \ins{cp -R \sepphome/test/unittest/data/*  .}\\
+Note that on the VM, the files to copy are found in \~/testdata/sepp/. 
+
+
 
 \item Execute the following command to run \sepp on a sample biological dataset.\\
 
@@ -276,7 +279,7 @@ Next we will use \guppy to turn this text file to a visualization of the results
 
 This command generates a new file called \file{out\_placement.tog.xml}. This is an XML file in NexML format (\url{http://www.nexml.org/}) and can be opened with \arch software {available at \url{http://www.phylosoft.org/archaeopteryx/}}. 
 %You can find \arch also on the USB drive provided to you by organizers of the workshop. 
-Run \arch and use \ins{File/Read Tree from File} to open \file{out\_placement.tog.xml}. Select ``colorize branch" checkbox on the right hand side panel. The white branches represent the backbone tree, and branches in red correspond to the maximum likelihood placement of fragments on the backbone tree. 
+Run \arch and use \ins{File/Read Tree from File} to open \file{out\_placement.tog.xml}. Select ``colorize branch" checkbox on the right hand side panel (on newer versions of \arch, the option is ``visual styles/branch colors'' checkbox). The white branches represent the backbone tree, and branches in red correspond to the maximum likelihood placement of fragments on the backbone tree. 
 
 By now the run we started on the larger dataset (rpsS gene) should have finished as well (it takes about 5 minutes). Use \guppy to visualize the results of that run as well. 
 
@@ -339,12 +342,18 @@ tells \sepp that \pplacer binaries can be found under \file{/some/path}.
 An example config file is available as part of the distribution under the test directory (\file{test/unittest/data/simulated/sample.config}). 
 A main configuration file under \file{\{home\}/.sepp/main.config} is used
 to store some basic configurations such as the location of extra programs, etc.
-When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file. 
+When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file.  To test running from the config file, \ins{cd simulated} directory and run\\
+\ins{run_sepp.py -c test.config}
 
 \item Currently \sepp has a built-in checkpointing functionality.
 By default, this functionality is turned off, but can be turned on using \ins{-cp [checkpoint file name]}, 
 and the time interval between two consecutive checkpoints can be adjusted using \ins{-cpi [checkpoint frequency in seconds]}.
 Please note that checkpointing options have been tested only lightly and might have unknown issues. 
+
+\item For datasets containing both fragmentary and full-legnth sequences, the sequences much be separated out into a backbone set on the full-length sequences and a query set on the fragmentary sequences.  From there, an alignment and tree can be estimated on the backbone set, and SEPP can be used to insert the query sequences back into the backbone tree.  Run 
+\ins{split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100}\\
+
+This will split the sequences into two files, split.full.fas (all sequences longer than 100 bps) and split.frag.fas *(all sequences shorter than or equal to 100 bps).  From here, PASTA can be used to estimate the backbone alignment and RAxML can be used to estimate the backbone tree.  The query sequences can be inserted into the tree.
 \end{itemize}
 
 
