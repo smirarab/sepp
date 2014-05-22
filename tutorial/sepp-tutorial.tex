@@ -350,10 +350,13 @@ By default, this functionality is turned off, but can be turned on using \ins{-c
 and the time interval between two consecutive checkpoints can be adjusted using \ins{-cpi [checkpoint frequency in seconds]}.
 Please note that checkpointing options have been tested only lightly and might have unknown issues. 
 
-\item For datasets containing both fragmentary and full-legnth sequences, the sequences much be separated out into a backbone set on the full-length sequences and a query set on the fragmentary sequences.  From there, an alignment and tree can be estimated on the backbone set, and SEPP can be used to insert the query sequences back into the backbone tree.  Run 
+\item For datasets containing both fragmentary and full-legnth sequences, the sequences must be separated out into a backbone set on the full-length sequences and a query set on the fragmentary sequences.  
+From there, an alignment and tree can be estimated on the backbone set, 
+and SEPP can be used to insert the query sequences back into the backbone tree.  Run:\\
 \ins{split\_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100}\\
 
-This will split the sequences into two files, split.full.fas (all sequences longer than 100 bps) and split.frag.fas *(all sequences shorter than or equal to 100 bps).  From here, PASTA can be used to estimate the backbone alignment and RAxML can be used to estimate the backbone tree.  The query sequences can be inserted into the tree.
+This will split the sequences into two files, split.full.fas (all sequences longer than 100 bps) and split.frag.fas 
+(all sequences shorter than or equal to 100 bps).  From here, PASTA can be used to estimate the backbone alignment and RAxML can be used to estimate the backbone tree.  The query sequences can be inserted into the tree.
 \end{itemize}
 
 
