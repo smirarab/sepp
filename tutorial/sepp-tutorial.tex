@@ -156,7 +156,7 @@ Note that on the VM, the files to copy are found in \textasciitilde/testdata/sep
 
 
 \item Execute the following command to run \sepp on a sample biological dataset.\\
-
+\\
 \ins{run\_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML\_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas} \\
 
 (\sepp should finish running in about 2 minutes.) 
@@ -194,7 +194,7 @@ If you do not have the info file (or if you used
 some other software programs, such as \sate, to produce the
 backbone tree), you can use RAxML's \ins{-f e} option to quickly 
 estimate the model parameters (including branch lengths) on your 
-backbone tree topology (see \ref{sec:backbone} for details). 
+backbone tree topology. 
 The RAxML info file should be provided to \sepp using -r option. 
 \item[Fragments file:] this is a Fasta file containing the actual short fragments that are going to be placed. Fragments file should be given to \sepp using -f option. 
 \end{description}
