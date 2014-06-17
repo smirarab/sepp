@@ -132,6 +132,8 @@ class ConfigTIPP(Command):
         d = open(self.configfile,"w")
         for l in c:
             l = l.replace("~",get_tools_dest())
+            if (l.find('seppJsonMerger.jar') != -1):
+              l=l.replace('seppJsonMerger.jar','tippJsonMerger.jar')
             d.write(l)
         if not os.getenv('SATE') is None:
             d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
@@ -140,8 +142,7 @@ class ConfigTIPP(Command):
         if os.getenv('REFERENCE') is None:
             print "\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n"            
         d.write('\n[blast]\npath=%s\n' % os.getenv('BLAST'))
-        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))            
-            
+        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))                    
         d.close()        
 
     
@@ -160,7 +161,7 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py",'run_tipp',"split_sequences.py"],
+      scripts = ["run_sepp.py",'run_tipp.py','run_abundance.py',"split_sequences.py"],
       cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP},
       
       classifiers = ["Environment :: Console",
