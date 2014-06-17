@@ -395,6 +395,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             return d_tree
             
 def augment_parser():
+    sepp.config.set_main_config_path("~/.sepp/tipp.config"):    
     #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
     tippGroup = parser.add_argument_group("TIPP Options".upper(), 

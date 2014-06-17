@@ -290,9 +290,27 @@ def reverse_sequence(sequence):
   global character_map 
   #Reverse complement the sequence
   return "".join([character_map.get(a,a) for a in sequence[::-1]])
+  
+def augment_parser():
+    #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
+    parser = sepp.config.get_parser()
+    tippGroup = parser.add_argument_group("TIPP Options".upper(), 
+                         "These arguments set settings specific to TIPP")                                 
+    
+    tippGroup.add_argument("-at", "--alignmentThreshold", type = float, 
+                      dest = "alignment_threshold", metavar = "N", 
+                      default = 0.95,
+                      help = "Enough alignment subsets are selected to reach a commulative probability of N. "
+                             "This should be a number between 0 and 1 [default: 0.95]")                            
 
+    tippGroup.add_argument("-pt", "--placementThreshold", type = float, 
+                      dest = "placement_threshold", metavar = "N", 
+                      default = 0.95,
+                      help = "Enough placements are selected to reach a commulative probability of N. "
+                             "This should be a number between 0 and 1 [default: 0.95]")    
+    
 def main():
-    sepp.exhaustive_tipp.augment_parser() 
+    augment_parser() 
     sepp.config._options_singelton = sepp.config._parse_options()            
     input = options().fragment_file.name
     output_directory=options().outdir
