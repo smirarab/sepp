@@ -45,10 +45,7 @@ class ConfigSepp(Command):
         pass
     
     def run(self):        
-        print "\nCreating main sepp config file at %s " %(self.configfile)
-        if os.getenv('SATE') is None:
-            print "\nWarning! SATE variable is not defined.  If you plan to run UPP and want UPP to automatically generate backbone alignments and trees, then have it pointed to SATE executable.  You can also change your config to point to SATE by including the following line in your config:\n[sate]\npath=/location/of/run_sate.py\n"            
-
+        print "\nCreating main sepp config file at %s " %(self.configfile)            
         def get_tools_dir(where):    
             platform_name = platform.system()
             if where is None:
@@ -81,8 +78,6 @@ class ConfigSepp(Command):
         for l in c:
             l = l.replace("~",get_tools_dest())
             d.write(l)
-        if not os.getenv('SATE') is None:
-            d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         d.close()
     
         # Copy tools to a bundled directory inside .sepp
@@ -94,6 +89,64 @@ class ConfigSepp(Command):
         #TODO: should we compile and build merge.jar?
         copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
 
+class ConfigTIPP(Command):
+    """setuptools Command"""
+    description = "Configures TIPP for the current user"
+    user_options = []
+    
+    def initialize_options(self):
+        """init options"""
+        self.configfile = os.path.expanduser("~/.sepp/tipp.config")
+        pass
+
+    def finalize_options(self):
+        """finalize options"""
+        pass
+    
+    def run(self):                
+        print "\nCreating main tipp config file at %s " %(self.configfile)
+        def get_tools_dir(where):    
+            platform_name = platform.system()
+            if where is None:
+                where = os.path.join("bundled",platform_name)
+            path = os.path.join(os.getcwd(),"tools",where)
+            if not os.path.exists(path):
+                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
+            return path
+    
+        def get_tool_name(tool,bits):
+            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
+                return tool
+            is_64bits = sys.maxsize > 2**32
+            return "%s-%s" %(tool,"64" if is_64bits else "32")
+        
+        def get_tools_dest():
+            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
+        
+        def copy_tool_to_lib(tool,where=None,bits=True):    
+            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
+                        os.path.join(get_tools_dest(),tool))
+                    
+        # Create the default config file
+        c = open("default.main.config")
+        d = open(self.configfile,"w")
+        for l in c:
+            l = l.replace("~",get_tools_dest())
+            d.write(l)
+        if not os.getenv('SATE') is None:
+            d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
+        if os.getenv('BLAST') is None:
+            print "\nWarning! BLAST variable is not defined.  If you plan to run TIPP for abundance profiling, then have BLAST pointed to blastn executable.  You can also change your config to point to blastn by including the following line in your config:\n[blast]\npath=/location/of/blast_directory/blastn\n"            
+        if os.getenv('REFERENCE') is None:
+            print "\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n"            
+        d.write('\n[blast]\npath=%s\n' % os.getenv('BLAST'))
+        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))            
+            
+        d.close()        
+
+    
+        # Copy tools to a bundled directory inside .sepp
+        copy_tool_to_lib("tippJsonMerger.jar",where="merge",bits=False)
     
 setup(name = "sepp",
       version = version,
@@ -107,8 +160,8 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py","split_sequences.py"],
-      cmdclass = {"config": ConfigSepp},
+      scripts = ["run_sepp.py",'run_tipp',"split_sequences.py"],
+      cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP},
       
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",

@@ -1,5 +1,5 @@
 from sepp.exhaustive import ExhaustiveAlgorithm
-import sepp,os,stat
+import sepp,os,stat,math
 from sepp.config import options
 import argparse
 from sepp.algorithm import AbstractAlgorithm
@@ -50,12 +50,13 @@ class TIPPJoinSearchJobs(Join):
                 
         for frag, tuplelist in bitscores.iteritems():
             ''' TODO: what to do with those that are not? For now, only output warning message'''
+            #TODO:  Need to double check and fix the math
             if len(tuplelist) == 0:
                 _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
                 continue
-            ''' convert bit scores to probabilities '''
-            denum = sum(pow(2, x[0]) for x in tuplelist)
-            tuplelist = [(int(pow(2,x[0])/denum*1000000),x[1]) for x in tuplelist]
+            ''' convert bit scores to probabilities '''            
+            denum = sum(math.pow(2, min(x[0],1022)) for x in tuplelist)
+            tuplelist = [((math.pow(2,min(x[0],1022))/denum*1000000),x[1]) for x in tuplelist]
             ''' Sort subsets by their probability'''
             tuplelist.sort(reverse=True)
             ''' Find enough subsets to reach the threshold '''
@@ -396,35 +397,35 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
 def augment_parser():
     #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
-    uppGroup = parser.add_argument_group("TIPP Options".upper(), 
+    tippGroup = parser.add_argument_group("TIPP Options".upper(), 
                          "These arguments set settings specific to TIPP")                                 
     
-    uppGroup.add_argument("-at", "--alignmentThreshold", type = float, 
+    tippGroup.add_argument("-at", "--alignmentThreshold", type = float, 
                       dest = "alignment_threshold", metavar = "N", 
                       default = 0.95,
                       help = "Enough alignment subsets are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
 
-    uppGroup.add_argument("-pt", "--plaecementThreshold", type = float, 
+    tippGroup.add_argument("-pt", "--placementThreshold", type = float, 
                       dest = "placement_threshold", metavar = "N", 
                       default = 0.95,
                       help = "Enough placements are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
     
-    uppGroup.add_argument("-tx", "--taxonomy", type = argparse.FileType('r'), 
+    tippGroup.add_argument("-tx", "--taxonomy", type = argparse.FileType('r'), 
                       dest = "taxonomy_file", metavar = "TAXONOMY", 
                       help = "A file describing the taxonomy. This is a comma-separated text file that has the following fields: "
                              "taxon_id,parent_id,taxon_name,rank. " 
                              "If there are other columns, they are ignored. The first line is also ignored.")
     
-    uppGroup.add_argument("-txm", "--taxonomyNameMapping", type = argparse.FileType('r'), 
+    tippGroup.add_argument("-txm", "--taxonomyNameMapping", type = argparse.FileType('r'), 
                       dest = "taxonomy_name_mapping_file", metavar = "MAPPING", 
                       help = "A comma-separated text file mapping alignment sequence names to taxonomic ids. "
                       "Formats (each line): "
                              "sequence_name,taxon_id. " 
                              "If there are other columns, they are ignored. The first line is also ignored.")
 
-    uppGroup.add_argument("-adt", "--alignmentDecompositionTree", type = argparse.FileType('r'), 
+    tippGroup.add_argument("-adt", "--alignmentDecompositionTree", type = argparse.FileType('r'), 
                       dest = "alignment_decomposition_tree", metavar = "TREE", default = None,
                       help = "A newick tree file used for decomposing taxa into alignment subsets. " 
                              "[default: the backbone tree]")
