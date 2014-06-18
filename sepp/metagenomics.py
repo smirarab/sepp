@@ -71,7 +71,9 @@ def build_profile(input,output_directory):
     cpus = options().cpu
     if (len(frags.keys()) < cpus):
       cpus = len(frags.keys())
-    os.system('run_tipp.py --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.tree'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.fasta'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/species.mapping'%gene,options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
+    os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.tree'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.fasta'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/species.mapping'%gene,options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
+    if (not os.path.exists(output_directory+"/markers/tipp_%s_classification.txt" % gene)):
+      continue
 
     gene_classification = generate_classification(output_directory+"/markers/tipp_%s_classification.txt" % gene,0)
 

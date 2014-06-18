@@ -208,10 +208,10 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             raise Exception("Expecting true/false for options().hmmsearch.filters")
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
-        self.alignment_threshold = float(options().exhaustive.sepp_alignment_threshold)
+        self.alignment_threshold = float(options().alignment_threshold)
         #Temp fix for now,
         self.molecule = options().molecule
-        self.placer = options().exhaustive.placer.lower()
+        self.placer = options().exhaustive.__dict__['placer'].lower()
         
     def setup(self, inString, output_file, **kwargs):
         self.stdindata = inString
@@ -265,7 +265,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         ExhaustiveAlgorithm.__init__(self)    
         self.alignment_threshold = self.options.alignment_threshold 
         self.placer = self.options.exhaustive.placer.lower()
-        self.push_down = True if self.options.tipp.push_down.lower() == "true" else False
+        self.push_down = True if self.options.push_down == True else False
         _LOG.info("Will push fragments %s from their placement edge." %("down" if self.push_down else "up"))                               
     def _get_new_Join_Align_Job(self):
         return TIPPJoinAlignJobs(self.placer)
@@ -413,6 +413,12 @@ def augment_parser():
                       help = "Enough placements are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
     
+    tippGroup.add_argument("-PD", "--push_down", type = bool,
+                      dest = "push_down", metavar = "N",
+                      default = True,
+                      help = "Whether to classify based on children below or above insertion point.  [default: True]")
+
+
     tippGroup.add_argument("-tx", "--taxonomy", type = argparse.FileType('r'), 
                       dest = "taxonomy_file", metavar = "TAXONOMY", 
                       help = "A file describing the taxonomy. This is a comma-separated text file that has the following fields: "
