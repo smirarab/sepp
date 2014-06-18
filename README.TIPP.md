@@ -57,13 +57,9 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 Common Problems:
 -------------------
-1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: `python setup.py install --prefix=/some/path/on/your/system`, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
+1.  TIPP requires SEPP to be installed.  If TIPP is not running, first check to see if TIPP was installed correctly.
 
-2. TIPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point TIPP to them. To point TIPP to your installation of hmmer and placer modify ~/.sepp/tipp.config. 
-   pplacer: http://matsen.fhcrc.org/pplacer/
-   hmmer://hmmer.janelia.org/
-
-3.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
+2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
    blast: http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
@@ -76,9 +72,9 @@ To run TIPP, invoke the `run_tipp.py` script from the `bin` sub-directory of the
 
 `python <bin>/run_tipp.py -h`
 
-The general command for running SEPP is:
+The general command for running TIPP is:
 
-`python <bin>/run_tipp.py -t <tree_file> -a <alignment_file> -f <fragment_file> -r <raxml_info_file> -A <alignment_set_size> -P <placement_set_size>`
+`python <bin>/run_tipp.py -t <tree_file> -a <alignment_file> -f <fragment_file> -r <raxml_info_file> -A <alignment_set_size> `
 
 TIPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/mock/. Change to that directory to run SEPP on the sample files. To run using command options, run
 

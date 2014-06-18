@@ -142,7 +142,8 @@ class ConfigTIPP(Command):
         if os.getenv('REFERENCE') is None:
             print "\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n"            
         d.write('\n[blast]\npath=%s\n' % os.getenv('BLAST'))
-        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))                    
+        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))
+        d.write('\n[tipp]\npushdown = true\n')                    
         d.close()        
 
     

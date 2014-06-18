@@ -71,7 +71,7 @@ def build_profile(input,output_directory):
     cpus = options().cpu
     if (len(frags.keys()) < cpus):
       cpus = len(frags.keys())
-    os.system('run_tipp.py --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.tree'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.fasta'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/species.mapping'%gene,0,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
+    os.system('run_tipp.py --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.tree'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.fasta'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/species.mapping'%gene,options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
 
     gene_classification = generate_classification(output_directory+"/markers/tipp_%s_classification.txt" % gene,0)
 
@@ -294,34 +294,30 @@ def reverse_sequence(sequence):
 def augment_parser():
     #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
+    
     tippGroup = parser.add_argument_group("TIPP Options".upper(), 
                          "These arguments set settings specific to TIPP")                                 
     
     tippGroup.add_argument("-at", "--alignmentThreshold", type = float, 
                       dest = "alignment_threshold", metavar = "N", 
-                      default = 0.95,
+                      default = 0.0,
                       help = "Enough alignment subsets are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
 
     tippGroup.add_argument("-pt", "--placementThreshold", type = float, 
                       dest = "placement_threshold", metavar = "N", 
-                      default = 0.95,
+                      default = 0.0,
                       help = "Enough placements are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")    
     
 def main():
     augment_parser() 
     sepp.config._options_singelton = sepp.config._parse_options()            
+    if (options().alignment_size is None):
+      options().alignment_size = 100
     input = options().fragment_file.name
     output_directory=options().outdir
     build_profile(input,output_directory)
 
 if __name__ == '__main__':   
     main()
-      
-#sepp.exhaustive_tipp.augment_parser()
-#sys.argv.append('-c')
-#sys.argv.append('/projects/sate5/metagen/scripts/configs/new.config')
-#temp_dir='/scratch/cluster/namphuon/temp/sepp/tmpXeW_Z5/tmpAuDOKV/'
-#(taxon_map, level_map, key_map) = load_taxonomy("/projects/sate8/namphuon/tipp/"+ 'refpkg/rpsB.refpkg/all_taxon.taxonomy')
-#gene_classification = generate_classification("/projects/sate5/metagen/scripts/temp/tipp/markers/tipp_%s_classification.txt" % 'rpsB',0)  
