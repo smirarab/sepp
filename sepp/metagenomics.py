@@ -119,7 +119,7 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
         level_abundance[level][lineage[level]]+=1        
         level_abundance[level]['total']+=1    
   for level in level_names:
-    f = open(output_dir + "abundance.%s.csv" % level_names[level],'w');
+    f = open(output_dir + "/abundance.%s.csv" % level_names[level],'w');
     f.write('taxa\tabundance\n')
     lines = []
     for clade in level_abundance[level]:
