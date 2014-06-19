@@ -148,6 +148,8 @@ def generate_classification(class_input,threshold):
   classification = {}
   for line in class_in:    
     results = line.strip().split(',')
+    if (len(results) > 5):
+      results = [results[0], results[1], results[2], results[-2], results[-1]]
     (name, id, rank, probability) = (results[0], results[1], results[3], float(results[4]));
     names[name] = name;
     if (name != old_name):
