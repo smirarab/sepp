@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>  
+<!--TODO Need to switch better TIPP merger and SEPP merger-->
 <project name="merge" default="jar">  
   
   <!-- Name of the output .jar file -->  
