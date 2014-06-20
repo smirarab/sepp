@@ -51,7 +51,7 @@ def load_taxonomy(taxonomy_file, lower=True):
 def build_profile(input,output_directory):  
   global taxon_map,level_map,key_map,levels
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-  binned_fragments=bin_to_markers(input,temp_dir)
+  binned_fragments=bin_to_markers(input,temp_dir)    
   
   #load up taxonomy for 30 marker genes
   (taxon_map, level_map, key_map) = load_taxonomy(options().__getattribute__('reference').path + 'refpkg/rpsB.refpkg/all_taxon.taxonomy')
@@ -191,17 +191,20 @@ def generate_classification(class_input,threshold):
   return classification
   
 def bin_to_markers(input,temp_dir):
-  #First blast sequences against all markers  
-  blast_results=temp_dir+"/blast.out"
-  print "Blasting fragments against marker dataset\n"
-  blast_fragments(input,blast_results)
-  
-  #Next bin the blast hits to the best gene
-  gene_binning = bin_blast_results(blast_results)
-    
-  #Now figure out direction of fragments
   fragments = MutableAlignment()
   fragments.read_filepath(input)
+
+  if (options().gene == None):    
+    #First blast sequences against all markers    
+    blast_results=temp_dir+"/blast.out"
+    print "Blasting fragments against marker dataset\n"
+    blast_fragments(input,blast_results)
+    
+    #Next bin the blast hits to the best gene
+    gene_binning = bin_blast_results(blast_results)
+  else:
+    gene_binning = {options().gene:fragments.keys()}
+  #Now figure out direction of fragments
   binned_fragments = dict([(gene,dict([(seq_name,fragments[seq_name]) for seq_name in gene_binning[gene]])) for gene in gene_binning])
 
   for (gene,frags) in binned_fragments.items():
@@ -313,7 +316,10 @@ def augment_parser():
                       default = 0.0,
                       help = "Enough placements are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")    
-    
+    tippGroup.add_argument("-g", "--gene", type = str, 
+                      dest = "gene", metavar = "N", 
+                      default = None,
+                      help = "Classify on only the specified gene. ")    
 def main():
     augment_parser() 
     sepp.config._options_singelton = sepp.config._parse_options()            
