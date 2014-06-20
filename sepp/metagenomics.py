@@ -54,7 +54,7 @@ def build_profile(input,output_directory):
   binned_fragments=bin_to_markers(input,temp_dir)    
   
   #load up taxonomy for 30 marker genes
-  (taxon_map, level_map, key_map) = load_taxonomy(options().__getattribute__('reference').path + 'refpkg/rpsB.refpkg/all_taxon.taxonomy')
+  (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
     
   #all classifications stored here  
   classifications = {}
@@ -63,7 +63,7 @@ def build_profile(input,output_directory):
   for (gene,frags) in binned_fragments.items():    
     #Get size of each marker
     total_taxa = 0
-    with open(options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.size'%gene, 'r') as f:
+    with open(os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.size'%gene), 'r') as f:
       total_taxa = int(f.readline().strip())
     decomp_size = options().alignment_size
     if (decomp_size > total_taxa):
@@ -71,7 +71,7 @@ def build_profile(input,output_directory):
     cpus = options().cpu
     if (len(frags.keys()) < cpus):
       cpus = len(frags.keys())
-    os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.tree'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.fasta'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/species.mapping'%gene,options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
+    os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.tree'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.fasta'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/"))
     if (not os.path.exists(output_directory+"/markers/tipp_%s_classification.txt" % gene)):
       continue
 
@@ -217,7 +217,7 @@ def bin_to_markers(input,temp_dir):
     _write_fasta(gene_frags,gene_file)
     
     #Now run HMMER search
-    hmmer_search(gene_file,options().__getattribute__('reference').path + 'refpkg/%s.refpkg/sate.profile'%gene,temp_dir+"/%s.out" % gene)
+    hmmer_search(gene_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.profile'%gene),temp_dir+"/%s.out" % gene)
     results=read_hmmsearch_results(temp_dir+"/%s.out" % gene)
     
     #Now select best direction for each frag
@@ -269,7 +269,7 @@ def read_mapping(input, header=False, delimiter='\t'):
 
 def bin_blast_results(input):
   #Map the blast results to the markers
-  gene_mapping = read_mapping(options().__getattribute__('reference').path + 'blast/markers/seq2marker.tab')
+  gene_mapping = read_mapping(os.path.join(options().__getattribute__('reference').path, 'blast/markers/seq2marker.tab'))
   
   genes = {}
   with open(input) as f:
@@ -291,7 +291,7 @@ def hmmer_search(input, hmmer,output):
 def blast_fragments(input, output):
   '''Blast the fragments against all marker genes+16S sequences, return output
   '''
-  os.system('%s -db %s -outfmt 6 -query %s -out %s -num_threads %d -max_target_seqs 1 ' % (options().__getattribute__('blast').path, options().__getattribute__('reference').path + "blast/markers/alignment.fasta.db", input, output,options().cpu))
+  os.system('%s -db %s -outfmt 6 -query %s -out %s -num_threads %d -max_target_seqs 1 ' % (options().__getattribute__('blast').path, os.path.join(options().__getattribute__('reference').path, "blast/markers/alignment.fasta.db"), input, output,options().cpu))
     
 def reverse_sequence(sequence):
   global character_map 
