@@ -75,13 +75,13 @@ def build_profile(input,output_directory):
     if (not os.path.exists(output_directory+"/markers/tipp_%s_classification.txt" % gene)):
       continue
 
-    gene_classification = generate_classification(output_directory+"/markers/tipp_%s_classification.txt" % gene,0)
+    gene_classification = generate_classification(output_directory+"/markers/tipp_%s_classification.txt" % gene,options().placement_threshold)
 
     #Now write individual classification and also pool classifications    
-    write_classification(gene_classification, output_directory+"/markers/tipp_%s.classification.0" % gene)    
+    write_classification(gene_classification, output_directory+"/markers/tipp_%s.classification" % gene)    
     classifications.update(gene_classification)    
   remove_unclassified_level(classifications)
-  write_classification(classifications, output_directory+"/markers/all.classification.0")
+  write_classification(classifications, output_directory+"/markers/all.classification")
   write_abundance(classifications,output_directory)
 
 def remove_unclassified_level(classifications,level=6):
