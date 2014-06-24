@@ -51,7 +51,11 @@ def load_taxonomy(taxonomy_file, lower=True):
 def build_profile(input,output_directory):  
   global taxon_map,level_map,key_map,levels
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-  binned_fragments=bin_to_markers(input,temp_dir)    
+  binned_fragments=bin_to_markers(input,temp_dir)
+  
+  if !binned_fragments:
+    print "Unable to bin any fragments!\n"
+    return
   
   #load up taxonomy for 30 marker genes
   (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
