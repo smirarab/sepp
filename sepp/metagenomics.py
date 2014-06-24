@@ -172,7 +172,7 @@ def generate_classification(class_input,threshold):
       old_name = name;
       old_rank = "root";
       old_probability = 1;
-      old_id = 1;
+      old_id = '1';
     
     #Switch to new rank if the new probability is higher than threshold 
     #and our rank is more specific than our original rank
