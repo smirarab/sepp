@@ -53,7 +53,9 @@ def build_profile(input,output_directory):
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
   binned_fragments=bin_to_markers(input,temp_dir)
   
-  if !binned_fragments:
+  if binned_fragments:
+    print "Finished binning"
+  else:
     print "Unable to bin any fragments!\n"
     return
   
