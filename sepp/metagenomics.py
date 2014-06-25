@@ -51,7 +51,7 @@ def load_taxonomy(taxonomy_file, lower=True):
 def build_profile(input,output_directory):  
   global taxon_map,level_map,key_map,levels
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-  binned_fragments=bin_to_markers(input,output_directory)
+  binned_fragments=bin_to_markers(input,temp_dir)
   
   if binned_fragments:
     print "Finished binning"
@@ -203,16 +203,18 @@ def bin_to_markers(input,temp_dir):
   if (options().gene == None):    
     #First blast sequences against all markers    
     blast_results=temp_dir+"/blast.out"
-    print "Blasting fragments against marker dataset\n"
-    blast_fragments(input,blast_results)
-    
-    #Next bin the blast hits to the best gene
+    if (options().blast_file == None):    
+      print "Blasting fragments against marker dataset\n"
+      blast_fragments(input,blast_results)
+    else:
+      blast_results=options().blast_file
+    #Next bin the blast hits to the best gene    
     gene_binning = bin_blast_results(blast_results)
   else:
     gene_binning = {options().gene:fragments.keys()}
   #Now figure out direction of fragments
   binned_fragments = dict([(gene,dict([(seq_name,fragments[seq_name]) for seq_name in gene_binning[gene]])) for gene in gene_binning])
-
+  print "Finding best orientation of reads\n"
   for (gene,frags) in binned_fragments.items():
     #Add reverse complement sequence
     frags_rev = dict([(name+'_rev',reverse_sequence(seq)) for (name,seq) in frags.items()])
