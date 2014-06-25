@@ -51,7 +51,7 @@ def load_taxonomy(taxonomy_file, lower=True):
 def build_profile(input,output_directory):  
   global taxon_map,level_map,key_map,levels
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-  binned_fragments=bin_to_markers(input,temp_dir)
+  binned_fragments=bin_to_markers(input,output_directory)
   
   if binned_fragments:
     print "Finished binning"
@@ -326,6 +326,12 @@ def augment_parser():
                       dest = "gene", metavar = "N", 
                       default = None,
                       help = "Classify on only the specified gene. ")    
+                      
+    tippGroup.add_argument("-b", "--blast_file", type = str, 
+                      dest = "blast_file", metavar = "N", 
+                      default = None,
+                      help = "Blast file with fragments already binned. ")    
+                      
 def main():
     augment_parser() 
     sepp.config._options_singelton = sepp.config._parse_options()            
