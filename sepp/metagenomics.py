@@ -9,10 +9,11 @@ Created on June 3, 2014
 
 @author: namphuon
 '''
-global character_map,taxon_map,level_map,key_map
+global character_map,taxon_map,level_map,key_map,marker_genes
 character_map = {'A':'T', 'a':'t', 'C':'G', 'c':'g', 'T':'A', 't':'a', 'G':'C', 'g':'c', '-':'-'}
 global levels
 levels = ["species", "genus", "family", "order", "class", "phylum"]
+marker_genes = ["nusA","rplB","rplK","rplS","rpsE","rpsS", "pgk","rplC","rplL","rplT","rpsI","smpB","dnaG","pyrg", "rplD","rplM","rpmA","rpsJ","frr","pyrG","rplE","rplN", "rpsB","rpsK","infC","rplA","rplF","rplP","rpsC","rpsM"]
 
 #TODO Fix parameter passing
 #TODO Make taxonomy loading a class
@@ -51,7 +52,10 @@ def load_taxonomy(taxonomy_file, lower=True):
 def build_profile(input,output_directory):  
   global taxon_map,level_map,key_map,levels
   temp_dir=tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-  binned_fragments=bin_to_markers(input,temp_dir)
+  if (options().bin == 'blast'):
+    binned_fragments=blast_to_markers(input,temp_dir)
+  else:
+    binned_fragments=hmmer_to_markers(input,temp_dir)
   
   if binned_fragments:
     print "Finished binning"
@@ -195,8 +199,54 @@ def generate_classification(class_input,threshold):
     output_line.append(clade)        
   classification[name]=output_line
   return classification
+
+def hmmer_to_markers(input,temp_dir):
+  global marker_genes
+  fragments = MutableAlignment()
+  fragments.read_filepath(input)
   
-def bin_to_markers(input,temp_dir):
+  reverse = dict([(name+'_rev',reverse_sequence(seq)) for (name,seq) in fragments.items()])
+  all_frags = MutableAlignment()
+  all_frags.set_alignment(fragments)
+  all_frags.set_alignment(reverse)
+  frag_file=temp_dir+"/frags.fas"
+  _write_fasta(all_frags,frag_file)
+  
+  #Now bin the fragments
+  frag_scores = dict([(name,[-10000,'NA','NA']) for name in fragments.keys()])
+  for gene in marker_genes:    
+    #Now run HMMER search
+    hmmer_search(frag_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.profile'%gene),temp_dir+"/%s.out" % gene)
+    results=read_hmmsearch_results(temp_dir+"/%s.out" % gene)
+    
+    #Now select best direction for each frag
+    for name in results.keys():
+      bitscore = results[name][1]
+      direction = 'forward'
+      true_name = name
+      if (name.find('_rev') != -1):
+        true_name=true_name.replace('_rev','')
+        direction = 'reverse'
+      if frag_scores[true_name][0] < bitscore:
+        frag_scores[true_name] = [bitscore,gene,direction]
+    
+  #Now bin the fragments
+  genes = dict([])
+  for name in frag_scores.keys():
+    if (frag_scores[name][1] not in genes):
+      genes[frag_scores[name][1]] = {}
+    if (frag_scores[name][2] == 'forward'):
+      genes[frag_scores[name][1]][name] = fragments[name]
+    else:
+      genes[frag_scores[name][1]][name] = reverse_sequence(fragments[name])    
+  genes.pop("NA", None)      
+  for gene in genes.keys():
+    gene_file=temp_dir+"/%s.frags.fas" % gene
+    _write_fasta(genes[gene],gene_file+".fixed")
+  return genes  
+  
+  
+def blast_to_markers(input,temp_dir):
   fragments = MutableAlignment()
   fragments.read_filepath(input)
 
@@ -292,8 +342,8 @@ def bin_blast_results(input):
 
 def hmmer_search(input, hmmer,output):
   '''Blast the fragments against all marker genes+16S sequences, return output
-  '''  
-  os.system('%s --noali -E 10000 -o %s %s %s' % (options().__getattribute__('hmmsearch').path, output, hmmer, input))  
+  '''    
+  os.system('%s --noali -E 10000 --cpu %d -o %s %s %s' % (options().__getattribute__('hmmsearch').path,options().cpu, output, hmmer, input))  
   
   
 def blast_fragments(input, output):
@@ -333,6 +383,12 @@ def augment_parser():
                       dest = "blast_file", metavar = "N", 
                       default = None,
                       help = "Blast file with fragments already binned. ")    
+
+    tippGroup.add_argument("-bin", "--bin_using", type = str, 
+                      dest = "bin", metavar = "N", 
+                      default = "blast",
+                      help = "Tool for binning")    
+                      
                       
 def main():
     augment_parser() 
