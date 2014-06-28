@@ -189,15 +189,16 @@ def generate_classification(class_input,threshold):
       old_rank = rank
       old_probability = probability
       old_id = id               
-      
-  lineage = taxon_map[old_id];
-  output_line = [old_name]        
-  for level in levels:
-    clade = lineage[key_map[level]];
-    if (clade == ""):
-      clade = "NA"        
-    output_line.append(clade)        
-  classification[name]=output_line
+  
+  if old_id in taxon_map:   
+    lineage = taxon_map[old_id];
+    output_line = [old_name]        
+    for level in levels:
+      clade = lineage[key_map[level]];
+      if (clade == ""):
+        clade = "NA"        
+      output_line.append(clade)        
+    classification[name]=output_line
   return classification
 
 def hmmer_to_markers(input,temp_dir):
