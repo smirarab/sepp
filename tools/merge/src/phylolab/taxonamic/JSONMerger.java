@@ -59,6 +59,7 @@ public class JSONMerger {
     private Hashtable<String, String> jsonNameToTaxonId;
     private Double threshold;
     private FileWriter cw;
+    private boolean distribution;
     private boolean pushDown;
 
     static String join(Collection<String> s, String delimiter) {
@@ -76,7 +77,7 @@ public class JSONMerger {
 
     public JSONMerger(String mainTree, List<String> trees, 
 	    List<String> jsonLocations, boolean sorted, int rmUnderscore, 
-	    STITree<TaxonomyData> taxonomy, Hashtable<String,String> jsonNameToTaxonId, Double threshold, FileWriter classificationWriter, boolean pushUp) {
+	    STITree<TaxonomyData> taxonomy, Hashtable<String,String> jsonNameToTaxonId, Double threshold, FileWriter classificationWriter, boolean pushUp, boolean distribution) {
 	mainEdgeLen = new HashMap<String, Double>();
 	this.mainTree = mainTree;
 	this.trees  = trees;
@@ -88,6 +89,7 @@ public class JSONMerger {
 	this.threshold = threshold;
 	this.cw = classificationWriter;
 	this.pushDown = ! pushUp;
+	this.distribution = distribution;
     }
 
     /**
@@ -195,8 +197,7 @@ public class JSONMerger {
 	return res;
     }
 
-    private void processJson(String originalTree, JSONObject json) {
-
+    private void processJson(String originalTree, JSONObject json) {	
 	String jsonTree = json.getString("tree");
 	HashMap<String, String> labelMap = mapTreeBranchNames(jsonTree, originalTree);
 
@@ -213,10 +214,10 @@ public class JSONMerger {
 		    n.add(((JSONArray) nmIt.next()).getString(0));
 		}
 		placement.put("n", n); 
-		placement.discard("nm");
+		placement.discard("nm");		
 	    }
 	    JSONArray n = placement.getJSONArray("n");
-	    for (int i = 0; i < n.size(); i++) {
+	    for (int i = 0; i < n.size(); i++) {	    
 		String name = n.getString(i);
 		String newName = name;
 		Double prior = 1.;
@@ -258,10 +259,10 @@ public class JSONMerger {
 		     */
 		    if (precord.getDouble(3) > ((Double) mainEdgeLen.get(newLab)).doubleValue())
 			newRecord.set(3, Double.valueOf(((Double) mainEdgeLen.get(newLab))
-				.doubleValue() * 0.99D));
+				.doubleValue() * 0.99D));	
 		    /*
 		     * Adjust the weighted likelihood by alignment probability as a prior.
-		     */
+		     */		     
 		    Double newLWR = new Double(prior * precord.getDouble(2));
 		    newRecord.set(2, newLWR);
 		    sum += newLWR;
@@ -269,7 +270,6 @@ public class JSONMerger {
 		    current.add(newRecord);
 		}	    
 		nameToAllPlacements.put(newName, current);		   	    
-
 		nameToCummulativeLWR.put(newName, nameToCummulativeLWR.containsKey(newName) ?
 			nameToCummulativeLWR.get(newName) + sum : sum);	   
 	    }
@@ -379,6 +379,7 @@ public class JSONMerger {
 		Double probability = placementRecord.getDouble(2) / sum;
 		if (jsonTreeIDToTaxonomyNode != null) {
 		    String edgeNumber = placementRecord.getString(0);
+		    System.out.println(fragment + " " + edgeNumber + " " + probability);
 		    STINode<TaxonomyData> node = jsonTreeIDToTaxonomyNode.get(edgeNumber);
 		    while (node != null){
 			node.getData().probability += probability;
@@ -464,9 +465,12 @@ public class JSONMerger {
 	 * Find the length of individual edges in the main tree
 	 */
 	mainTree = mainTree.replaceAll("'","");
+	System.out.println("main\n" + mainTree + "");
 	Matcher edgeLenMatcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
 		.matcher(mainTree);
+	System.out.println("Matching");
 	while (edgeLenMatcher.find()) {
+	    System.out.println(edgeLenMatcher.group(1) + " main "+ edgeLenMatcher.group(2));
 	    mainEdgeLen.put(edgeLenMatcher.group(2), new Double(edgeLenMatcher.group(1)));
 	}
 
@@ -541,6 +545,7 @@ public class JSONMerger {
 	String outfilename = args[2];
 	boolean sorted = false;
 	boolean pushUp = false;
+	boolean distribution = false;
 	int rmUnderscore = 0;
 	String mainTree = "";
 	List<String> trees = new ArrayList<String>();
@@ -558,6 +563,8 @@ public class JSONMerger {
 		sorted = true;
 	    } else if (args[i].equals("-u")) {
 		pushUp = true;
+	    } else if (args[i].equals("-d")) {
+		distribution = true;
 	    } else if (args[i].equals("-r")) {
 		if (i+1 >= args.length) {
 		    System.out.println("-r needs to be followd by a number.");
@@ -638,6 +645,7 @@ public class JSONMerger {
 		    File jsonFile = files[i];
 		    try {
 			String baseTreeFn = jsonFile.getAbsolutePath().replace("json", "labeled.tree");
+			baseTreeFn = jsonFile.getAbsolutePath().replace("jplace", "labeled.tree");
 			BufferedReader in = new BufferedReader(new InputStreamReader(
 				new FileInputStream(baseTreeFn)));
 			trees.add(in.readLine()); 
@@ -668,7 +676,7 @@ public class JSONMerger {
 
 	    JSONMerger merger = new JSONMerger(mainTree, trees, 
 		    jsonLocations, sorted, rmUnderscore, taxonomy, jsonNameToTaxonId, 
-		    threshold, classificationWriter, pushUp);
+		    threshold, classificationWriter, pushUp, distribution);
 	    JSONObject merged = merger.mergeJsonFiles();
 	    merger.writeGSONFile(outfilename, merged);
 	    

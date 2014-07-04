@@ -68,7 +68,7 @@ def build_profile(input,output_directory):
     
   #all classifications stored here  
   classifications = {}
-
+  classification_files = []
   #Now run TIPP on each fragment    
   for (gene,frags) in binned_fragments.items():    
     #Get size of each marker
@@ -86,14 +86,72 @@ def build_profile(input,output_directory):
       continue
 
     gene_classification = generate_classification(output_directory+"/markers/tipp_%s_classification.txt" % gene,options().placement_threshold)
-
+    classification_files.append(output_directory+"/markers/tipp_%s_classification.txt" % gene)
     #Now write individual classification and also pool classifications    
     write_classification(gene_classification, output_directory+"/markers/tipp_%s.classification" % gene)    
     classifications.update(gene_classification)    
   remove_unclassified_level(classifications)
   write_classification(classifications, output_directory+"/markers/all.classification")
   write_abundance(classifications,output_directory)
+  
+  if (options().dist == True):
+    distribution(classification_files,output_directory)
 
+def distribution(classification_files,output_dir):  
+  global taxon_map,level_map,key_map,levels,level_names
+  distribution = {"species":{}, "genus":{}, "family":{}, "order":{}, "class":{}, "phylum":{}}
+  total_frags = 0  
+  for class_input in classification_files:
+    class_in = open(class_input, 'r')
+    frag_info = {"species":{'unclassified':1}, "genus":{'unclassified':1}, "family":{'unclassified':1}, "order":{'unclassified':1}, "class":{'unclassified':1}, "phylum":{'unclassified':1}}
+    (old_name,old_rank,old_probability,old_line) = ("",None,-1,"")
+    for line in class_in:          
+      results = line.strip().split(',')
+      if (len(results) > 5):
+        results = [results[0], results[1], results[2], results[-2], results[-1]]
+      (name, id, rank, probability) = (results[0], results[1], results[3], float(results[4]));
+      if (rank not in distribution):
+        continue      
+      if (old_name == ""):
+        (old_name,old_rank,old_probability,old_line) = (name,rank,probability,line)
+      if (name != old_name):
+        total_frags+=1
+        assert frag_info['phylum']['unclassified'] != 1
+        for clade in frag_info.keys():
+          for clade_name in frag_info[clade].keys():
+            if (clade_name not in distribution[clade]):
+              distribution[clade][clade_name] = 0
+            distribution[clade][clade_name]+=frag_info[clade][clade_name]
+        frag_info = {"species":{'unclassified':1}, "genus":{'unclassified':1}, "family":{'unclassified':1}, "order":{'unclassified':1}, "class":{'unclassified':1}, "phylum":{'unclassified':1}} 
+        (old_name,old_rank,old_probability,old_line) = (name,rank,probability,line)
+      if (id not in frag_info[rank]):
+        frag_info[rank][id] = 0
+      frag_info[rank][id]+=probability
+      frag_info[rank]['unclassified']-=probability        
+    total_frags+=1
+    assert frag_info['phylum']['unclassified'] != 1
+    for clade in frag_info.keys():
+      for clade_name in frag_info[clade].keys():
+        if (clade_name not in distribution[clade]):
+          distribution[clade][clade_name] = 0
+        distribution[clade][clade_name]+=frag_info[clade][clade_name]
+  
+  level_names = {1:'species', 2:'genus', 3:'family', 4:'order', 5:'class', 6:'phylum'}
+  for level in level_names:
+    f = open(output_dir + "/abundance.distribution.%s.csv" % level_names[level],'w');
+    f.write('taxa\tabundance\n')
+    lines = []
+    for clade in distribution[level_names[level]].keys():
+      name = clade
+      if (name != 'unclassified'):
+        name = taxon_map[clade][key_map['tax_name']]      
+      lines.append('%s\t%0.4f\n' % (name,float(distribution[level_names[level]][clade])/total_frags))
+    lines.sort()
+    f.write(''.join(lines))  
+    f.close()  
+  return distribution
+  
+    
 def remove_unclassified_level(classifications,level=6):
   global taxon_map,level_map,key_map,levels
   frags = classifications.keys()
@@ -142,7 +200,7 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
     lines.sort()
     f.write(''.join(lines))  
     f.close()
-    
+        
 def generate_classification(class_input,threshold):    
   global taxon_map,level_map,key_map,levels
   class_in = open(class_input, 'r')
@@ -389,6 +447,12 @@ def augment_parser():
                       dest = "bin", metavar = "N", 
                       default = "blast",
                       help = "Tool for binning")    
+                      
+    tippGroup.add_argument("-D", "--dist", 
+                      dest = "dist", action='store_true', 
+                      default = False,
+                      help = "Treat fragments as distribution")    
+                      
                       
                       
 def main():

@@ -65,10 +65,17 @@ class TIPPJoinSearchJobs(Join):
                                     (y[0],x[1]+y[1]) if x[1] < int(1000000 * self.alignment_threshold) else
                                     (y[0],None),
                        enumerate([x[0] for x in tuplelist]))[0]) ]
+            
+            ''' Renormalize the selected list to add up to 1'''
+            renorm = 0
+            for (prob,align_problem) in selected:	      
+              renorm = renorm + prob/1000000
+            renorm = 1/renorm
+            
             _LOG.debug("Fragment %s assigned to %d subsets" %(frag,len(selected)))
             ''' Rename the fragment and assign it to the respective subsets'''
             for (prob,align_problem) in selected:
-                postfix = prob if options().exhaustive.weight_placement_by_alignment.lower() == "true" else 1000000
+                postfix = prob*renorm if options().exhaustive.weight_placement_by_alignment.lower() == "true" else 1000000
                 frag_rename = "%s_%s_%d" %(frag,align_problem.label,postfix)
                 align_problem.fragments[frag_rename] = self.root_problem.fragments[frag]
         
@@ -240,6 +247,7 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             invoc.extend(["-c", self.classification_file])
         if not self.push_down:
             invoc.extend(["-u"])
+        #print " ".join(invoc)
         return invoc
 
     def characterize_input(self):
