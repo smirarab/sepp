@@ -101,7 +101,7 @@ public class JSONMerger {
     public HashMap<String, String> readTree(String tree, Set<String> sequences) {
 	HashMap<String, String> res = new HashMap<String, String>();
 	LinkedList<SortedSet<String>> stack = new LinkedList<SortedSet<String>>();
-
+//System.out.println("Reading\n" + tree);
 	NewickTokenizer tokenizer = new NewickTokenizer(tree, false);
 	if (!"(".equals(tokenizer.nextToken())) {
 	    throw new RuntimeException("The tree does not start with a (");
@@ -204,42 +204,42 @@ public class JSONMerger {
 	JSONArray placements = json.getJSONArray("placements");
 
 	for (Iterator<JSONObject> iterator = placements.iterator(); iterator.hasNext();) {	    
-	    JSONObject placement = iterator.next();
-	    /*
-	     * replace nm with n
-	     */
-	    if (placement.containsKey("nm")) {
-		JSONArray n = new JSONArray();
-		for (Iterator nmIt = placement.getJSONArray("nm").iterator(); nmIt.hasNext();) {
-		    n.add(((JSONArray) nmIt.next()).getString(0));
-		}
-		placement.put("n", n); 
-		placement.discard("nm");		
-	    }
-	    JSONArray n = placement.getJSONArray("n");
-	    for (int i = 0; i < n.size(); i++) {	    
+    JSONObject placement = iterator.next();
+    /*
+     * replace nm with n
+     */
+    if (placement.containsKey("nm")) {
+      JSONArray n = new JSONArray();
+      for (Iterator nmIt = placement.getJSONArray("nm").iterator(); nmIt.hasNext();) {
+          n.add(((JSONArray) nmIt.next()).getString(0));
+      }
+      placement.put("n", n); 
+      placement.discard("nm");		
+    }
+    JSONArray n = placement.getJSONArray("n");
+    for (int i = 0; i < n.size(); i++) {	    
 		String name = n.getString(i);
 		String newName = name;
 		Double prior = 1.;
 		if (rmUnderscore != 0) {
 		    String [] nameSplit = name.split("_");
 		    if (nameSplit.length < rmUnderscore + 1) {
-			throw new RuntimeException("Fragments names should have at least " + (rmUnderscore) + " underscores.");
-		    }
+          throw new RuntimeException("Fragments names should have at least " + (rmUnderscore) + " underscores.");
+        }
 		    /*
 		     * Find and update new Name
 		     */
 		    StringBuilder newNameBuilder = new StringBuilder(nameSplit[0]);
 		    for (int j = 1; j < nameSplit.length - 4; j++) {
-			newNameBuilder.append("_");
-			newNameBuilder.append(nameSplit[j]);
+          newNameBuilder.append("_");
+          newNameBuilder.append(nameSplit[j]);
 		    }		
 		    newName = newNameBuilder.toString();
 
 		    n.set(i, newName);
 		    // Find the prior probability
 		    prior = Integer.parseInt(nameSplit[nameSplit.length - 1])/1000000.0;
-		} 
+		}
 
 		JSONArray p = placement.getJSONArray("p");
 		Double sum = 0.;		
@@ -366,7 +366,37 @@ public class JSONMerger {
 
 	for (String fragment : this.nameToAllPlacements.keySet()) {
 	    JSONArray placements = nameToAllPlacements.get(fragment);
-	    Double sum = nameToCummulativeLWR.get(fragment);
+      Double sum = nameToCummulativeLWR.get(fragment);
+      //If returning distribution, only take as many placements necessary to reach some threshold
+      // renormalize remaining LWR so that placements sum up to 1
+      if (distribution) {
+          TreeSet<JSONArray> sortedPlacements = new TreeSet<JSONArray>(new Comparator<JSONArray>() {
+        @Override
+        public int compare(JSONArray o1, JSONArray o2) {					
+            double o = o1.getDouble(2) - o2.getDouble(2);
+            if (o < 0) {
+              o = 1;
+            } else if (o > 0) {
+              o = -1;
+            } else {
+              o = -1;
+            }
+            return (int)o;
+        }
+          });
+          sortedPlacements.addAll(placements);          
+          double total = 0;
+          ArrayList<JSONArray> list = new ArrayList<JSONArray>();
+          for (Iterator<JSONArray> itp = sortedPlacements.iterator(); threshold > total && itp.hasNext();) {
+            JSONArray placementRecord = itp.next();
+            total+=placementRecord.getDouble(2);
+            list.add(placementRecord);
+          }
+          placements = new JSONArray();
+          placements.addAll(list);
+          sum=sum*total;          
+      }      
+      
 	    Set<STINode<TaxonomyData>> lineages = new HashSet<STINode<TaxonomyData>>();
 	    
 	    //System.err.println(fragment + " " + placements.size());
@@ -376,10 +406,10 @@ public class JSONMerger {
 	     */
 	    for (Iterator<JSONArray> itp = placements.iterator(); itp.hasNext();) {
 		JSONArray placementRecord = itp.next();
-		Double probability = placementRecord.getDouble(2) / sum;
+		Double probability = placementRecord.getDouble(2) / sum;    
 		if (jsonTreeIDToTaxonomyNode != null) {
 		    String edgeNumber = placementRecord.getString(0);
-		    System.out.println(fragment + " " + edgeNumber + " " + probability);
+		    //System.out.println(fragment + " " + edgeNumber + " " + probability);
 		    STINode<TaxonomyData> node = jsonTreeIDToTaxonomyNode.get(edgeNumber);
 		    while (node != null){
 			node.getData().probability += probability;
@@ -403,7 +433,7 @@ public class JSONMerger {
 	    if (jsonTreeIDToTaxonomyNode != null) {
 		for (STINode<TaxonomyData> lineage : lineages) {
 		    TaxonomyData data = lineage.getData();
-		    if (data.probability >= threshold) {
+		    if (data.probability >= threshold || distribution) {
 			
 			cw.write(join(Arrays.asList(new String [] {
 				fragment,
@@ -465,12 +495,12 @@ public class JSONMerger {
 	 * Find the length of individual edges in the main tree
 	 */
 	mainTree = mainTree.replaceAll("'","");
-	System.out.println("main\n" + mainTree + "");
+	//System.out.println("main\n" + mainTree + "");
 	Matcher edgeLenMatcher = Pattern.compile(":([^\\[]*)\\[([^\\]]*)\\]")
 		.matcher(mainTree);
-	System.out.println("Matching");
+	//System.out.println("Matching");
 	while (edgeLenMatcher.find()) {
-	    System.out.println(edgeLenMatcher.group(1) + " main "+ edgeLenMatcher.group(2));
+	    //System.out.println(edgeLenMatcher.group(1) + " main "+ edgeLenMatcher.group(2));
 	    mainEdgeLen.put(edgeLenMatcher.group(2), new Double(edgeLenMatcher.group(1)));
 	}
 
@@ -567,14 +597,14 @@ public class JSONMerger {
 		distribution = true;
 	    } else if (args[i].equals("-r")) {
 		if (i+1 >= args.length) {
-		    System.out.println("-r needs to be followd by a number.");
+		    System.out.println("-r needs to be followed by a number.");
 		    System.exit(1);
 		}
 		i++;
 		rmUnderscore = Integer.parseInt(args[i]);
 	    } else if (args[i].equals("-t")) {
 		if (i+1 >= args.length) {
-		    System.out.println("-t needs to be followd by a file name (taxonomy).");
+		    System.out.println("-t needs to be followed by a file name (taxonomy).");
 		    System.exit(1);
 		}
 		i++;				
