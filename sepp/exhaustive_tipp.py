@@ -205,6 +205,7 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         self.job_type = 'jsonmerger'
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
         self.out_file = None
+        self.distribution = False
         self.taxonomy = None
         self.mapping = None
         self.threshold = None
@@ -225,11 +226,12 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         self.out_file = output_file
         self._kwargs = kwargs
 
-    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, push_down, **kwargs):
+    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, push_down, distribution=False, **kwargs):
         self.stdindata = inString
         self.out_file = output_file
         self.taxonomy = taxonomy.name
         self.mapping = mapping.name
+        self.distribution = distribution
         self.threshold = str(threshold)
         self.classification_file = classification_file
         self.push_down = push_down
@@ -245,6 +247,8 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             invoc.extend(["-p", self.threshold])
         if self.classification_file is not None:
             invoc.extend(["-c", self.classification_file])
+        if self.distribution:
+            invoc.extend(["-d"])            
         if not self.push_down:
             invoc.extend(["-u"])
         #print " ".join(invoc)
@@ -385,7 +389,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                            self.options.taxonomy_name_mapping_file, 
                            self.options.placement_threshold,
                            self.get_output_filename("classification.txt"),
-                           self.push_down)
+                           self.push_down,
+                           self.options.distribution)
         return mergeJsonJob
 
     def get_alignment_decomposition_tree(self, p_tree):
@@ -414,7 +419,11 @@ def augment_parser():
                       default = 0.95,
                       help = "Enough alignment subsets are selected to reach a commulative probability of N. "
                              "This should be a number between 0 and 1 [default: 0.95]")                            
-
+    tippGroup.add_argument("-D", "--dist", 
+                      dest = "distribution", action='store_true', 
+                      default = False,
+                      help = "Treat fragments as distribution")    
+                             
     tippGroup.add_argument("-pt", "--placementThreshold", type = float, 
                       dest = "placement_threshold", metavar = "N", 
                       default = 0.95,
