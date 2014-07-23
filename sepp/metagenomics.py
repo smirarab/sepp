@@ -173,6 +173,7 @@ def write_classification(class_input, output):
     class_out.write("%s\n" % "\t".join(class_input[frag]));
   class_out.close()    
   
+#Fix problem with NA being unclassified  
 def write_abundance(classifications,output_dir,labels=True,remove_unclassified=True):
   global taxon_map,level_map,key_map,levels  
   
@@ -182,7 +183,7 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
   for lineage in classifications.values():
     #insert into level map
     for level in xrange(1,7):
-      if (lineage[level] == 'NA'):
+      if (lineage[level] == 'NA'):        
         continue
       else:
         if (lineage[level] not in level_abundance[level]):
@@ -456,6 +457,11 @@ def augment_parser():
                       default = False,
                       help = "Treat fragments as distribution")    
                       
+    tippGroup.add_argument("-C", "--cutoff", type = float, 
+                      dest = "cutoff", metavar = "N", 
+                      default = 0.0,
+                      help = "Placement probability requirement to count toward the distribution. "
+                             "This should be a number between 0 and 1 [default: 0.0]")    
                       
                       
 def main():

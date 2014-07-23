@@ -220,13 +220,14 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         #Temp fix for now,
         self.molecule = options().molecule
         self.placer = options().exhaustive.__dict__['placer'].lower()
+        self.cutoff = 0;
         
     def setup(self, inString, output_file, **kwargs):
         self.stdindata = inString
         self.out_file = output_file
         self._kwargs = kwargs
 
-    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, push_down, distribution=False, **kwargs):
+    def setup_for_tipp(self, inString, output_file, taxonomy, mapping, threshold, classification_file, push_down, distribution=False,cutoff=0, **kwargs):
         self.stdindata = inString
         self.out_file = output_file
         self.taxonomy = taxonomy.name
@@ -236,6 +237,7 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         self.classification_file = classification_file
         self.push_down = push_down
         self._kwargs = kwargs
+        self.cutoff = cutoff;
         
     def get_invocation(self):
         invoc = ["java", "-jar", self.path, "-", "-", self.out_file, "-r", "4"]        
@@ -251,6 +253,7 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             invoc.extend(["-d"])            
         if not self.push_down:
             invoc.extend(["-u"])
+        invoc.extend(["-C", self.cutoff])
         #print " ".join(invoc)
         return invoc
 
@@ -390,7 +393,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                            self.options.placement_threshold,
                            self.get_output_filename("classification.txt"),
                            self.push_down,
-                           self.options.distribution)
+                           self.options.distribution,
+                           self.options.cutoff)
         return mergeJsonJob
 
     def get_alignment_decomposition_tree(self, p_tree):
@@ -453,6 +457,13 @@ def augment_parser():
                       dest = "alignment_decomposition_tree", metavar = "TREE", default = None,
                       help = "A newick tree file used for decomposing taxa into alignment subsets. " 
                              "[default: the backbone tree]")
+                             
+    tippGroup.add_argument("-C", "--cutoff", type = float, 
+                      dest = "cutoff", metavar = "N", 
+                      default = 0.0,
+                      help = "Placement probability requirement to count toward the distribution. "
+                             "This should be a number between 0 and 1 [default: 0.0]")    
+                             
         
 def main():
     augment_parser() 
