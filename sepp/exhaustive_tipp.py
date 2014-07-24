@@ -253,7 +253,7 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             invoc.extend(["-d"])            
         if not self.push_down:
             invoc.extend(["-u"])
-        invoc.extend(["-C", self.cutoff])
+        invoc.extend(["-C", str(self.cutoff)])
         #print " ".join(invoc)
         return invoc
 
