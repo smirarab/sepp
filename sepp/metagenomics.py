@@ -188,7 +188,9 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
     #insert into level map
     for level in xrange(1,7):
       if (lineage[level] == 'NA'):        
-        continue
+        level_abundance[level]['unclassified']+=1        
+        level_abundance[level]['total']+=1
+        #continue
       else:
         if (lineage[level] not in level_abundance[level]):
           level_abundance[level][lineage[level]] = 0
