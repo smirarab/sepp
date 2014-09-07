@@ -206,7 +206,7 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
       if clade == 'total':
         continue
       name = clade
-      if labels:
+      if labels and name != 'unclassified':        
         name = taxon_map[clade][key_map['tax_name']]
       lines.append('%s\t%0.4f\n' % (name,float(level_abundance[level][clade])/level_abundance[level]['total']))
     lines.sort()
