@@ -186,6 +186,7 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = None #format of input reference alignment
         self.outfile = None #location of output file
         self.molecule = None #type of molecule used
+        self.options = "" #no other hmmer options
 
     def setup(self, infile, outfile, informat = "fasta", molecule = "dna",**kwargs):
         '''
@@ -196,7 +197,9 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = informat
         self.outfile = outfile
         self.molecule = molecule
-        self._kwargs = kwargs        
+        if ('options' in kwargs):
+	        self.options = kwargs['options']        
+        
 
     def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
         '''
@@ -216,12 +219,14 @@ class HMMBuildJob(ExternalSeppJob):
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.model.", 
                                                        subproblem)
         self.molecule = molecule
-        self._kwargs = kwargs
+        if ('options' in kwargs):
+	        self.options = kwargs['options']        
+        
         
     def get_invocation(self):
         invoc = [self.path, "--symfrac" ,"0.0" ,"--%s" % self.molecule]
-        if self._kwargs.has_key("user_options"):
-            invoc.extend(self._kwargs["user_options"].split())
+        if self.options != "":
+            invoc.extend(self.options.split())
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
         invoc.extend([self.outfile, self.infile])

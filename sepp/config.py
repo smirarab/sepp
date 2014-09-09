@@ -196,7 +196,7 @@ def _init_parser():
                       type = valid_molecule,
                       default = "dna", 
                       help = "Molecule type of sequences. Can be amino, dna, or rna "
-                             "[default: %(default)s]")          
+                             "[default: %(default)s]")
                              
     otherGroup = _parser.add_argument_group( "Other options".upper(), 
                          "These options control how SEPP is run")
