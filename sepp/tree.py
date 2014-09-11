@@ -79,7 +79,19 @@ class PhylogeneticTree(object):
                 i.num_leaves_below = 1
             else:
                 i.num_leaves_below = sum([j.edge.num_leaves_below for j in nd.child_nodes()])
-
+                
+    def get_clade_edge(self, minSize):
+        root = self._tree.seed_node
+        #should only be 2 children, but in unlikely event that clade-based decomp
+        #results in 1 child, then we should handle in some way
+        root_children = root.child_nodes()
+        assert len(root_children) == 2
+        
+        #Always break first child edge
+        clade_edge = root.child_nodes()[0].edge
+        assert clade_edge is not None
+        return clade_edge
+    
     def get_centroid_edge(self, minSize):
         """Get centroid edge"""
         root = self._tree.seed_node
@@ -135,10 +147,27 @@ class PhylogeneticTree(object):
         if option.lower() == 'centroid':
             return self.get_centroid_edge(minSize)
         elif option.lower() == 'longest':
-            return self.get_longest_edge(minSize)
+            return self.get_longest_edge(minSize)            
+        elif option.lower() == 'clade':                    
+            return self.get_clade_edge(minSize)
         else:
             raise ValueError('Unknown break strategy "%s"' % option)
-
+            
+    def bipartition_by_root(self):
+        if (self.n_leaves == 1):
+          return (None, None, None)    
+        root = self._tree.seed_node
+        (t1_root,t2_root) = (root._child_nodes[0],root._child_nodes[1])
+        t = self._tree
+        t.prune_subtree(t1_root,update_splits=True,delete_outdegree_one=True)
+        t1 = PhylogeneticTree(t)
+        t2 = PhylogeneticTree(Tree(t1_root))
+        #Reroot if there's more than node left
+        if (t2.n_leaves > 1):        
+            t2._tree.reroot_at_node(t1_root)
+        return t1, t2, root
+        
+        
     def bipartition_by_edge(self, e):
         """Prunes the subtree that attached to the head_node of edge e and returns them as a separate tree."""
 
@@ -227,12 +256,16 @@ class PhylogeneticTree(object):
     def bisect_tree(self, breaking_edge_style='centroid', minSize= None):
         """Partition 'tree' into two parts
         """
-        e = self.get_breaking_edge(breaking_edge_style, minSize)
-        if (e is None):
-            return None, None, None
-        _LOG.debug("breaking_edge length = %s, %s" % (e.length, breaking_edge_style) )
-        snl = self.n_leaves
-        tree1, tree2 = self.bipartition_by_edge(e)
+        snl = self.n_leaves        
+        if (breaking_edge_style != 'clade'):
+            e = self.get_breaking_edge(breaking_edge_style, minSize)
+            if (e is None):
+                return None, None, None
+            _LOG.debug("breaking_edge length = %s, %s" % (e.length, breaking_edge_style) )
+            tree1, tree2 = self.bipartition_by_edge(e)
+        else:
+            tree1, tree2, e = self.bipartition_by_root()
+            
         _LOG.debug("Tree 1 has %s nodes, tree 2 has %s nodes" % (tree1.n_leaves, tree2.n_leaves) )
         assert snl == tree1.n_leaves + tree2.n_leaves
         return tree1, tree2, e
@@ -246,11 +279,17 @@ class PhylogeneticTree(object):
         
         SIDE EFFECT: deroots the tree (TODO: necessary?)
         """          
-        self._tree.deroot()
+        #Don't deroot if doing clade-based decomposition
+        if (strategy != 'clade'):
+            self._tree.deroot()
+        else:
+            #If doing clade-based decomp and it's not rooted, root it!
+            if self._tree.is_rooted == False:
+                self._tree.reroot_at_midpoint()
         if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
             tree_map[len(tree_map)] = copy.deepcopy(self)
 
-        if (self.count_leaves() > maxSize):    
+        if (self.count_leaves() > maxSize):
             (t1, t2, e) = self.bisect_tree(strategy, minSize)
             if e is not None:
                 t1.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy)
@@ -288,6 +327,8 @@ def edge_formatter(e):
     return "%s %f " % (str(id(e)), e.length)
 
 def is_valid_tree(t):
+    if (t.is_rooted):
+      return True
     assert t and t
     rc = t.seed_node.child_nodes()
     num_children = len(rc)
@@ -297,5 +338,7 @@ def is_valid_tree(t):
         assert not rc[0].child_nodes()
         return True
     if num_children == 2:
+        #What is with this code?  Why do we check the same variable twice?
+        #Bug?  NN
         assert((not rc[0].child_nodes()) and (not rc[0].child_nodes()))
     return True
