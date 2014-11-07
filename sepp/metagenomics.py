@@ -9,15 +9,17 @@ Created on June 3, 2014
 
 @author: namphuon
 '''
-global character_map,taxon_map,level_map,key_map,marker_genes
+global character_map,taxon_map,level_map,key_map,marker_genes,cog_genes
 character_map = {'A':'T', 'a':'t', 'C':'G', 'c':'g', 'T':'A', 't':'a', 'G':'C', 'g':'c', '-':'-'}
 global levels
 levels = ["species", "genus", "family", "order", "class", "phylum"]
 marker_genes = ["nusA","rplB","rplK","rplS","rpsE","rpsS", "pgk","rplC","rplL","rplT","rpsI","smpB","dnaG","pyrg", "rplD","rplM","rpmA","rpsJ","frr","pyrG","rplE","rplN", "rpsB","rpsK","infC","rplA","rplF","rplP","rpsC","rpsM"]
+cog_genes = ["COG0049", "COG0088", "COG0094", "COG0100", "COG0184", "COG0201", "COG0522", "COG0012", "COG0052", "COG0090", "COG0096", "COG0102", "COG0185", "COG0202", "COG0525", "COG0016", "COG0080", "COG0091", "COG0097", "COG0103", "COG0186", "COG0215", "COG0533", "COG0018", "COG0081", "COG0092", "COG0098", "COG0124", "COG0197", "COG0256", "COG0541", "COG0048", "COG0087", "COG0093", "COG0099", "COG0172", "COG0200", "COG0495", "COG0552"]
 
 #TODO Fix parameter passing
 #TODO Make taxonomy loading a class
 def load_taxonomy(taxonomy_file, lower=True):
+  global taxon_map, level_map, key_map
   f = open(taxonomy_file, 'r')
   
   #First line is the keywords for the taxonomy, need to map the keyword to the positional 
@@ -64,16 +66,22 @@ def build_profile(input,output_directory):
     return
   
   #load up taxonomy for 30 marker genes
-  (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
+  if (options().genes == 'markers'):
+    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
+  else:
+    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/COG0012.refpkg/all_taxon.taxonomy'))
     
   #all classifications stored here  
   classifications = {}
   classification_files = []
   #Now run TIPP on each fragment    
+  gene_name = 'sate'
+  if (options().genes == 'cogs'):
+    gene_name = 'pasta'
   for (gene,frags) in binned_fragments.items():    
     #Get size of each marker
     total_taxa = 0
-    with open(os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.size'%gene), 'r') as f:
+    with open(os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.size'%(gene,gene_name)), 'r') as f:
       total_taxa = int(f.readline().strip())
     decomp_size = options().alignment_size
     if (decomp_size > total_taxa):
@@ -87,8 +95,9 @@ def build_profile(input,output_directory):
       
     if options().cutoff != 0:
       extra = extra+" -C %f" % options().cutoff
-      
-    os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.tree'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.fasta'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.taxonomy.RAxML_info'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,options().placement_threshold,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra))
+    print 'Cmd:\nrun_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra)
+    
+    os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra))
     if (not os.path.exists(output_directory+"/markers/tipp_%s_classification.txt" % gene)):
       continue
 
@@ -285,9 +294,14 @@ def hmmer_to_markers(input,temp_dir):
   
   #Now bin the fragments
   frag_scores = dict([(name,[-10000,'NA','NA']) for name in fragments.keys()])
-  for gene in marker_genes:    
+  gene_set = marker_genes
+  align_name = 'sate'
+  if (options().genes == 'cogs'):
+    gene_set = cog_genes
+    align_name = 'pasta'
+  for gene in gene_set:    
     #Now run HMMER search
-    hmmer_search(frag_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.profile'%gene),temp_dir+"/%s.out" % gene)
+    hmmer_search(frag_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%.profile'%(gene,align_name)),temp_dir+"/%s.out" % gene)
     results=read_hmmsearch_results(temp_dir+"/%s.out" % gene)
     
     #Now select best direction for each frag
@@ -336,6 +350,9 @@ def blast_to_markers(input,temp_dir):
   #Now figure out direction of fragments
   binned_fragments = dict([(gene,dict([(seq_name,fragments[seq_name]) for seq_name in gene_binning[gene]])) for gene in gene_binning])
   print "Finding best orientation of reads\n"
+  align_name = 'sate'
+  if (options().genes == 'cogs'):
+    align_name = 'pasta'
   for (gene,frags) in binned_fragments.items():
     #Add reverse complement sequence
     frags_rev = dict([(name+'_rev',reverse_sequence(seq)) for (name,seq) in frags.items()])
@@ -346,7 +363,7 @@ def blast_to_markers(input,temp_dir):
     _write_fasta(gene_frags,gene_file)
     
     #Now run HMMER search
-    hmmer_search(gene_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/sate.profile'%gene),temp_dir+"/%s.out" % gene)
+    hmmer_search(gene_file,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.hmm'%(gene,align_name)),temp_dir+"/%s.out" % gene)
     results=read_hmmsearch_results(temp_dir+"/%s.out" % gene)
     
     #Now select best direction for each frag
@@ -398,7 +415,7 @@ def read_mapping(input, header=False, delimiter='\t'):
 
 def bin_blast_results(input):
   #Map the blast results to the markers
-  gene_mapping = read_mapping(os.path.join(options().__getattribute__('reference').path, 'blast/markers/seq2marker.tab'))
+  gene_mapping = read_mapping(os.path.join(options().__getattribute__('reference').path, 'blast/%s/seq2marker.tab' % options().genes))
   
   genes = {}
   with open(input) as f:
@@ -420,7 +437,7 @@ def hmmer_search(input, hmmer,output):
 def blast_fragments(input, output):
   '''Blast the fragments against all marker genes+16S sequences, return output
   '''
-  os.system('%s -db %s -outfmt 6 -query %s -out %s -num_threads %d -max_target_seqs 1 ' % (options().__getattribute__('blast').path, os.path.join(options().__getattribute__('reference').path, "blast/markers/alignment.fasta.db"), input, output,options().cpu))
+  os.system('%s -db %s -outfmt 6 -query %s -out %s -num_threads %d -max_target_seqs 1 ' % (options().__getattribute__('blast').path, os.path.join(options().__getattribute__('reference').path, "blast/%s/alignment.fasta.db" % options().genes), input, output,options().cpu))
     
 def reverse_sequence(sequence):
   global character_map 
@@ -471,7 +488,10 @@ def augment_parser():
                       help = "Placement probability requirement to count toward the distribution. "
                              "This should be a number between 0 and 1 [default: 0.0]")    
                       
-                      
+    tippGroup.add_argument("-g", "--genes", type = str, 
+                      dest = "genes", metavar = "GENES", 
+                      default = 'markers',
+                      help = "Use markers or cogs genes [default: markers]")                   
 def main():
     augment_parser() 
     sepp.config._options_singelton = sepp.config._parse_options()            

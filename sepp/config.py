@@ -45,6 +45,7 @@ _LOG = get_logger(__name__)
 main_config_path = os.path.expanduser("~/.sepp/main.config")   
 
 def set_main_config_path(filename):
+    global main_config_path
     main_config_path = filename
     
 def _read_config_file(filename, opts):

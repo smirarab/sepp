@@ -124,7 +124,11 @@ def check_or_make_dir_path(path):
     If the path is to a file, or if it cannot be made, return None. 
     '''
     if not os.path.exists(path):
+      #Race condition exists here
+      try:
         os.mkdir(path)
+      except:
+        return os.path.normpath(os.path.abspath(path))
     if os.path.exists(path) and os.path.isdir(path):
         return os.path.normpath(os.path.abspath(path))        
     return None
