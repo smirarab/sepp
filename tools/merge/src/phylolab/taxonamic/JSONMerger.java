@@ -685,9 +685,11 @@ public class JSONMerger {
 
         for (int i = 0; i < files.length; i++) {
           File jsonFile = files[i];
+          System.out.println("Reading json " +  files[i].getAbsolutePath());
           try {
             String baseTreeFn = jsonFile.getAbsolutePath().replace("json", "labeled.tree");
-            baseTreeFn = jsonFile.getAbsolutePath().replace("jplace", "labeled.tree");
+            baseTreeFn = baseTreeFn.replace("jplace", "labeled.tree");
+            System.out.println("Reading " + baseTreeFn);
             BufferedReader in = new BufferedReader(new InputStreamReader(
               new FileInputStream(baseTreeFn)));
             trees.add( in .readLine()); in .close();
