@@ -639,9 +639,7 @@ class ExtendedAlignment(MutableAlignment):
             #assert k not in self, "Merging overlapping alignments not implemented"
             if (k not in self):
               selfother[k] = bytearray(v)
-                        
         while True:
-            #print me, she, me_len, she_len
             ''' Check exit conditions'''
             if me == me_len and she == she_len:
                 break
@@ -693,7 +691,7 @@ class ExtendedAlignment(MutableAlignment):
             elif me == me_len or (she != she_len and self.col_labels[me] > other.col_labels[she]):
                 ''' Her column is not present (i.e. was allgap) in "me"'''
                 start = she
-                while she < she_len and (me == me_len  or she != she_len and self.col_labels[me] > other.col_labels[she]):
+                while she < she_len and (me == me_len  or she != she_len and self.col_labels[me] > other.col_labels[she]):             
                     she += 1
                 run = she - start
                 ins = bytearray(b"-") * run 

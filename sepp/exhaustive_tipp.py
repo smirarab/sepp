@@ -10,7 +10,7 @@ from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
 from dendropy.dataobject.tree import Tree
-import dendropy
+import dendropy,pickle,pdb
 from sepp import get_logger
 
 _LOG = get_logger(__name__)
@@ -157,22 +157,24 @@ class TIPPJoinAlignJobs(Join):
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
             _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
+            
             extendedAlignment.merge_in(ap_alg,convert_to_string=False)
             del ap_alg
-        
         extendedAlignment.from_bytearray_to_string()
         return extendedAlignment
     
     def perform(self):
         pp = self.placement_problem
-
+        _LOG.info("THERE!")
         fullExtendedAlignment = self.merge_subalignments()
-
+        _LOG.info("Outside merge!")
         pj = pp.jobs["placer"]
 
-        #Split the backbone alignment and query sequences into separate files
+        #Split the backbone alignment and query sequences into separate files        
         queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
+        _LOG.info("Get readonly frags!")
         baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+        _LOG.info("Get base merge!")
     
         # Check for empty fragment files
         if (queryExtendedAlignment.is_empty()):
@@ -192,11 +194,17 @@ class TIPPJoinAlignJobs(Join):
             fullExtendedAlignment.write_to_path(pj.extended_alignment_file, schema="PHYLIP")
                         
         #keep the extended alignment on everything
-        pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
+        #pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
         
-        # Enqueue the placement job
+        #TODO:  Removed this, as it can cause unexpected lockups
+        output = open(pj.full_extended_alignment_file, 'wb')
+        pickle.dump(fullExtendedAlignment, output)
+        output.close()                    
+        
+        #pdb.set_trace()
+        # Enqueue the placement job        
         JobPool().enqueue_job(pj)
-
+        
     def __str__(self):
         return "join align jobs for tips of ", self.placement_problem
 
@@ -315,9 +323,19 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_object")
+        #pdb.set_trace()
+        input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'r')
+        fullExtendedAlignment = pickle.load(input)
+        input.close()
+        #fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_file")
         for pp in self.root_problem.get_children()[1:]:
-            extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
+            #Removed this because it can cause unexpected lockups
+            #extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
+            input = open(pp.jobs["placer"].full_extended_alignment_file,'r')
+            extended_alignment = pickle.load(input)
+            input.close()
+            
+            #fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
             fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
         self.results = fullExtendedAlignment
         

@@ -14,7 +14,7 @@ import stat
 import re
 from sepp.tree import PhylogeneticTree
 import sepp.config
-import traceback
+import traceback,pdb
 
 _LOG = get_logger(__name__)
     
@@ -406,6 +406,7 @@ class PplacerJob(ExternalSeppJob):
 
     def __init__(self, **kwargs):       
         self.job_type = 'pplacer'
+        #pdb.set_trace()
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
         '''The following is just a string indicating the type of input provided 
         to pplacer job. Different setup methods can setup this job with different
@@ -416,13 +417,16 @@ class PplacerJob(ExternalSeppJob):
         self.backbone_alignment_file = None
         self.info_file = None          
         self.extended_alignment_file = None 
+        self.full_extended_alignment_file = None 
         self.out_file = None 
         
-    def setup(self, backbone_alignment_file, tree_file, info_file, extended_alignment_file, output_file, **kwargs):
+    def setup(self, backbone_alignment_file, tree_file, info_file, extended_alignment_file,full_extended_alignment_file, output_file, **kwargs):
+        #pdb.set_trace()
         self.backbone_alignment_file = backbone_alignment_file
         self.tree_file = tree_file        
         self.info_file = info_file
         self.extended_alignment_file = extended_alignment_file
+        self.full_extended_alignment_file = full_extended_alignment_file
         self.out_file = output_file
         self._kwargs = kwargs      
         self.setup_setting = "File:TrInEx"                  
@@ -432,6 +436,7 @@ class PplacerJob(ExternalSeppJob):
         Note that extended alignment and the backbone_alignment_file are just file names, referring to empty
         files at this point. These files needs to be created before the job is queued. 
         '''
+        #pdb.set_trace()
         assert isinstance(subproblem, sepp.problem.SeppProblem)        
         self.backbone_alignment_file = sepp.filemgr.tempfile_for_subproblem("pplacer.backbone.", 
                                                        subproblem,
@@ -441,6 +446,9 @@ class PplacerJob(ExternalSeppJob):
         self.extended_alignment_file = \
                          sepp.filemgr.tempfile_for_subproblem("pplacer.extended.", 
                                                        subproblem, ".fasta")
+        self.full_extended_alignment_file = \
+                         sepp.filemgr.tempfile_for_subproblem("pplacer.full.extended.", 
+                                                       subproblem, ".fasta")                                                       
         self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
                              self.extended_alignment_file.replace("fasta","jplace"))                       
         assert isinstance(subproblem.subtree, PhylogeneticTree)
