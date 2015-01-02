@@ -10,7 +10,7 @@ from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
 from dendropy.dataobject.tree import Tree
-import dendropy,pickle,pdb
+import dendropy,pickle
 from sepp import get_logger
 
 _LOG = get_logger(__name__)
@@ -165,16 +165,12 @@ class TIPPJoinAlignJobs(Join):
     
     def perform(self):
         pp = self.placement_problem
-        _LOG.info("THERE!")
         fullExtendedAlignment = self.merge_subalignments()
-        _LOG.info("Outside merge!")
         pj = pp.jobs["placer"]
 
         #Split the backbone alignment and query sequences into separate files        
         queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
-        _LOG.info("Get readonly frags!")
         baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
-        _LOG.info("Get base merge!")
     
         # Check for empty fragment files
         if (queryExtendedAlignment.is_empty()):
@@ -323,17 +319,16 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        #pdb.set_trace()
-        input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'r')
-        fullExtendedAlignment = pickle.load(input)
-        input.close()
+        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'r')
+        fullExtendedAlignment = pickle.load(align_input)
+        align_input.close()
         #fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_file")
         for pp in self.root_problem.get_children()[1:]:
             #Removed this because it can cause unexpected lockups
             #extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
-            input = open(pp.jobs["placer"].full_extended_alignment_file,'r')
-            extended_alignment = pickle.load(input)
-            input.close()
+            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'r')
+            extended_alignment = pickle.load(align_input)
+            align_input.close()
             
             #fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
             fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)

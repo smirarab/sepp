@@ -283,9 +283,7 @@ class _JobPool:
         self._lock = Lock()
               
     def enqueue_job(self, job):
-        _LOG.info("A")
         check_object(job)
-        _LOG.info("B")
         def call_back(job, result, callBackCopy):
             try:
                 job._finished(result)
@@ -306,18 +304,13 @@ class _JobPool:
                 
         ''' We need to backup callbacks of a Job. 
         The following line ensures that pickling issues do not arise'''
-        _LOG.info("C")
         callBackCopy = self._callBack_lists.get(job,[])    
-        _LOG.info("D")
         ''' Add jobs to the _pool, and save resulting AsyncResult function in a
         safe manner'''
-        _LOG.info("E")
         self._lock.acquire()
-        _LOG.info("F")
         result = self._pool.apply_async(job, callback = lambda res: call_back(job, res , callBackCopy))
         self._async_restults[job] = result
         self._lock.release()
-        _LOG.info("G")
 
     def _add_callback_for_job(self,job,callback):
         self._lock.acquire()
