@@ -1,7 +1,8 @@
 ------------------------------------
 Summary
 ------------------------------------
-This repository includes code for SEPP, TIPP, and UPP.
+This repository includes code for SEPP, TIPP, and UPP.  The three methods use the ensembles of Hidden Markov models (HMM) in order
+to address three different problems.
 
 Each of these related tools have their own README files .
 
@@ -18,5 +19,5 @@ Each of these related tools have their own README files .
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD student Siavash Mirarab and Post-Doc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
+SEPP, TIPP, and UPP iare under active research development at UTCS and UIUC by the Warnow Lab (and especially with her PhD student Siavash Mirarab and Post-Doc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
 

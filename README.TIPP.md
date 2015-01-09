@@ -18,7 +18,7 @@ TIPP is a modification of SEPP for classifying query sequences using phylogeneti
 Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
 
 ###Publication:
-Nguyen, N., Mirarab, S., Liu, B., Pop, M., & Warnow, T.   TIPP: Taxonomic Identification and Phylogenetic Profiling.  Under revision.
+Nguyen, Nam , Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow. `TIPP: Taxonomic identification and phylogenetic profiling`. Bioinformatics (2014). [doi:10.1093/bioinformatics/btu721](http://bioinformatics.oxfordjournals.org/content/30/24/3548.full.pdf).
 
 
 ### Note and Acknowledgment: 
