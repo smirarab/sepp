@@ -20,7 +20,7 @@ Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large ali
 - UPP bundles the following program into its distribution:
   1. hmmer: http://hmmer.janelia.org/    
 - UPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
-- UPP uses PASTA to estimate the backbone alignment and treee [PASTA] (https://github.com/smirarab/PASTA/).
+- UPP uses [PASTA] (https://github.com/smirarab/PASTA/) to estimate the backbone alignment and tree 
 - UPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 -------------------------------------
@@ -38,7 +38,7 @@ Before installing the software you need to make sure the following programs are 
 
 Installation Steps:
 -------------------
-UPP is a part of the SEPP distribution package.  First install SEPP.  Next install [PASTA] (https://github.com/smirarab/PASTA/).  Once done, do the following. 
+UPP is a part of the SEPP distribution package.  First install SEPP (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  Next install [PASTA] (https://github.com/smirarab/PASTA/).  Once done, do the following. 
 
 1. Configure: run `sudo python setup.py upp`. 
 
@@ -47,7 +47,7 @@ The last step creates a ~/.sepp/upp.config config file. Since this is specific t
 Common Problems:
 -------------------
 1.  UPP requires SEPP to be installed.  If UPP is not running, first check to see if SEPP was installed correctly.
-2.  UPP requires PASTA to be installed to generate the backbone alignment and tree.  
+2.  UPP requires PASTA to be installed and the run_pasta.py executable to be on the path.  
 
 ---------------------------------------------
 Running UPP
@@ -62,14 +62,16 @@ The general command for running TIPP is:
 
 UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run SEPP on the sample files. To run using command options, run
 
-`python <bin>/run_upp.py -s input.fas`
+`python <bin>/run_upp.py -s initial.fas -B 100`
 
-and to run using a configuration file, run
+The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta; for this
+example, the prefix is output.  The  <prefix>_alignment.fasta file is the alignment of the query sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; sites in the query sequence that are marked as non-homologous to sites in the backbone are removed.  
+
+The secondary outputs will be the backbone alignment and tree (pasta.fasta and pasta.fasttree).
+
+To run using a configuration file, run
 
 `python <bin>/run_upp.py -c sample.config`
-
-The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the query sequences.  The <prefix>_alignment_masked.fasta is the masked
-alignment file; sites in the query sequence that are marked as non-homologous to sites in the backbone are removed.  
 
 By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
