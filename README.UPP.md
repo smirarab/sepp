@@ -126,5 +126,5 @@ To run the parallelized version of UPP, run
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-UPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and postdoc Nam Nguyen). Please report any errors or requests to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
+UPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD student Siavash Mirarab and postdoc Nam Nguyen). Please report any errors or requests to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 
