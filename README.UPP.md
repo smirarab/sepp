@@ -18,7 +18,7 @@ FRAGMENTARY DATASETS: UPP can be used in default mode, which will select the bac
 
 SUPPLYING YOUR OWN SEED ALIGNMENT AND TREE: If you have a pre-computed seed alignment (with phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
 
-PARALLEL IMPLEMENTATION: UPP is embarassingly parallel. See Advanced Usage information about how to do this.
+PARALLEL IMPLEMENTATION: UPP is embarrassingly parallel. See Advanced Usage information about how to do this.
 
 
 
