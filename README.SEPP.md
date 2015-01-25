@@ -84,5 +84,5 @@ By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and post-doc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
+SEPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD student Siavash Mirarab and postdoc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 
