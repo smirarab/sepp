@@ -1,7 +1,7 @@
 ------------------------------------
 Summary
 ------------------------------------
-This repository includes code for SEPP, TIPP, and UPP.  The three methods use ensembles of Hidden Markov models (HMMs) in different ways, each focusing on a different problem. 
+This repository includes code for SEPP, TIPP, and UPP.  The three methods use ensembles of Hidden Markov Models (HMMs) in different ways, each focusing on a different problem. 
 
 Each of these related tools have their own README files .
 
