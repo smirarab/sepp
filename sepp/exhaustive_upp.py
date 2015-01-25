@@ -8,7 +8,7 @@ from argparse import ArgumentParser, Namespace
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
-from sepp.jobs import PplacerJob,MafftAlignJob,FastTreeJob,SateAlignJob
+from sepp.jobs import PplacerJob,MafftAlignJob,FastTreeJob,SateAlignJob,PastaAlignJob
 from sepp.filemgr import get_temp_file
 from sepp.config import options,valid_decomp_strategy
 import sepp.config
