@@ -12,11 +12,11 @@ UPP is a modification of SEPP for performing alignments of ultra-large and fragm
 
 UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
 
-UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 1,000,000 sequences in two days using 12 processors; the default version requires more time (about two weeks). The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution -- datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
+UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 10,000 sequences in less than an hour using 12 processors, and on a 1,000,000 sequences in less than 12 days; the default version requires seven hours on 10,000 sequences and would take an estimated 120 days on a 1,000,000 sequences. The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution -- datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
 
 FRAGMENTARY DATASETS: UPP can be used in default mode, which will select the backbone sequences randomly and without trying to restrict the backbone to full length sequences. However, if the dataset contains fragments, then UPP should be used in a mode that restricts the backbone to just the "full-length" sequences. To do this, you will need to provide UPP with an estimate of the full length of sequences for your locus. See Advanced Usage information about how to do this.
 
-SUPPLYING YOUR OWN SEED ALIGNMENT AND TREE: If you have a pre-computed seed alignment (with or without a phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
+SUPPLYING YOUR OWN SEED ALIGNMENT AND TREE: If you have a pre-computed seed alignment (with phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
 
 PARALLEL IMPLEMENTATION: UPP is embarassingly parallel. See Advanced Usage information about how to do this.
 
@@ -97,9 +97,20 @@ To run UPP(Fast) as described in the main paper, run
 
 `python <bin>/run_upp.py -s input.fas -B 100`
 
+UPP currently assumes that the input sequences are nucleotide sequences.  To
+select the input datatype, run
+
+`python <bin>/run_upp.py -s input.fas -m [dna|rna|amino]`
+
 To run UPP with a pre-computed backbone alignment and tree, run
 
 `python <bin>/run_upp.py -s input.fas -a <alignment_file> -t <tree_file>`
+
+If you have a pre-computed alignment, but not a tree, FastTree can be
+run to generate the tree (FastTree is packaged with PASTA).  The general command
+for running FastTree is:
+
+FastTree backbone_alignment.fasta > backbone_tree
 
 To filter fragments from the backbone selection process, run
 
