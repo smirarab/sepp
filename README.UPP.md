@@ -17,9 +17,10 @@ Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large ali
 
 
 ### Note and Acknowledgment: 
-- UPP bundles the following two programs into its distribution:
-  1. hmmer: http://hmmer.janelia.org/
+- UPP bundles the following program into its distribution:
+  1. hmmer: http://hmmer.janelia.org/    
 - UPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
+- UPP uses PASTA to estimate the backbone alignment and treee [PASTA] (https://github.com/smirarab/PASTA/).
 - UPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 -------------------------------------
@@ -29,13 +30,15 @@ This section details steps for installing and running UPP. We have run UPP on Li
 
 Requirements:
 -------------------
-Before installing the software you need to make sure the following programs are installed on your machine.
+Before installing the software you need to make sure the following programs are installed on your machine.  
 
 1. Python: Version > 2.6. 
+2. SEPP: Version > 1.0. 
+3. PASTA: Version > 1.0. 
 
 Installation Steps:
 -------------------
-UPP is a part of the SEPP distribution package.  First install SEPP.  Once done, do the following. 
+UPP is a part of the SEPP distribution package.  First install SEPP.  Next install [PASTA] (https://github.com/smirarab/PASTA/).  Once done, do the following. 
 
 1. Configure: run `sudo python setup.py upp`. 
 
@@ -43,7 +46,8 @@ The last step creates a ~/.sepp/upp.config config file. Since this is specific t
 
 Common Problems:
 -------------------
-1.  UPP requires SEPP to be installed.  If UPP is not running, first check to see if UPP was installed correctly.
+1.  UPP requires SEPP to be installed.  If UPP is not running, first check to see if SEPP was installed correctly.
+2.  UPP requires PASTA to be installed to generate the backbone alignment and tree.  
 
 ---------------------------------------------
 Running UPP
@@ -70,7 +74,20 @@ alignment file; sites in the query sequence that are marked as non-homologous to
 By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
 ---------------------------------------------
+Advance options
+---------------------------------------------
+To run UPP with a pre-computed backbone alignment and tree, run
+
+`python <bin>/run_upp.py -s input.fas -a <alignment_file> -t <tree_file>`
+
+To filter fragments from the backbone selection process, run
+
+`python <bin>/run_upp.py -s input.fas -M <median_full_length>`
+
+UPP will only include sequences within 25% of the median length in the backbone set.
+
+---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-UPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
+UPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and postdoc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 

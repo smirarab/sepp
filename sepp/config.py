@@ -81,11 +81,11 @@ def valid_molecule(molecule):
         raise argparse.ArgumentTypeError("%s is not a valid molecule type.  Must be 'dna', 'rna', or 'amino'." % molecule)
     return molecule
     
-def valid_decomp_strategy(molecule):
-    ret = molecule in ['hierarchical','normal']
+def valid_decomp_strategy(strategy):
+    ret = strategy in ['hierarchical','normal']
     if ret == False:
-        raise argparse.ArgumentTypeError("%s is not a valid molecule type.  Must be 'normal', 'hierarchical'." % molecule)
-    return molecule
+        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical'." % strategy)
+    return strategy
     
 
 def valid_file_prefix(prefix):

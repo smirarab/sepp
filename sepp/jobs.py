@@ -660,7 +660,7 @@ class PastaAlignJob(ExternalSeppJob):
         
     def get_invocation(self):
         
-        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment,'--auto', "--datatype=%s" % self.molecule,'--temporaries=%s/satetmp' % self.output,'-j', 'satejob','--output-directory=%s/sateout/' % sepp.filemgr.get_root_temp_dir()]        
+        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment,'--auto', "--datatype=%s" % self.molecule,'--temporaries=%s/pastatmp' % self.output,'-j', 'pastajob','--output-directory=%s/pastaout/' % sepp.filemgr.get_root_temp_dir()]        
         return invoc
 
     def characterize_input(self):
@@ -670,9 +670,9 @@ class PastaAlignJob(ExternalSeppJob):
         '''
         Read the Sate log file and get the alignment and tree from file, copy to output directory
         '''
-        assert os.path.exists('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())
-        assert os.stat('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
-        outfile = open('%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir(), 'r');
+        assert os.path.exists('%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir())
+        assert os.stat('%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
+        outfile = open('%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir(), 'r');
         alignment_pattern = re.compile('Writing resulting alignment to (.*)')
         tree_pattern = re.compile('Writing resulting tree to (.*)')
         tree_file = ''

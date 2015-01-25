@@ -10,7 +10,7 @@ from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PplacerJob,MafftAlignJob,FastTreeJob,SateAlignJob
 from sepp.filemgr import get_temp_file
-from sepp.config import options
+from sepp.config import options,valid_decomp_strategy
 import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
@@ -54,13 +54,22 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)     
-        
+       
+    def remove_fragments(self):
+        options().median_full_length
+    
     def generate_backbone(self):
         _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
+        fragments = MutableAlignment()
+        if (options().median_full_length is not None):
+            (min_length,max_length) = (int(median_full_length*.25)-median_full_length,int(median_full_length*.25)+median_full_length)
+            frag_names = [name for name in sequences if len(sequences[name]) < max_length and len(sequences[name]) > min_length]
+            fragments = sequences.get_hard_sub_alignment(frag_names)        
+            [sequences.pop(i) for i in fragments.keys()]        
         if (options().backbone_size is None):            
-            options().backbone_size = min(100,int(.20*sequences.get_num_taxa()))
+            options().backbone_size = min(1000,int(sequences.get_num_taxa()))
             _LOG.info("Backbone size set to: %d" %(options().backbone_size))
         backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
         [sequences.pop(i) for i in backbone_sequences.keys()]
@@ -68,21 +77,22 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         _LOG.info("Writing query and backbone set. ")
         query = get_temp_file("query", "backbone", ".fas")
         backbone = get_temp_file("backbone", "backbone", ".fas")
+        sequences.set_alignment(fragments)
         _write_fasta(sequences, query)
         _write_fasta(backbone_sequences, backbone)
                 
-        _LOG.info("Generating sate backbone alignment and tree. ")
-        satealignJob = SateAlignJob()
+        _LOG.info("Generating pasta backbone alignment and tree. ")
+        pastaalignJob = PastaAlignJob()
         moleculeType = options().molecule
         if (options().molecule == 'amino'):
             moleculeType =  'protein'
-        satealignJob.setup(backbone,options().backbone_size,self.options.outdir,moleculeType,options().cpu)
-        satealignJob.run()
-        satealignJob.read_results()
+        pastaalignJob.setup(backbone,options().backbone_size,self.options.outdir,moleculeType,options().cpu)
+        pastaalignJob.run()
+        pastaalignJob.read_results()
         
         options().placement_size = self.options.backbone_size
-        options().alignment_file = open(self.options.outdir + "/sate.fasta")
-        options().tree_file = open(self.options.outdir + "/sate.fasttree")
+        options().alignment_file = open(self.options.outdir + "/pasta.fasta")
+        options().tree_file = open(self.options.outdir + "/pasta.fasttree")
         _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
         options().fragment_file = query
 
@@ -93,7 +103,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         #from sequence file                
         if not options().tree_file is None and not options().alignment_file is None and not options().sequence_file is None:
             options().fragment_file = options().sequence_file        
-        elif options().tree_file is None and options().alignment_file is None and not options().sequence_file is None:
+        elif options().tree_file is None and options().alignment_file is None and not options().sequence_file is None:            
             self.generate_backbone()
         else:
             _LOG.error("Either specify the backbone alignment and tree and query sequences or only the query sequences.  Any other combination is invalid")
@@ -102,26 +112,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences.read_file_object(open(self.options.alignment_file.name))            
         backbone_size = sequences.get_num_taxa()
         if options().backbone_size is None:
-            options().backbone_size = backbone_size
+            options().backbone_size = backbone_size        
         assert options().backbone_size == backbone_size, ("Backbone parameter needs to match actual size of backbone; backbone parameter:%s backbone_size:%s" 
                 %(options().backbone_size, backbone_size))                    
         if options().placement_size is None:
             options().placement_size = options().backbone_size
-        if options().alignment_size is None:
-            _LOG.info("Alignment subset size not given.  Calculating subset size. ")
-            alignment = MutableAlignment()
-            alignment.read_file_object(open(self.options.alignment_file.name))
-            if (options().molecule == 'amino'):
-                _LOG.warning("Automated alignment subset selection not implemented for protein alignment.  Setting to 10.")
-                options().alignment_size = 10        
-            else:
-                (averagep,maxp) = alignment.get_p_distance()            
-                align_size = 10
-                if (averagep > .60):                
-                    while (align_size*2 < alignment.get_num_taxa()):
-                        align_size = align_size * 2            
-                _LOG.info("Average p-distance of backbone is %f0.2.  Alignment subset size set to %d. " % (averagep,align_size))    
-                options().alignment_size = align_size
         return ExhaustiveAlgorithm.check_options(self)
         
     def merge_results(self):
@@ -247,22 +242,30 @@ def augment_parser():
     
     decompGroup = parser.groups['decompGroup']                                 
     decompGroup.__dict__['description'] = ' '.join(["These options",
-        "determine the alignment decomposition size and", 
-        "taxon insertion size.  If None is given, then the alignment size will be",
-        "automatically computed from the backbone p-distance.  The size of the",
-        "backbone will be 100 or 20% of the taxa, whichever is smaller."])
+        "determine the alignment decomposition size, backbone size, and how to decompose the backbone set."])
         
     
     decompGroup.add_argument("-A", "--alignmentSize", type = int, 
                       dest = "alignment_size", metavar = "N", 
-                      default = None,
+                      default = 10,
                       help = "max alignment subset size of N "
-                             "[default: Will be computed from backbone p-distance]")    
+                             "[default: 10]")    
+    decompGroup.add_argument("-M", "--median_full_length", type = int, 
+                      dest = "median_full_length", metavar = "N", 
+                      default = None,
+                      help = "Consider all fragments that are 25%% longer or shorter than N to be excluded from the backbone "
+                             "[default: None]")                                 
     decompGroup.add_argument("-B", "--backboneSize", type = int,
                       dest = "backbone_size", metavar = "N", 
                       default = None,
                       help = "(Optional) size of backbone set.  "
-                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to N) and query set (remaining sequences), [default: min(100,20%% of taxa)]")    
+                             "If no backbone tree and alignment is given, the sequence file will be randomly split into a backbone set (size set to N) and query set (remaining sequences), [default: min(1000,input size)]")    
+    decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
+                      dest = "decomp_strategy", metavar = "DECOMP",
+                      default = "hierarchical", 
+                      help = "decomposition strategy "
+                             "[default: ensemble of HMMs (hierarchical)]")                              
+                             
     inputGroup = parser.groups['inputGroup']                             
     inputGroup .add_argument("-s", "--sequence_file", type = argparse.FileType('r'),
                       dest = "sequence_file", metavar = "SEQ", 
@@ -313,6 +316,10 @@ def augment_parser():
                              "[default: %(default)s]")          
                              
                                                    
-if __name__ == '__main__':   
+def main():
     augment_parser() 
     UPPExhaustiveAlgorithm().run()
+
+if __name__ == '__main__':   
+    main()
+        
