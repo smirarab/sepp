@@ -54,7 +54,7 @@ UPP is a part of the SEPP distribution package.  First install SEPP (see [SEPP r
 
 1. Configure: run `sudo python setup.py upp`. 
 
-The last step creates a ~/.sepp/upp.config config file. Since this is specific to a user, each user that runs sepp needs to execute the last step. 
+The last step creates a ~/.sepp/upp.config config file. Since this is specific to a user, each user that runs UPP needs to execute the last step. 
 
 Common Problems:
 -------------------
@@ -68,17 +68,17 @@ To run UPP, invoke the `run_upp.py` script from the `bin` sub-directory of the l
 
 `python <bin>/run_upp.py -h`
 
-The general command for running TIPP is:
+The general command for running UPP is:
 
 `python <bin>/run_upp.py -s <unaligned_sequences>`
 
-By default, this will automatically select 1,000 sequences to be in the backbone set, generate a PASTA alignment and tree, and then align the remaining sequences to the backbone alignment.  UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run SEPP on the sample files. To run using command options, run
+This will run UPP(Default) as described in the main paper.  This will automatically select up to 1,000 sequences to be in the backbone set, generate a PASTA alignment and tree, and then align the remaining sequences to the backbone alignment.  UPP can also be run using a configuration file. 
 
 The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  
 
 The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree).
 
-To run a small test example with 1,000 sequences, run the following command:
+Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run UPP on the sample files.  To run UPP(Fast) on a small test example with 1,000 sequences, run the following command from the test/unittest/data/upp/ directory:
 
 `python <bin>/run_upp.py -s initial.fas -B 100`
 
@@ -93,6 +93,10 @@ By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to
 ---------------------------------------------
 Advanced Usage Options
 ---------------------------------------------
+To run UPP(Fast) as described in the main paper, run
+
+`python <bin>/run_upp.py -s input.fas -B 100`
+
 To run UPP with a pre-computed backbone alignment and tree, run
 
 `python <bin>/run_upp.py -s input.fas -a <alignment_file> -t <tree_file>`
@@ -102,6 +106,11 @@ To filter fragments from the backbone selection process, run
 `python <bin>/run_upp.py -s input.fas -M <median_full_length>`
 
 UPP will only include sequences in the backbone set that are within 25% of the median length provided.
+
+To run the parallelized version of UPP, run
+
+`python <bin>/run_upp.py -s input.fas -x <cpus>`
+
 
 ---------------------------------------------
 Bugs and Errors
