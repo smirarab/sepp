@@ -3,7 +3,7 @@ Summary
 ------------------------------------
 This repository includes code for SEPP, TIPP, and UPP.  The three methods use ensembles of Hidden Markov Models (HMMs) in different ways, each focusing on a different problem. 
 
-Each of these related tools have their own README files .
+Each of these related tools has its own README file.
 
 [README.SEPP.md](README.SEPP.md)
 * **SEPP** stands for "SATe-enabled Phylogenetic Placement", and addresses the problem of phylogenetic placement of short reads into reference alignments and trees. 
