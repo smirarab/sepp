@@ -8,12 +8,24 @@ Alignment:
 - Input: A set of unaligned sequences `S`
 - Output: An alignment `A` on `S`
 
-UPP is a modification of SEPP for performing alignments of ultra-large and fragmentary datasets.  UPP operates in four steps.  In the first step, UPP partitions set `S` into a backbone set and a query set and computes an alignment and tree on the backbone set.  In the next step, UPP decomposes the backbone alignment into ensemble of profile Hidden Markov models (HMM).  The third step, UPP searches for the best alignment of the query sequence to each HMM.  The final step inserts the query sequence into the backbone alignment using the best scoring HMM.  Our study shows that UPP results in accurate alignments and ML trees estimated on the alignments, is robust to datasets containing both fragmentary and full-length sequences, and is fast enough to produce an alignment on 1,000,000 sequences in two days.
+UPP is a modification of SEPP for performing alignments of ultra-large and fragmentary datasets.  UPP operates in four steps.  In the first step, UPP partitions set `S` into a backbone set and a query set and computes an alignment and tree on the backbone set using PASTA (Mirarab et al., RECOMB 2014 and Journal of Computational Biology 2014), which is a direct improvement to SATe (Liu et al., Science 2009 and Systematic Biology 2012).  In the next step, UPP decomposes the backbone alignment into an ensemble of profile Hidden Markov Models (HMMs).  The third step in UPP searches for the best alignment of the query sequence to each HMM.  The final step inserts the query sequence into the backbone alignment using the best scoring HMM.  Our study shows that UPP results in accurate alignments, and that ML trees estimated on the alignments are also highly accurate. UPP has good accuracy on datasets that contain fragmentary and sequences. 
 
-Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
+UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
+
+UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 1,000,000 sequences in two days using 12 processors; the default version requires more time (about two weeks). The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution -- datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
+
+FRAGMENTARY DATASETS: UPP can be used in default mode, which will select the backbone sequences randomly and without trying to restrict the backbone to full length sequences. However, if the dataset contains fragments, then UPP should be used in a mode that restricts the backbone to just the "full-length" sequences. To do this, you will need to provide UPP with an estimate of the full length of sequences for your locus. See Advanced Usage information about how to do this.
+
+SUPPLYING YOUR OWN SEED ALIGNMENT AND TREE: If you have a pre-computed seed alignment (with or without a phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
+
+PARALLEL IMPLEMENTATION: UPP is embarassingly parallel. See Advanced Usage information about how to do this.
+
+
+
+Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow.
 
 ###Publication:
-Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large alignments using ensembles of Hidden Markov Models`. Research in Computational Molecular Biology (2015): accepted.
+Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large alignments using Phylogeny Aware Profiles`. Accepted to RECOMB 2015 (Research in Computational Molecular Biology 2015) and Genome Biology.
 
 
 ### Note and Acknowledgment: 
@@ -26,7 +38,7 @@ Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large ali
 -------------------------------------
 Installation
 -------------------------------------
-This section details steps for installing and running UPP. We have run UPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
+This section details steps for installing and running UPP. We have run UPP on Linux and MAC. If you experience difficulty installing or running the software, please contact Nam Nguyen or Siavash Mirarab.
 
 Requirements:
 -------------------
@@ -79,7 +91,7 @@ To run using a configuration file, run
 By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
 ---------------------------------------------
-Advance options
+Advanced Usage Options
 ---------------------------------------------
 To run UPP with a pre-computed backbone alignment and tree, run
 
@@ -89,7 +101,7 @@ To filter fragments from the backbone selection process, run
 
 `python <bin>/run_upp.py -s input.fas -M <median_full_length>`
 
-UPP will only include sequences within 25% of the median length in the backbone set.
+UPP will only include sequences in the backbone set that are within 25% of the median length provided.
 
 ---------------------------------------------
 Bugs and Errors
