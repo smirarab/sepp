@@ -7,8 +7,8 @@ from argparse import ArgumentParser, Namespace
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 
 def parse_args():
-  parser = argparse.ArgumentParser(description='Performs various tools for TIPP.')
-  parser.add_argument('-g', '--gene', default=None, metavar='GENE', help='use GENE\'s reference package',   
+  parser = argparse.ArgumentParser(description='Separates sequences out based upon length threshold.')
+  parser.add_argument('-t', '--threshold', default=150, metavar='T', help='threshold for fragmentary sequences, inclusive (default=150)',   
                    type=int,dest='threshold')
   parser.add_argument('-i', '--input', default=None,metavar='INPUT',help='INPUT sequence file (default=None)',required=True,
                    type=str,dest='input')

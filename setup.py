@@ -88,6 +88,53 @@ class ConfigSepp(Command):
         copy_tool_to_lib("hmmbuild")
         #TODO: should we compile and build merge.jar?
         copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
+        
+class ConfigUPP(Command):
+    """setuptools Command"""
+    description = "Configures UPP for the current user"
+    user_options = []
+    
+    def initialize_options(self):
+        """init options"""
+        self.configfile = os.path.expanduser("~/.sepp/upp.config")
+        pass
+
+    def finalize_options(self):
+        """finalize options"""
+        pass
+    
+    def run(self):                
+        print "\nCreating main upp config file at %s " %(self.configfile)
+        def get_tools_dir(where):    
+            platform_name = platform.system()
+            if where is None:
+                where = os.path.join("bundled",platform_name)
+            path = os.path.join(os.getcwd(),"tools",where)
+            if not os.path.exists(path):
+                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
+            return path
+    
+        def get_tool_name(tool,bits):
+            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
+                return tool
+            is_64bits = sys.maxsize > 2**32
+            return "%s-%s" %(tool,"64" if is_64bits else "32")
+        
+        def get_tools_dest():
+            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
+        
+        def copy_tool_to_lib(tool,where=None,bits=True):    
+            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
+                        os.path.join(get_tools_dest(),tool))
+                    
+        # Create the default config file
+        c = open("default.main.config")
+        d = open(self.configfile,"w")
+        for l in c:
+            l = l.replace("~",get_tools_dest())
+            d.write(l)
+        d.close()        
+
 
 class ConfigTIPP(Command):
     """setuptools Command"""
@@ -162,8 +209,8 @@ setup(name = "sepp",
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4"],
       provides = ["sepp"],
-      scripts = ["run_sepp.py",'run_tipp.py','run_abundance.py',"split_sequences.py"],
-      cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP},
+      scripts = ["run_sepp.py",'run_tipp.py','run_upp.py','run_abundance.py',"split_sequences.py"],
+      cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP,"upp":ConfigUPP},
       
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",
