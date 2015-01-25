@@ -4,13 +4,13 @@ Summary
 
 SEPP stands for `SATe-enabled phylogenetic placement`, and so is a method for the following problem:
 
-- Input: tree `T` and alignment `A` for a set of full-length gene sequences, and set `X` of fragmentary sequences for the same gene
+- Input: tree `T` and alignment `A` for a set of full-length gene sequences, and set `X` of (potentially fragmentary) query sequences for the same gene
 
 - Output: placement of each fragment in `X` into the tree T, and alignment of each fragment in `X` to the alignment `A`.
 
-SEPP operates by using a divide-and-conquer strategy adopted from SATe [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract) to improve the alignment produced by running HMMER (code by Sean Eddy). It then places each fragment into the user-provided tree using pplacer (code by Erick Matsen). Our study shows that SEPP provides improved accuracy for quickly evolving genes as compared to other methods.
+SEPP operates by using a divide-and-conquer strategy adopted from SATe-II (Liu et al., Systematic Biology 2012, http://sysbio.oxfordjournals.org/content/61/1/90.full.pdf+html?sid=dd32838d-89dc-4bda-8008-6f948146341f) but see also SATe (Liu et. al., Science, 2009, http://www.sciencemag.org/content/324/5934/1561.abstract) to construct a Family of Hidden Markov Models (HMMs) to represent the input multiple sequence alignment A. It then computes the fit of each query sequence in X to each HMM in the Family of HMMs, and uses the best HMM to add the sequence to the input tree T. This technique improves the accuracy of the placements of the query sequences compared to using a single HMM to represent the input alignment. SEPP uses tools in HMMER to construct HMMs, compute the fit of sequences to HMMs, and add sequences to the alignment A (code by Sean Eddy). UPP uses pplacer (code by Erick Matsen) to add query sequences to the input tree T, after they are added to the alignment A.   SEPP is also used in other software -- TIPP (taxonomic identical using phylogenetic placement) and UPP (ultra-large alignments using phylogeny-aware profiles).
 
-Developers: Tandy Warnow, Nam Nguyen, and Siavash Mirarab
+Developers: Siavash Mirarb, Tandy Warnow, and Nam Nguyen
 
 ###Publication:
 S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 (http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
@@ -84,5 +84,5 @@ By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and post-doc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@cs.utexas.edu).
+SEPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD student Siavash Mirarab and postdoc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 
