@@ -58,16 +58,19 @@ To run UPP, invoke the `run_upp.py` script from the `bin` sub-directory of the l
 
 The general command for running TIPP is:
 
-`python <bin>/run_upp.py -s <unaligned_sequences> `
+`python <bin>/run_upp.py -s <unaligned_sequences>`
 
-UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run SEPP on the sample files. To run using command options, run
+By default, this will automatically select 1,000 sequences to be in the backbone set, generate a PASTA alignment and tree, and then align the remaining sequences to the backbone alignment.  UPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run SEPP on the sample files. To run using command options, run
+
+The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  
+
+The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree).
+
+To run a small test example with 1,000 sequences, run the following command:
 
 `python <bin>/run_upp.py -s initial.fas -B 100`
 
-The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta; for this
-example, the prefix is output.  The  <prefix>_alignment.fasta file is the alignment of the query sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; sites in the query sequence that are marked as non-homologous to sites in the backbone are removed.  
-
-The secondary outputs will be the backbone alignment and tree (pasta.fasta and pasta.fasttree).
+This will generate a backbone set of 100 sequences and align the remaining 900 sequences to the backbone alignment.
 
 To run using a configuration file, run
 
@@ -91,5 +94,5 @@ UPP will only include sequences within 25% of the median length in the backbone 
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-UPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and postdoc Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
+UPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and postdoc Nam Nguyen). Please report any errors or requests to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 
