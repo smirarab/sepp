@@ -3,12 +3,12 @@ Created on Oct 10, 2012
 
 @author: smirarab
 '''
-import sys,random,argparse
+import sys,random,argparse,os
 from argparse import ArgumentParser, Namespace
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
-from sepp.jobs import PplacerJob,MafftAlignJob,FastTreeJob,SateAlignJob,PastaAlignJob
+from sepp.jobs import PastaAlignJob
 from sepp.filemgr import get_temp_file
 from sepp.config import options,valid_decomp_strategy
 import sepp.config
@@ -237,6 +237,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                                                          self.filtered_taxa))
                 
 def augment_parser():
+    sepp.config.set_main_config_path(os.path.expanduser("~/.sepp/upp.config"))
     parser = sepp.config.get_parser()    
     parser.description = "This script runs the UPP algorithm on set of sequences.  A backbone alignment and tree can be given as input.  If none is provided, a backbone will be automatically generated."
     

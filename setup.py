@@ -133,6 +133,7 @@ class ConfigUPP(Command):
         for l in c:
             l = l.replace("~",get_tools_dest())
             d.write(l)
+        d.write('\n[pasta]\npath=run_pasta.py\n')            
         d.close()        
 
 
