@@ -50,7 +50,7 @@ Before installing the software you need to make sure the following programs are 
 
 Installation Steps:
 -------------------
-UPP is a part of the SEPP distribution package.  First install SEPP (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  Next install [PASTA] (https://github.com/smirarab/PASTA/).  Once done, do the following. 
+UPP is a part of the SEPP distribution package.  First install SEPP (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  Next install [PASTA] (https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.  Once done, do the following. 
 
 1. Configure: run `sudo python setup.py upp`. 
 
