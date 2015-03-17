@@ -224,7 +224,7 @@ class HMMBuildJob(ExternalSeppJob):
         
         
     def get_invocation(self):
-        invoc = [self.path, "--symfrac" ,"0.0" ,"--%s" % self.molecule]
+        invoc = [self.path, "--cpu", "1", "--symfrac" ,"0.0" ,"--%s" % self.molecule]
         if self.options != "":
             invoc.extend(self.options.split())
         if self.informat == "fasta":
@@ -288,8 +288,12 @@ class HMMAlignJob(ExternalSeppJob):
         self._kwargs = kwargs  
                     
     def get_invocation(self):
-        invoc = [self.path, "--allcol", "--%s" % self.molecule,
+        #invoc = [self.path, "--allcol", "--%s" % self.molecule,
+        #         "-o", self.outfile]
+
+        invoc = [self.path, "--%s" % self.molecule,
                  "-o", self.outfile]
+
         if self.trim:
             invoc.extend(["--trim"])
         #if self.base_alignment:
@@ -660,7 +664,7 @@ class PastaAlignJob(ExternalSeppJob):
         
     def get_invocation(self):
         
-        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment,'--auto', "--datatype=%s" % self.molecule,'--temporaries=%s/pastatmp' % self.output,'-j', 'pastajob','--output-directory=%s/pastaout/' % sepp.filemgr.get_root_temp_dir()]        
+        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment, "--datatype=%s" % self.molecule,'--temporaries=%s/pastatmp' % self.output,'-j', 'pastajob','--output-directory=%s/pastaout/' % sepp.filemgr.get_root_temp_dir()]        
         return invoc
 
     def characterize_input(self):
