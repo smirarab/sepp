@@ -273,7 +273,7 @@ def augment_parser():
     decompGroup.add_argument("-T", "--backbone_threshold", type = float, 
                       dest = "backbone_threshold", metavar = "N", 
                       default = 0.25,
-                      help = "Only consider sequences with lengths within (1-N)*M and (1+N)*M as full-length, where M is the median."
+                      help = "Only consider sequences with lengths within (1-N)*M and (1+N)*M as full-length, where M is the median length of the full-length sequence given by the -M option and N is the percentage given by the -T option."
                              "[default: 0.25]")                              
     decompGroup.add_argument("-B", "--backboneSize", type = int,
                       dest = "backbone_size", metavar = "N", 
