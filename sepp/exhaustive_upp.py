@@ -69,7 +69,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             else:
               options().median_full_length = seq_lengths[lengths / 2]              
             
-            (min_length,max_length) = (int(options().median_full_length*.25)-options().median_full_length,int(options().median_full_length*.25)+options().median_full_length)
+            (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
             frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
             if (len(frag_names) > 0):
                 fragments = sequences.get_hard_sub_alignment(frag_names)        
@@ -102,11 +102,12 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if (len(frag_names) == 0):
           _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))   
           shutil.copyfile(self.options.outdir + "/pasta.fasta", self.get_output_filename("alignment.fasta"))
-          return
+          sys.exit(0)
         else:
+          query = get_temp_file("query", "backbone", ".fas")
           options().fragment_file = query
           sequences.set_alignment(fragments)        
-          query = get_temp_file("query", "backbone", ".fas")        
+          
           _write_fasta(sequences, query)               
 
     def check_options(self):
@@ -269,6 +270,11 @@ def augment_parser():
                       default = None,
                       help = "Consider all fragments that are 25%% longer or shorter than N to be excluded from the backbone.  If value is -1, then UPP will use the median of the sequences as the median full length "
                              "[default: None]")                                 
+    decompGroup.add_argument("-T", "--backbone_threshold", type = float, 
+                      dest = "backbone_threshold", metavar = "N", 
+                      default = 0.25,
+                      help = "Only consider sequences with lengths within (1-N)*M and (1+N)*M as full-length, where M is the median."
+                             "[default: 0.25]")                              
     decompGroup.add_argument("-B", "--backboneSize", type = int,
                       dest = "backbone_size", metavar = "N", 
                       default = None,
