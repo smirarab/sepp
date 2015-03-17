@@ -69,11 +69,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             else:
               options().median_full_length = seq_lengths[lengths / 2]              
             
-            (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
-            frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
-            if (len(frag_names) > 0):
-                fragments = sequences.get_hard_sub_alignment(frag_names)        
-                [sequences.pop(i) for i in fragments.keys()]        
+          (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
+          frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
+          if (len(frag_names) > 0):
+              fragments = sequences.get_hard_sub_alignment(frag_names)        
+              [sequences.pop(i) for i in fragments.keys()]        
         if (options().backbone_size is None):            
             options().backbone_size = min(1000,int(sequences.get_num_taxa()))
             _LOG.info("Backbone size set to: %d" %(options().backbone_size))
@@ -210,6 +210,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         outfilename = self.get_output_filename("alignment.fasta")
         extended_alignment.write_to_path(outfilename)
         _LOG.info("Unmasked alignment written to %s" %outfilename)
+        outfilename = self.get_output_filename("insertion_columns.txt")
+        extended_alignment.write_insertion_column_indexes(outfilename)
+        _LOG.info("The index of insertion columns written to %s" %outfilename)
         extended_alignment.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         extended_alignment.write_to_path(outfilename)

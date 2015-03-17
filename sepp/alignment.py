@@ -550,12 +550,34 @@ class ExtendedAlignment(MutableAlignment):
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
+    def get_insertion_columns(self):	
+	return [i for (i,x) in enumerate(self.col_labels) if self.is_insertion_column(x)]
+
+    def get_insertion_column_ranges(self):
+        pos=[]
+        strt = -1000
+        prev = -1000
+        for p in self.get_insertion_columns():
+            if prev+1 != p:
+                if strt != -1000:
+                    pos.append((strt,prev))
+                strt = p
+            prev = p
+        pos.append((strt,prev))
+        return pos
     
+    def write_insertion_column_indexes(self,path):
+        file_obj = open(path,'w')
+        r = ','.join("%d-%d" %(pair[0],pair[1]) for pair in self.get_insertion_column_ranges())
+        file_obj.write(r);
+        file_obj.write("\n")
+        file_obj.close() 
+
     def remove_insertion_columns(self):
         '''
         Outputs a new alignment with insertion columns masked out.
         '''
-        cols = [i for (i,x) in enumerate(self.col_labels) if x < 0]
+        cols = self.get_insertion_columns()
         s=[]
         a=0
         for b in cols: 
@@ -570,7 +592,7 @@ class ExtendedAlignment(MutableAlignment):
             self[name] = "".join(news)
         
     def write_insertion_maked_to_file(self,path):
-        cols = [i for (i,x) in enumerate(self.col_labels) if x < 0]
+        cols = self.get_insertion_columns()
         s=[]
         a=0
         for b in cols: 
