@@ -488,7 +488,7 @@ def augment_parser():
                       help = "Placement probability requirement to count toward the distribution. "
                              "This should be a number between 0 and 1 [default: 0.0]")    
                       
-    tippGroup.add_argument("-g", "--genes", type = str, 
+    tippGroup.add_argument("-G", "--genes", type = str, 
                       dest = "genes", metavar = "GENES", 
                       default = 'markers',
                       help = "Use markers or cogs genes [default: markers]")                   
