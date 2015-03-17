@@ -3,7 +3,7 @@ Created on Oct 10, 2012
 
 @author: smirarab
 '''
-import sys,random,argparse,os
+import sys,random,argparse,os,shutil
 from argparse import ArgumentParser, Namespace
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
@@ -19,7 +19,6 @@ from multiprocessing import Pool, Manager
 from sepp.alignment import ExtendedAlignment
 
 _LOG = get_logger(__name__)
-
 
 class UPPJoinAlignJobs(JoinAlignJobs):
     '''
@@ -45,6 +44,7 @@ class UPPJoinAlignJobs(JoinAlignJobs):
 #    extended[i] = a
 #    del b
 #    return "Success"
+ 
 
 class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
@@ -54,33 +54,38 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     '''
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)     
-       
-    def remove_fragments(self):
-        options().median_full_length
-    
+               
     def generate_backbone(self):
         _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
         fragments = MutableAlignment()
         if (options().median_full_length is not None):
-            (min_length,max_length) = (int(median_full_length*.25)-median_full_length,int(median_full_length*.25)+median_full_length)
-            frag_names = [name for name in sequences if len(sequences[name]) < max_length and len(sequences[name]) > min_length]
-            fragments = sequences.get_hard_sub_alignment(frag_names)        
-            [sequences.pop(i) for i in fragments.keys()]        
+          if (options().median_full_length == -1):
+            seq_lengths = sorted([len(seq) for seq in sequences.values()])              
+            lengths = len(seq_lengths)
+            if lengths % 2:
+              options().median_full_length = (seq_lengths[lengths / 2] + seq_lengths[lengths / 2 - 1]) / 2.0
+            else:
+              options().median_full_length = seq_lengths[lengths / 2]              
+            
+            (min_length,max_length) = (int(options().median_full_length*.25)-options().median_full_length,int(options().median_full_length*.25)+options().median_full_length)
+            frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
+            if (len(frag_names) > 0):
+                fragments = sequences.get_hard_sub_alignment(frag_names)        
+                [sequences.pop(i) for i in fragments.keys()]        
         if (options().backbone_size is None):            
             options().backbone_size = min(1000,int(sequences.get_num_taxa()))
             _LOG.info("Backbone size set to: %d" %(options().backbone_size))
+        if (options().backbone_size > len(sequences.keys())):
+          options().backbone_size = len(sequences.keys())
         backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
         [sequences.pop(i) for i in backbone_sequences.keys()]
         
-        _LOG.info("Writing query and backbone set. ")
-        query = get_temp_file("query", "backbone", ".fas")
+        _LOG.info("Writing backbone set. ")
         backbone = get_temp_file("backbone", "backbone", ".fas")
-        sequences.set_alignment(fragments)
-        _write_fasta(sequences, query)
         _write_fasta(backbone_sequences, backbone)
-                
+         
         _LOG.info("Generating pasta backbone alignment and tree. ")
         pastaalignJob = PastaAlignJob()
         moleculeType = options().molecule
@@ -93,8 +98,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         options().placement_size = self.options.backbone_size
         options().alignment_file = open(self.options.outdir + "/pasta.fasta")
         options().tree_file = open(self.options.outdir + "/pasta.fasttree")
-        _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
-        options().fragment_file = query
+        _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))        
+        if (len(frag_names) == 0):
+          _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))   
+          shutil.copyfile(self.options.outdir + "/pasta.fasta", self.get_output_filename("alignment.fasta"))
+          return
+        else:
+          options().fragment_file = query
+          sequences.set_alignment(fragments)        
+          query = get_temp_file("query", "backbone", ".fas")        
+          _write_fasta(sequences, query)               
 
     def check_options(self):
         options().info_file = "A_dummy_value"
@@ -254,7 +267,7 @@ def augment_parser():
     decompGroup.add_argument("-M", "--median_full_length", type = int, 
                       dest = "median_full_length", metavar = "N", 
                       default = None,
-                      help = "Consider all fragments that are 25%% longer or shorter than N to be excluded from the backbone "
+                      help = "Consider all fragments that are 25%% longer or shorter than N to be excluded from the backbone.  If value is -1, then UPP will use the median of the sequences as the median full length "
                              "[default: None]")                                 
     decompGroup.add_argument("-B", "--backboneSize", type = int,
                       dest = "backbone_size", metavar = "N", 
