@@ -312,6 +312,8 @@ class HMMAlignJob(ExternalSeppJob):
         it will need to get pickled and unpickled. Instead, we just send
         back the file name, and will let the caller figure out what to do with it. 
         '''
+        if self.fake_run:
+          return None
         if os.path.exists(self.outfile):
             assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
             return self.outfile
@@ -352,6 +354,8 @@ class HMMSearchJob(ExternalSeppJob):
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmsearch.results.", 
                                                        subproblem)              
         self.fragments = fragments_file
+        if not self.fragments:
+            self.fake_run = True
         self.elim = elim
         self.filters = filters
         self._kwargs = kwargs  
@@ -378,6 +382,8 @@ class HMMSearchJob(ExternalSeppJob):
            Reads the search output file and returns a dictionary that contains 
            the e-values of the searched fragments
         '''
+        if self.fake_run:
+          return {}
         if self.pipe:
             outfile = (self.stdoutdata.split("\n"))
         else:

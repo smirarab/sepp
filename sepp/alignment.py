@@ -220,7 +220,10 @@ class ReadOnlyAlignment(Mapping, object):
         ret = []
         for i in xrange(0,chunks):
             subset = names[i:len(names):chunks]
-            subset_alg = self.get_soft_sub_alignment(subset)
+            if subset:
+                subset_alg = self.get_soft_sub_alignment(subset)
+            else:
+                subset_alg = None
             ret.append(subset_alg)            
         return ret     
 

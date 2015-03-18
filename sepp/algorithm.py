@@ -242,8 +242,10 @@ class AbstractAlgorithm(object):
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks)        
         ret = []
         for i in xrange(0,chunks):
-            temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")
-            alg_chunks[i].write_to_path(temp_file)
+            temp_file = None
+            if alg_chunks[i]:
+                temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")
+                alg_chunks[i].write_to_path(temp_file)
             ret.append(temp_file)            
         _LOG.debug("fragment files read and divided.")
         return ret

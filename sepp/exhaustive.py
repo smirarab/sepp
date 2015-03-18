@@ -97,10 +97,10 @@ class JoinSearchJobs(Join):
                 aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
                 aj.base_alignment = alg_problem.jobs["hmmbuild"].infile    
 
-                if not fragment_chunk_problem.fragments.is_empty():
-                    fragment_chunk_problem.fragments.write_to_path(aj.fragments)
-                else:
+                if fragment_chunk_problem.fragments is None or fragment_chunk_problem.fragments.is_empty():
                     aj.fake_run = True
+                else:
+                    fragment_chunk_problem.fragments.write_to_path(aj.fragments)
                 ''' Now the align job can be put on the queue '''
                 JobPool().enqueue_job(aj)                
                 
