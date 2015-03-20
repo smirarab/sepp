@@ -558,11 +558,11 @@ class ExtendedAlignment(MutableAlignment):
 
     def get_insertion_column_ranges(self):
         pos=[]
-        strt = -1000
-        prev = -1000
+        strt = None
+        prev = None
         for p in self.get_insertion_columns():
-            if prev+1 != p:
-                if strt != -1000:
+            if prev is None or prev+1 != p:
+                if strt is not None:
                     pos.append((strt,prev))
                 strt = p
             prev = p
