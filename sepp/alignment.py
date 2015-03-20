@@ -566,7 +566,8 @@ class ExtendedAlignment(MutableAlignment):
                     pos.append((strt,prev))
                 strt = p
             prev = p
-        pos.append((strt,prev))
+        if strt is not None:
+            pos.append((strt,prev))
         return pos
     
     def write_insertion_column_indexes(self,path):
