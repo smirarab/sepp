@@ -60,6 +60,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
         fragments = MutableAlignment()
+        frag_names=[]
         if (options().median_full_length is not None):
           if (options().median_full_length == -1):
             seq_lengths = sorted([len(seq) for seq in sequences.values()])              
