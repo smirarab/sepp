@@ -553,8 +553,9 @@ class ExtendedAlignment(MutableAlignment):
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
+
     def get_insertion_columns(self):	
-	return [i for (i,x) in enumerate(self.col_labels) if self.is_insertion_column(x)]
+	return [i for (i,x) in enumerate(self.col_labels) if self._is_insertion_label(x)]
 
     def get_insertion_column_ranges(self):
         pos=[]
