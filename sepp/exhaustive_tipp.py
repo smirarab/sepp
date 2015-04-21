@@ -10,7 +10,7 @@ from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
 from dendropy.dataobject.tree import Tree
-import dendropy,pickle
+import dendropy,pickle,pdb
 from sepp import get_logger
 
 _LOG = get_logger(__name__)
@@ -89,14 +89,16 @@ class TIPPJoinSearchJobs(Join):
         '''
   
         ''' Figure out which fragment should go to which subproblem'''
+        pdb.set_trace()
         self.figureout_fragment_subset()
                 
         ''' For each alignment subproblem,
         1) make sure its fragments are evenly distributed to fragment chunks.
         2) Setup alignment jobs for its children and enqueue them'''
+        pdb.set_trace()
         alg_problems = [alg for p in self.root_problem.children for alg in p.children ]
         for alg_problem in alg_problems:
-            assert isinstance(alg_problem, SeppProblem)
+            assert isinstance(alg_problem, SeppProblem)            
             chunks = len(alg_problem.get_children())
             fragment_chunks = alg_problem.fragments.divide_to_equal_chunks(chunks)
 
@@ -109,7 +111,7 @@ class TIPPJoinSearchJobs(Join):
                 aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
                 aj.base_alignment = alg_problem.jobs["hmmbuild"].infile
 
-                if not fragment_chunk_problem.fragments.is_empty():
+                if fragment_chunk_problem.fragments is not None and not fragment_chunk_problem.fragments.is_empty():
                     fragment_chunk_problem.fragments.write_to_path(aj.fragments)
                 else:
                     aj.fake_run = True
