@@ -89,13 +89,11 @@ class TIPPJoinSearchJobs(Join):
         '''
   
         ''' Figure out which fragment should go to which subproblem'''
-        pdb.set_trace()
         self.figureout_fragment_subset()
                 
         ''' For each alignment subproblem,
         1) make sure its fragments are evenly distributed to fragment chunks.
         2) Setup alignment jobs for its children and enqueue them'''
-        pdb.set_trace()
         alg_problems = [alg for p in self.root_problem.children for alg in p.children ]
         for alg_problem in alg_problems:
             assert isinstance(alg_problem, SeppProblem)            
@@ -199,7 +197,6 @@ class TIPPJoinAlignJobs(Join):
         pickle.dump(fullExtendedAlignment, output)
         output.close()                    
         
-        #pdb.set_trace()
         # Enqueue the placement job        
         JobPool().enqueue_job(pj)
         
