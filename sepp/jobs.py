@@ -288,11 +288,11 @@ class HMMAlignJob(ExternalSeppJob):
         self._kwargs = kwargs  
                     
     def get_invocation(self):
-        invoc = [self.path, "--allcol", "--%s" % self.molecule,
-                 "-o", self.outfile]
-
-        #invoc = [self.path, "--%s" % self.molecule,
+        #invoc = [self.path, "--allcol", "--%s" % self.molecule,
         #         "-o", self.outfile]
+
+        invoc = [self.path, "--%s" % self.molecule,
+                 "-o", self.outfile]
 
         if self.trim:
             invoc.extend(["--trim"])
