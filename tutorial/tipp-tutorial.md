@@ -196,9 +196,19 @@ EAS25_26_1_15_381_1761_0_1,2158,Methanobacteriales,order,1.0000
 EAS25_26_1_15_381_1761_0_1,2173,Methanobrevibacter smithii,species,1.0000
 ```
 
-For example, the EAS25_26_1_15_381_1761_0_1 is classified as the species Methanobrevibacter smithii with 100% support.  In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+For example, the EAS25_26_1_15_381_1761_0_1 is classified as the species Methanobrevibacter smithii with 100% support.  By default, TIPP requires
+95% placement support to classify a sequence.  If we lower the classification
+threshold, we can see all possible classifications for a sequence.
+
+```
+run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o lower_threshold -P 30 -pt 0.0
+```
+
+
+In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
  
 In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+
 
 Step 2: Converting the result into an abundance profile
 ---
