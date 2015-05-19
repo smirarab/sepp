@@ -149,7 +149,7 @@ path=None
 
 ```
 [blast]
-path=~/bin/
+path=~/bin/blastn
 
 [reference]
 path=~/testdata/tipp/
