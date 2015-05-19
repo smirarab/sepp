@@ -37,7 +37,7 @@ You have two options for installing TIPP.
  - **Windows:** If you have a Windows machine, currently using the Virtual Machine (VM) image we provide is your only option. 
  - **Linux:** and **MAC:**  If you have Linux (or other \*nix systems) or MAC, you can still use VM, but downloading the code from github and installing it is what we strongly recommend. 
  
- ### 1. From Source Code
+### 1. From Source Code
 Current version of TIPP has been developed and tested entirely on Linux and MAC. 
 Windows won't work currently (future versions may or may not support Windows). 
 
@@ -66,7 +66,7 @@ and decompress it into your desired directory.
  
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
 
-5. Run the following command:
+5. Run the following command from the SEPP directory:
 
 
 ```
@@ -82,18 +82,18 @@ Once done, do the following.
 3. Set the environment variable REFERENCE to point to the location of the reference directory.  This can be performed using:
 
 ```
- REFERENCE=/PATH/TO/REFERENCE
- export REFERENCE
+REFERENCE=/PATH/TO/REFERENCE
+export REFERENCE
 ```
 
 4. Set the environment variable BLAST to point to the directory containing the location of blastn.  This can be performed using:
 
 ```
- BLAST=/PATH/TO/BLASTN/DIRECTORY
- export BLAST
+BLAST=/PATH/TO/BLASTN/DIRECTORY
+export BLAST
 ```
 
-5. Run the following command:
+5. Run the following command from the SEPP directory:
 
 ```
 python setup.py tipp
@@ -106,6 +106,7 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
    blast: http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download
+   You can also download the linux version of blastn from: http://www.cs.utexas.edu/~phylo/software/blastn
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
    reference datasets: www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
@@ -114,6 +115,45 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 ### 2. From Virtual Machine (VM)
 
 VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/PASTA_TIPP_UPP.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the PASTA_TIPP_UPP.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
+
+Note that we constantly update our software.  Before running the tutorial, it's best to grab
+the most updated version of the software onto the VM machine.  This can be done by opening a terminal in the VM and typing the following commands:
+
+
+```
+cd ~/tools/sepp
+git pull
+```
+
+If this command fails due to an error that the repository is corrupted, this can be fixed by typing the following series of commands from the SEPP directory:
+
+```
+rm -fr .git
+git init
+git remote add origin https://github.com/smirarab/sepp.git
+git fetch
+git reset --hard origin/master
+```
+
+Finally, if the BLAST environmental variable or the REFERENCE environmental variable
+cannot be read by TIPP during the configuration, you can manually edit the ~/.sepp/tipp.config
+file to point to the right location.  To do this, change:
+
+```
+[blast]
+path=None
+
+[reference]
+path=None
+```
+
+```
+[blast]
+path=~/bin/
+
+[reference]
+path=~/testdata/tipp/
+```
 
 ---------
 Using TIPP
@@ -127,9 +167,40 @@ run_tipp.py -h
 
 Running TIPP with the `-h` option produces the list of options available in TIPP. 
 
-The general command for running TIPP is:
+The general command for running TIPP for a specific pre-computed marker is:
 
-`run_tipp.py -t tree_file -a alignment_file -f fragment_file -r raxml_info_file -A alignment_set_size`
+```
+run_tipp.py -R reference_marker -f fragment_file
+```
+
+Step 1: Running a test job
+---
+
+TIPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is classifying reads from the pyrg gene, a smaller marker gene with only 65 sequences.
+
+```
+run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas -d temp/ -p temp/tmp -o outads -P 30
+```
+
+This will run TIPP on the fragmentary sequences that have been binned to the pyrg gene.  
+The main output of TIPP is a _classification.txt file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
+
+```
+EAS25_26_1_15_381_1761_0_1,2157,Archaea,superkingdom,1.0000
+EAS25_26_1_15_381_1761_0_1,1,root,root,1.0000
+EAS25_26_1_15_381_1761_0_1,183925,Methanobacteria,class,1.0000
+EAS25_26_1_15_381_1761_0_1,2172,Methanobrevibacter,genus,1.0000
+EAS25_26_1_15_381_1761_0_1,28890,Euryarchaeota,phylum,1.0000
+EAS25_26_1_15_381_1761_0_1,2158,Methanobacteriales,order,1.0000
+EAS25_26_1_15_381_1761_0_1,2173,Methanobrevibacter smithii,species,1.0000
+```
+
+For example, the EAS25_26_1_15_381_1761_0_1 is classified as the species Methanobrevibacter smithii with 100% support.  In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+
+In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+
+Step 2: Analyzing a metagenomic dataset
+---
 
 Step 1: Testing that SEPP is correctly installed:
 ---
