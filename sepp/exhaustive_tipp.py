@@ -1,7 +1,7 @@
 from sepp.exhaustive import ExhaustiveAlgorithm
 import sepp,os,stat,math
 from sepp.config import options
-import argparse
+import argparse,json
 from sepp.algorithm import AbstractAlgorithm
 from sepp.alignment import MutableAlignment, ExtendedAlignment,_write_fasta
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
@@ -383,11 +383,24 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         
 
     def check_options(self, supply=[]):
+        if (options().reference_pkg is not None):
+            self.load_reference(os.path.join(options().reference.path, 'refpkg/%s.refpkg/' % options().reference_pkg))                  
         if (options().taxonomy_file is None):
             supply = supply + ["taxonomy file"]
         if (options().taxonomy_name_mapping_file is None):
             supply = supply + ["taxonomy name mapping file"]
         ExhaustiveAlgorithm.check_options(self, supply)
+        
+    def load_reference(self, reference_pkg):
+        file = open(reference_pkg + 'CONTENTS.json')
+        result=json.load(file)
+        file.close()
+        options().taxonomy_name_mapping_file = open(reference_pkg + result['files']['seq_info'])
+        options().taxonomy_file = open(reference_pkg + result['files']['taxonomy'])
+        options().alignment_file = open(reference_pkg + result['files']['aln_fasta'])
+        options().tree_file = open(reference_pkg + result['files']['tree'])
+        options().info_file = reference_pkg + result['files']['tree_stats']
+        
         
     def read_alignment_and_tree(self):
         (alignment, tree) = AbstractAlgorithm.read_alignment_and_tree(self)
@@ -428,7 +441,12 @@ def augment_parser():
     #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
     tippGroup = parser.add_argument_group("TIPP Options".upper(), 
-                         "These arguments set settings specific to TIPP")                                 
+                         "These arguments set settings specific to TIPP")
+
+    tippGroup.add_argument("-R", "--reference_pkg", type = str, 
+                      dest = "reference_pkg", metavar = "N", 
+                      default = None,
+                      help = "Use a pre-computed reference package [default: None]")                         
     
     tippGroup.add_argument("-at", "--alignmentThreshold", type = float, 
                       dest = "alignment_threshold", metavar = "N", 

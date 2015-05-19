@@ -67,9 +67,9 @@ def build_profile(input,output_directory):
   
   #load up taxonomy for 30 marker genes
   if (options().genes == 'markers'):
-    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
+    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().reference.path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
   else:
-    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().__getattribute__('reference').path, 'refpkg/COG0012.refpkg/all_taxon.taxonomy'))
+    (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(options().reference.path, 'refpkg/COG0012.refpkg/all_taxon.taxonomy'))
     
   #all classifications stored here  
   classifications = {}

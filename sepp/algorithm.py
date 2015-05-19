@@ -207,8 +207,13 @@ class AbstractAlgorithm(object):
             options.placement_size = options.alignment_size
         if options.placement_size is not None and options.placement_size < options.alignment_size:
             raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
-        if options.placement_size > total or options.placement_size > total:
-            raise ValueError("alignment_size (%d) and placement_size (%d) should be smaller than total number of taxa (%d). " %(options.alignment_size,options.placement_size,total))
+        if options.placement_size > total:
+            options.placement_size = total
+            _LOG.warning("Input placement size larger than total number of sequences!  Setting placement size to %d" %(total)) 
+        if options.alignment_size > total:
+            options.alignment_size = total
+            _LOG.warning("Input alignment size larger than total number of sequences!  Setting alignment size to %d" %(total)) 
+            
         
         _LOG.info("Decomposition Sizes are set to alignment: %d placement: %d" %(options.alignment_size, options.placement_size)) 
 
