@@ -179,10 +179,13 @@ Step 1: Running a test job
 TIPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is classifying reads from the pyrg gene, a smaller marker gene with only 65 sequences.
 
 ```
-run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas -d temp/ -p temp/tmp -o outads -P 30
+mkdir pyrg_test
+chdir pyrg_test
+run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o output -P 30
 ```
 
-This will run TIPP on the fragmentary sequences that have been binned to the pyrg gene.  
+This will run TIPP on the fragmentary sequences that have been binned to the pyrg gene.  This will use the pre-computed alignment and tree that has been estimated on the known bacterial pyrg genes.
+
 The main output of TIPP is a _classification.txt file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
 
 ```
@@ -196,51 +199,63 @@ EAS25_26_1_15_381_1761_0_1,2173,Methanobrevibacter smithii,species,1.0000
 ```
 
 For example, the EAS25_26_1_15_381_1761_0_1 is classified as the species Methanobrevibacter smithii with 100% support.  In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
-
+ 
 In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
-Step 2: Analyzing a metagenomic dataset
+Step 2: Converting the result into an abundance profile
+---
+The classification file lists all possible classifications for a fragment, even if it has very low support.  In some situations, we only want the most highly supported classifications.  We can use a helper tool to convert the classification file into a profile.  
+
+```
+mkdir profile
+run_tipp_tool.py  -g pyrg -a profile -o profile -p pyrg -i out_classification.txt -t 0.95
+```
+
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labeled pyrg.classification
+
+```
+fragment        species genus   family  order   class   phylum
+EAS25_26_1_100_940_776_0_1      2173    2172    2159    2158    183925  28890
+EAS25_26_1_11_733_1260_0_2      2173    2172    2159    2158    183925  28890
+EAS25_26_1_15_381_1761_0_1      2173    2172    2159    2158    183925  28890
+EAS25_26_1_15_381_1761_0_2      NA      NA      2206    94695   224756  28890
+```
+
+This file lists the classification (shown as NCBI taxonomic ids) of each fragment at each of the taxonomic rankings.  If a fragment does not meet the support threshold (95% in this case), it will be left as unclassified (NA).  
+
+Let's look at abundance.species.csv.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
+```
+taxa    abundance
+Methanobrevibacter smithii      0.7969
+Methanococcus maripaludis       0.0156
+unclassified    0.1875
+```
+
+Step 3: Running TIPP for profiling:
 ---
 
-Step 1: Testing that SEPP is correctly installed:
----
+The previous example shows how to analyze a dataset when the fragments come from a specific gene.  When analyzing shotgun metagenomic reads, however, the reads originate from all across the genome.  Thus, we need to take a different approach for analyzing such a dataset.
 
-SEPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/mock/. Change to that directory to run SEPP on the sample files. To run using command options, run
+TIPP comes with a collection of 30 single copy housekeeping genes which are used for abundance profiling of metagenomic reads.  The pipeline to analyze a metagenomic dataset is to first bin the reads to each of the marker genes, and then run TIPP individual on each of the individual marker genes.  We have simplified this process with a helper script run_abundance.py.
 
-`run_sepp.py -t test.tree -a test.fasta -f test.fas -r test.RAxML_info -A 250 -P 250`
+The general command for run_abudnance.py is:
 
-and to run using a configuration file, run
+```
+run_abundance.py -f fragment_file -c ~/.sepp/tipp.config -d output_directory
+```
 
-`python run_sepp.py -c sample.config`
+The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the test/unittest/data/mock/mixed directory and run 
 
-The main output of SEPP is a .json file, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+```
+run_abundance.py -f facs_simhc.short.fas -c ~/.sepp/tipp.config -d out
+```
 
-In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+Running this command bin the fragments to the marker genes using BLAST.  Once the sequences have been binned to the marker genes, the direction of the sequences will be estimated by aligning the forward and reverse complemented sequences against the HMM.  The orientation with the best HMM score is selected.  Finally, TIPP is run on the sequence to classify it.  The markers directory contains the individual results for each marker.
 
-By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
+Below is an example of the abundance.species.csv output from the run.
 
-
-Step 2: Testing that TIPP is correctly installed:
-Go to the $SEPP/test/unittest/data/mock/pyrg directory, where $SEPP is the SEPP home directory
-run 
-
-`run_abundance.py -f pyrg.even.fas -c ~/.sepp/tipp.config -d out`
-
-The system should create an output directory in the same directory labeled out, and within the directory, files called abundance.*.csv will be created.
-
-### Running TIPP for profiling:
-
-To run default TIPP on a set of metagenomic reads, run the command: 
-
-`run_abundance.py -f fragment_file -c ~/.sepp/tipp.config -d output_directory`
-
-The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the $SEPP/test/unittest/data/mock/mixed directory, where $SEPP is the SEPP home directory and run 
-
-`run_abundance.py -f facs_simhc.short.fas -c ~/.sepp/tipp.config -d out`
-
-Below is an example of the abundance.species.csv output
-
-`taxa    abundance
+```
+taxa    abundance
 Agrobacterium tumefaciens       0.0370
 Alcanivorax borkumensis 0.0370
 Alcanivorax sp. DG881   0.0062
@@ -263,10 +278,39 @@ Streptomyces scabiei    0.0123
 Sulfolobus tokodaii     0.0494
 Xanthomonas oryzae      0.0062
 Yersinia pestis 0.0062
-unclassified    0.0185`
+unclassified    0.0185
+```
 
 This profile estimates that Pseudomonas fluorescens make up 7.4% of the species abundance, and 1.9% of the species could not be classified.
 
+Step 4: Looking a reference dataset:
+---
+
+Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the 16S_bacteria.refpkg directory (can be found in the tipp.zip archive)
+
+```
+head all_taxon.taxonomy
+
+"tax_id","parent_id","rank","tax_name","root","below_root","below_below_root","superkingdom","below_superkingdom","below_below_superkingdom","below_below_below_superkingdom","superphylum","phylum","below_phylum","below_below_phylum","subphylum","class","below_class","below_below_class","below_below_below_class","subclass","order","below_order","below_below_order","suborder","below_suborder","family","below_family","below_below_family","below_below_below_family","subfamily","tribe","genus","below_genus","subgenus","species_group","species_subgroup","species"
+"1","1","root","root","1","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
+...
+```
+
+This file represents a taxonomy as a comma delimited file.  The first line is the header that describes each column.  The important files are the unique id of each clade, the clade name, rank, and the parent of the clade.
+
+Next is the backbone alignment and tree files (sate.fasta and sate.taxonomy).  These are the full-length sequences from the known organisms.  The sequences in this file are mapped to the taxonomy through the species.mapping file shown below.
+
+```
+seqname,tax_id
+S000438419,10
+S000539682,100
+```
+
+Each sequence name is mapped to the unique id in the taxonomy file.
+
+Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` option.  
+
+Thus, specialized marker datasets can be generated for any organisms, not just bacteria, by providing these files.
 
 ---------
 Contact
