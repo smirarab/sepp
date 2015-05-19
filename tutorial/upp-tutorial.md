@@ -159,7 +159,7 @@ MTTVHAITATQKTVDGPSGKLWRDGRGAAQNIIPASTGAAKAVGKVIPELNGKLTGMAFRVPVHDVSVVDLTCRLSKEAS
 You can see that this file contains both full-length and fragmentary sequences.  Let's run UPP on this dataset:
 
 ```
-run_upp.py -A 10 -B 1000 -M -1 -m amino -s test/unittest/data/upp_frag/initial.fas
+run_upp.py -A 10 -B 1000 -M -1 -m amino -s test/unittest/data/upp_frag/amino.fas
 ```
 
 This command results in UPP building a backbone alignment and tree on any sequences that is between 75% to 125% the median length sequence; all other sequences are treated as fragmentary.  The backbone will be generated using PASTA.  The remaining sequences are then aligned using UPP.
@@ -206,6 +206,6 @@ python run_upp.py -c sample.config -o config_example
 Contact
 ===
 
+Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
 
-Email: `ensemble-of-hmms@googlegroups.com` for all issues. 
 

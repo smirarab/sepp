@@ -204,11 +204,9 @@ threshold, we can see all possible classifications for a sequence.
 run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o lower_threshold -P 30 -pt 0.0
 ```
 
-
 In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
  
 In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
-
 
 Step 2: Converting the result into an abundance profile
 ---
@@ -323,4 +321,6 @@ Thus, specialized marker datasets can be generated for any organisms, not just b
 ---------
 Contact
 ===
-Email: `ensemble-of-hmms@googlegroups.com` for all issues. 
+Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
+
+
