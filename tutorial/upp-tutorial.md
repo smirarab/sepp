@@ -45,7 +45,18 @@ You need to have:
 - PASTA (version 1.0 or later)
 
 **Installation of SEPP**:
-UPP is a part of the SEPP distribution package.  First download and install SEPP:
+### 1. From Source Code
+Current version of TIPP has been developed and tested entirely on Linux and MAC. 
+Windows won't work currently (future versions may or may not support Windows). 
+
+You need to have:
+
+- Python (version 2.7 or later)
+- Blast (version 2.2.2 or later)
+- Java (version > 1.5 or later)
+
+**Installation of SEPP**:
+TIPP is a part of the SEPP distribution package.  First download and install SEPP:
 
 1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir ~/sepp-code`. Go to this directory. e.g. `cd ~/sepp-code`.
 
@@ -63,7 +74,8 @@ and decompress it into your desired directory.
  
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
 
-5. Run the following command:
+5. Run the following command from the SEPP directory:
+
 
 ```
 python setup.py config
@@ -89,6 +101,111 @@ The last step creates a ~/.sepp/upp.config config file. Since this is specific t
 ### 2. From Virtual Machine (VM)
 
 VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/PASTA_TIPP_UPP.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the PASTA_TIPP_UPP.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
+
+Note that we constantly update our software.  Before running the tutorial, it's best to grab
+the most updated version of the software onto the VM machine.  This can be done by opening a terminal in the VM and typing the following commands:
+
+
+```
+cd ~/tools/sepp
+git pull
+```
+
+If this command fails due to an error that the repository is corrupted, this can be fixed by typing the following series of commands from the SEPP directory:
+
+```
+rm -fr .git
+git init
+git remote add origin https://github.com/smirarab/sepp.git
+git fetch
+git reset --hard origin/master
+```
+
+---------
+Using UPP
+===
+
+If your installation is successful, you should be able to run UPP by running the following command from any location. Open up a terminal window and type: 
+
+```
+run_upp.py -h
+``` 
+
+Running UPP with the `-h` option produces the list of options available in UPP. 
+
+The general command for running UPP under the default settings is:
+
+```
+run_upp.py -A alignment_size -B backbone_size -M -1 -m molecule_type -s input
+```
+
+Step 1: Running a test job
+---
+
+UPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is running a small amino acid dataset found in test/unittest/data/upp_frag/amino.fas.  Let's take a look at this file:
+
+```
+>SEQ0
+IVSNASCTTNCLAPLAKVINDNFGIIEGLMTTVHATTATQKTVDGPSHKDWRGGRGASQNIIPSSTGA
+>SEQ1
+SKIGINGFGRIGRLVLRTALEMGAQVVAVNDPFIALEYMVYMFKYDSTHGMFKGEVKVEDGALVVDGKKITVFNEMKPENIPWSKAGAEYIVESTGVFTTIEKASAHFKGGAKKVIISAPSADAPMFVCGVNLEKYSKDMKVVSNASCTTNCLAPVAKVLHENFEIVEGLMTTVHAVTATQKTVDGPSAKDWRGGRGAAQNIIPSSTGAAKAVGKVIPELDGKLTGMAFRVPTPNVSVVDLTVRLGKECSYDDIKAAMKTASEGPLQGVLGYTEDDVVSCDFTGDNRSSIFDAKAGIQLSKTFVKVVSWYDNEFGYSQRVIDLIKHMQKVDS
+>SEQ10
+EYMTIKVGINGFGRIGRIVFRAAQKRSDIEIVAINDLLDADYMAYMLKYDSTHGRFDGTVEVKDGHLIVNGKKIRVTAERDPANLKWDEVGVDVVAEATGLFLTDETARKHITAGAKKVVMTGPSKDNTPMFVKGANFDKYAGQDIVSNASCTTNCLAPLAKVINDNFGIIEGLMTTVHATTATQKTVDGPSHKDWRGGRGASQNIIPSSTGAAKAVGKVLPELNGKLTGMAFRVPTPNVSVVDLTVRLEKAATYEQIKAAVKAAAEGEMKGVLGYTEDDVVSTDFNGEVCTSVFDAKAGIALNDNFVKLVSWYDNETGYSNKVLDLIAHISK
+>SEQ102
+MTTVHAITATQKTVDGPSGKLWRDGRGAAQNIIPASTGAAKAVGKVIPELNGKLTGMAFRVPVHDVSVVDLTCRLSKEASY
+....
+```
+
+You can see that this file contains both full-length and fragmentary sequences.  Let's run UPP on this dataset:
+
+```
+run_upp.py -A 10 -B 1000 -M -1 -m amino -s test/unittest/data/upp_frag/initial.fas
+```
+
+This command results in UPP building a backbone alignment and tree on any sequences that is between 75% to 125% the median length sequence; all other sequences are treated as fragmentary.  The backbone will be generated using PASTA.  The remaining sequences are then aligned using UPP.
+
+The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  Note that UPP does not report a tree.  Trees can be computed using your favorite tree estimation software.  We prefer RAxML or FastTree.
+
+The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named _insertion_columns.txt).  Note that if there are no fragmentary sequences, running UPP using this option will be equivalent of running PASTA on the entire dataset.
+
+Step 2: Viewing the resulting alignment
+---
+
+### Alignment viewing software:
+Many applications exist for viewing multiple sequence alignment. Some options :
+
+1. Alignments can be viewed in any text editor. In many situations, this is sufficient. In Linux/Mac command-line, one can use ``less``, ``vim``, or any number of other text editor applications. Also GUI-enable text editors (e.g. ``TextEdit`` for MAC) would also work. Windows ``notepad`` is not a good option (neither is MS word or any other word processing tool), but `notepad++` should work. 
+2. [Seaview](http://doua.prabi.fr/software/seaview) is a relatively light-weight application that does a good job of visualizing alignments
+3. [JalView](http://www.jalview.org/download) has many options, but is not necessarily light-weight. 
+4. [SuiteMSA](http://bioinfolab.unl.edu/~canderson/SuiteMSA/) is also a full-featured software for alignment viewing, manipulation, and more. 
+
+In this tutorial, we will use both a text editor and the Seaview. But feel free to use your own favorite tools. We will open ``output_alignment.fasta`` using SeaView and will look at them. 
+
+
+Step 3: Using an existing alignment and tree
+---
+Suppose that you have computed an accurate alignment and tree using your favorite methods.  You can use the alignment and tree to align the remaining sequences in your dataset.  Go to the test/unittest/data/upp/ directory and type:
+
+```
+run_upp.py -A 10 -m amino -s query.fas -a pasta.fasta -t pasta.fasttree
+```
+
+This command will run UPP using the backbone alignment and tree given in the command line.
+
+Step 3: Running UPP from a config file:
+---
+
+You can also run UPP from a config file.  From the same directory, type:
+
+```
+python run_upp.py -c sample.config -o config_example
+```
+
+
+---------
+Contact
+===
+
 
 Email: `ensemble-of-hmms@googlegroups.com` for all issues. 
 

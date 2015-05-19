@@ -179,8 +179,6 @@ Step 1: Running a test job
 TIPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is classifying reads from the pyrg gene, a smaller marker gene with only 65 sequences.
 
 ```
-mkdir pyrg_test
-chdir pyrg_test
 run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o output -P 30
 ```
 
@@ -208,10 +206,10 @@ The classification file lists all possible classifications for a fragment, even 
 
 ```
 mkdir profile
-run_tipp_tool.py  -g pyrg -a profile -o profile -p pyrg -i out_classification.txt -t 0.95
+run_tipp_tool.py  -g pyrg -a profile -o profile -p pyrg -i output_classification.txt -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labeled pyrg.classification
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled pyrg.classification
 
 ```
 fragment        species genus   family  order   class   phylum
