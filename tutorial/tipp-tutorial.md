@@ -115,7 +115,86 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/PASTA_TIPP_UPP.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the PASTA_TIPP_UPP.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
-Email `sepp-users@googlegroups.com` for installation issues. 
+---------
+Using TIPP
+===
+
+If your installation is successful, you should be able to run TIPP by running the following command from any location. Open up a terminal window and type: 
+
+```
+run_tipp.py -h
+``` 
+
+Running TIPP with the `-h` option produces the list of options available in TIPP. 
+
+The general command for running TIPP is:
+
+`run_tipp.py -t tree_file -a alignment_file -f fragment_file -r raxml_info_file -A alignment_set_size`
+
+Step 1: Testing that SEPP is correctly installed:
+---
+
+SEPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/mock/. Change to that directory to run SEPP on the sample files. To run using command options, run
+
+`run_sepp.py -t test.tree -a test.fasta -f test.fas -r test.RAxML_info -A 250 -P 250`
+
+and to run using a configuration file, run
+
+`python run_sepp.py -c sample.config`
+
+The main output of SEPP is a .json file, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+
+In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+
+By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
+
+
+Step 2: Testing that TIPP is correctly installed:
+Go to the $SEPP/test/unittest/data/mock/pyrg directory, where $SEPP is the SEPP home directory
+run 
+
+`run_abundance.py -f pyrg.even.fas -c ~/.sepp/tipp.config -d out`
+
+The system should create an output directory in the same directory labeled out, and within the directory, files called abundance.*.csv will be created.
+
+### Running TIPP for profiling:
+
+To run default TIPP on a set of metagenomic reads, run the command: 
+
+`run_abundance.py -f fragment_file -c ~/.sepp/tipp.config -d output_directory`
+
+The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the $SEPP/test/unittest/data/mock/mixed directory, where $SEPP is the SEPP home directory and run 
+
+`run_abundance.py -f facs_simhc.short.fas -c ~/.sepp/tipp.config -d out`
+
+Below is an example of the abundance.species.csv output
+
+`taxa    abundance
+Agrobacterium tumefaciens       0.0370
+Alcanivorax borkumensis 0.0370
+Alcanivorax sp. DG881   0.0062
+Anabaena variabilis     0.0432
+Archaeoglobus fulgidus  0.0556
+Bdellovibrio bacteriovorus      0.0247
+Brucella abortus        0.0062
+Burkholderia cenocepacia        0.0062
+Campylobacter jejuni    0.0802
+Candidatus Blochmannia floridanus       0.0432
+Candidatus Phytoplasma australiense     0.0062
+...
+Pseudomonas fluorescens 0.0741
+Pseudomonas putida      0.0062
+Roseobacter denitrificans       0.0062
+Streptomyces coelicolor 0.0494
+Streptomyces ghanaensis 0.0062
+Streptomyces griseoflavus       0.0062
+Streptomyces scabiei    0.0123
+Sulfolobus tokodaii     0.0494
+Xanthomonas oryzae      0.0062
+Yersinia pestis 0.0062
+unclassified    0.0185`
+
+This profile estimates that Pseudomonas fluorescens make up 7.4% of the species abundance, and 1.9% of the species could not be classified.
 
 
 ---------
