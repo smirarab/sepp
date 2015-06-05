@@ -186,9 +186,10 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = None #format of input reference alignment
         self.outfile = None #location of output file
         self.molecule = None #type of molecule used
+        self.symfrac = None #whether or not symfrac flag is set
         self.options = "" #no other hmmer options
 
-    def setup(self, infile, outfile, informat = "fasta", molecule = "dna",**kwargs):
+    def setup(self, infile, outfile, symfrac = True, informat = "fasta", molecule = "dna",**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
         Use setup_for_subproblem when possible. 
@@ -197,6 +198,7 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = informat
         self.outfile = outfile
         self.molecule = molecule
+        self.symfrac = symfrac
         if ('options' in kwargs):
 	        self.options = kwargs['options']        
         
@@ -224,7 +226,9 @@ class HMMBuildJob(ExternalSeppJob):
         
         
     def get_invocation(self):
-        invoc = [self.path, "--cpu", "1", "--symfrac" ,"0.0" ,"--%s" % self.molecule]
+        invoc = [self.path, "--cpu", "1", "--%s" % self.molecule]
+        if self.symfrac == True:
+            invoc.extend(["--symfrac", "0.0"])
         if self.options != "":
             invoc.extend(self.options.split())
         if self.informat == "fasta":

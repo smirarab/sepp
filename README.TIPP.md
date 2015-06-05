@@ -72,26 +72,20 @@ To run TIPP, invoke the `run_tipp.py` script from the `bin` sub-directory of the
 
 `python <bin>/run_tipp.py -h`
 
-The general command for running TIPP is:
+TIPP is a general pipeline for classifying reads belonging to a specific marker gene.  We provide precomputed marker gene datasets for a collection of genes found in the tipp.zip archive.  
 
-`python <bin>/run_tipp.py -t <tree_file> -a <alignment_file> -f <fragment_file> -r <raxml_info_file> -A <alignment_set_size> `
+The general command for running TIPP for a specific marker is:
 
-TIPP can also be run using a configuration file. Sample configuration files and input files can be found under test/unittest/data/mock/. Change to that directory to run SEPP on the sample files. To run using command options, run
+`python <bin>/run_tipp.py -R <reference_marker> -f <fragment_file>`
 
-`python <bin>/run_sepp.py -t test.tree -a test.fasta -f test.fas -r test.RAxML_info -A 250 -P 250`
+The main output of TIPP is a _classification.txt file that annotation for each read.  In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
 
-and to run using a configuration file, run
-
-`python <bin>/run_sepp.py -c sample.config`
-
-The main output of SEPP is a .json file, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
-
-In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
 By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP is under active research development at UTCS by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
+TIPP is under active research development at UIUC by the Warnow Lab (and especially with her PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (namphuon@illinois.edu).
 

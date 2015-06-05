@@ -189,6 +189,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         ''' Hardcoded E-Lim for hmmsearch ''' #TODO: what to do with this
         self.elim = 99999999
         self.filters = False
+        self.symfrac = True
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
@@ -330,7 +331,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
-                bj.setup_for_subproblem(alg_problem,molecule=self.molecule,**vars(self.options.hmmbuild))
+                bj.setup_for_subproblem(alg_problem,symfrac=self.symfrac, molecule=self.molecule,**vars(self.options.hmmbuild))
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''
                 for fc_problem in alg_problem.get_children():

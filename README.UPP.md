@@ -76,7 +76,7 @@ This will run UPP(Default) as described in the main paper.  This will automatica
 
 The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  
 
-The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree).
+The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named _insertion_columns.txt).
 
 Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run UPP on the sample files.  To run UPP(Fast) on a small test example with 1,000 sequences, run the following command from the test/unittest/data/upp/ directory:
 

@@ -206,7 +206,8 @@ class AbstractAlgorithm(object):
         if (options.placement_size is None):
             options.placement_size = options.alignment_size
         if options.placement_size is not None and options.placement_size < options.alignment_size:
-            raise ValueError("alignment_size (%d) cannot be larger than placement_size (%d). " %(options.alignment_size,options.placement_size))                    
+            _LOG.warning("alignment_size (%d) cannot be larger than placement_size (%d).   Setting alignment_size to be placement_size" %(options.alignment_size,options.placement_size))   
+            options.alignment_size = options.placement_size                 
         if options.placement_size > total:
             options.placement_size = total
             _LOG.warning("Input placement size larger than total number of sequences!  Setting placement size to %d" %(total)) 
