@@ -127,6 +127,7 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
         
         for key,value in search_results.items():
             if len(value) == 0:
+                continue
                 f.write("%s,NA,NA\n" % key)
             else:
                 for pair in value:
