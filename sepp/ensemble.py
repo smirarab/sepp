@@ -122,17 +122,19 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
         search_results = self.results        
         _LOG.info("Generating csv of search results. ")
         outfilename = self.get_output_filename("scores.csv")
+        not_matched = self.get_output_filename("unmatched.csv")
         f = open(outfilename, 'w')
+        unmatched = open(not_matched, 'w')
         f.write("seq,bitscore,evalue\n")
         
         for key,value in search_results.items():
             if len(value) == 0:
-                continue
-                f.write("%s,NA,NA\n" % key)
+                unmatched.write("%s " % key)
             else:
                 for pair in value:
                     f.write("%s,%0.4f,%s\n" % (key,pair[0],"{:.3e}".format(pair[1])))
         f.close()
+        unmatched.close()
                         
     def create_fragment_files(self):
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
