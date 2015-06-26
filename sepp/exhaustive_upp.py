@@ -81,7 +81,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           options().backbone_size = len(sequences.keys())
         backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
         [sequences.pop(i) for i in backbone_sequences.keys()]
-        
+                
         _LOG.info("Writing backbone set. ")
         backbone = get_temp_file("backbone", "backbone", ".fas")
         _write_fasta(backbone_sequences, backbone)
@@ -98,16 +98,15 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         options().placement_size = self.options.backbone_size
         options().alignment_file = open(self.options.outdir + "/pasta.fasta")
         options().tree_file = open(self.options.outdir + "/pasta.fasttree")
-        _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))        
-        if (len(frag_names) == 0):
+        _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
+        sequences.set_alignment(fragments)        
+        if (len(sequences) == 0):
           _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))   
           shutil.copyfile(self.options.outdir + "/pasta.fasta", self.get_output_filename("alignment.fasta"))
           sys.exit(0)
         else:
           query = get_temp_file("query", "backbone", ".fas")
-          options().fragment_file = query
-          sequences.set_alignment(fragments)        
-          
+          options().fragment_file = query          
           _write_fasta(sequences, query)               
 
     def check_options(self):
