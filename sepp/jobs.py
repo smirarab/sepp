@@ -210,7 +210,7 @@ class HMMBuildJob(ExternalSeppJob):
         '''
         assert isinstance(subproblem, sepp.problem.SeppProblem)
         assert isinstance(subproblem.subalignment, sepp.problem.ReadonlySubalignment)
-        
+        self.symfrac = symfrac
         self.infile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.input.", 
                                                        subproblem,
                                                        ".fasta")
