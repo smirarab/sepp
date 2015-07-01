@@ -186,7 +186,7 @@ class HMMBuildJob(ExternalSeppJob):
         self.informat = None #format of input reference alignment
         self.outfile = None #location of output file
         self.molecule = None #type of molecule used
-        self.symfrac = None #whether or not symfrac flag is set
+        self.symfrac = True #whether or not symfrac flag is set
         self.options = "" #no other hmmer options
 
     def setup(self, infile, outfile, symfrac = True, informat = "fasta", molecule = "dna",**kwargs):
@@ -203,7 +203,7 @@ class HMMBuildJob(ExternalSeppJob):
 	        self.options = kwargs['options']        
         
 
-    def setup_for_subproblem(self, subproblem, molecule = "dna",**kwargs):
+    def setup_for_subproblem(self, subproblem, symfrac = True, molecule = "dna",**kwargs):
         '''
         Automatically sets up a job given a subproblem object. It outputs the
         right alignment subset to a temporary file.
@@ -218,6 +218,7 @@ class HMMBuildJob(ExternalSeppJob):
         subproblem.write_subalignment_without_allgap_columns(self.infile)
         
         self.informat = "fasta"
+        self.symfrac = symfrac
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.model.", 
                                                        subproblem)
         self.molecule = molecule
@@ -234,6 +235,7 @@ class HMMBuildJob(ExternalSeppJob):
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
         invoc.extend([self.outfile, self.infile])
+        _LOG.debug("Running HMMBUILD command: %s" % " ".join(invoc))         
         return invoc
 
     def characterize_input(self):
