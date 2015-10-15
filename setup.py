@@ -208,7 +208,7 @@ setup(name = "sepp",
       author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
 
       license="General Public License (GPL)",
-      install_requires = ["dendropy >= 3.4"],
+      install_requires = ["dendropy >= 3.4, <= 3.99"],
       provides = ["sepp"],
       scripts = ["run_sepp.py",'run_tipp.py','run_upp.py','run_abundance.py',"split_sequences.py","run_tipp_tool.py"],
       cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP,"upp":ConfigUPP},
