@@ -28,7 +28,7 @@ from collections import Mapping
 from abc import ABCMeta
 import copy
 from sepp import get_logger
-
+import pdb
 _INDEL = re.compile(r"[-]")
 _DANGEROUS_NAME_CHARS = re.compile(r"[^a-zA-Z0-9]")
 
@@ -293,9 +293,10 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         '''
         Delete all sites that consists of nothing but gaps
         '''
+        pdb.set_trace()
         pos = 0
         i = 0
-        subset = []
+        subset = []        
         while (pos < self.get_length()):            
             if (self.is_all_gap(pos)):
                 self.remove_column(pos)

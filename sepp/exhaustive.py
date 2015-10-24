@@ -14,7 +14,7 @@ from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
 from sepp.math_utils import lcm
-
+import pdb
 _LOG = get_logger(__name__)
 
 class JoinSearchJobs(Join):
@@ -331,6 +331,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
+                pdb.set_trace()
                 bj.setup_for_subproblem(alg_problem,symfrac=self.symfrac, molecule=self.molecule,**vars(self.options.hmmbuild))
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''
