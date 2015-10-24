@@ -293,7 +293,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         '''
         Delete all sites that consists of nothing but gaps
         '''
-        pdb.set_trace()
+        #pdb.set_trace()
         pos = 0
         i = 0
         subset = []        

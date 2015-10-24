@@ -211,13 +211,13 @@ class HMMBuildJob(ExternalSeppJob):
         assert isinstance(subproblem, sepp.problem.SeppProblem)
         assert isinstance(subproblem.subalignment, sepp.problem.ReadonlySubalignment)
         self.symfrac = symfrac
-        pdb.set_trace()
+        #pdb.set_trace()
         self.infile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.input.", 
                                                        subproblem,
                                                        ".fasta")
-        pdb.set_trace()
+        #pdb.set_trace()
         subproblem.write_subalignment_without_allgap_columns(self.infile)
-        pdb.set_trace()
+        #pdb.set_trace()
         self.informat = "fasta"
         self.symfrac = symfrac
         self.outfile = sepp.filemgr.tempfile_for_subproblem("hmmbuild.model.", 

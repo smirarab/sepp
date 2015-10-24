@@ -331,7 +331,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
-                pdb.set_trace()
+                #pdb.set_trace()
                 bj.setup_for_subproblem(alg_problem,symfrac=self.symfrac, molecule=self.molecule,**vars(self.options.hmmbuild))
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''
