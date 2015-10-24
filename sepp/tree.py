@@ -291,7 +291,7 @@ class PhylogeneticTree(object):
                 self._tree.reroot_at_midpoint()
         if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
             tree_map[len(tree_map)] = copy.deepcopy(self)
-        pdb.set_trace()
+        #pdb.set_trace()
         if (self.count_leaves() > maxSize or (pdistance != 1 and get_pdistance(distances, self.leaf_node_names()) > pdistance)):
             (t1, t2, e) = self.bisect_tree(strategy, minSize)
             if e is not None:
