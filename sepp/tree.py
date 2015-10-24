@@ -25,7 +25,7 @@ from dendropy import convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
 import cStringIO
-import sys,copy
+import sys,copy,pdb
 
 _LOG = get_logger(__name__)
 
@@ -291,11 +291,11 @@ class PhylogeneticTree(object):
                 self._tree.reroot_at_midpoint()
         if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
             tree_map[len(tree_map)] = copy.deepcopy(self)
-
+        pdb.set_trace()
         if (self.count_leaves() > maxSize or (pdistance != 1 and get_pdistance(distances, self.leaf_node_names()) > pdistance)):
             (t1, t2, e) = self.bisect_tree(strategy, minSize)
             if e is not None:
-                t1.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy,pdistance, distances)
+                t1.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy, pdistance, distances)
                 t2.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy,pdistance, distances)
             else:
                 _LOG.warning("It was not possible to break-down the following tree according to given subset sizes: %d , %d:\n %s" %(minSize, maxSize, self._tree))

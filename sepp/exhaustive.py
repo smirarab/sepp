@@ -196,16 +196,12 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.molecule = self.options.molecule
         self.distances = dict()
 
-    def compute_distances(self):
-    '''
-    This method computes the p-distances between all pairs of sequences.  The p-distances
-    govern whether or not to keep decomposing for certain options
-    '''
+    def compute_distances(self, sequences):
         for seq1 in sequences.keys():
             for seq2 in sequences.keys():
                 if ("".join([seq1,seq2]) not in self.distances):
-                  self.distances["".join([seq1,seq2])] = hamming_distance(sequences[seq1],sequences[seq2])
-                  self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
+                    self.distances["".join([seq1,seq2])] = hamming_distance(sequences[seq1],sequences[seq2])
+                    self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
 
     def merge_results(self):
         ''' TODO: implement this 
@@ -250,8 +246,6 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def check_options(self, supply = []):
         AbstractAlgorithm.check_options(self,supply)
-        if options().distance != 1:
-            compute_distances()
             
 
     def modify_tree(self,a_tree):
@@ -259,6 +253,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def build_subproblems(self):
         (alignment, tree) = self.read_alignment_and_tree()
+        
+        if options().distance != 1:
+            self.compute_distances(alignment)
+        
+        
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
 
@@ -277,7 +276,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {})
+                                        tree_map = {},pdistance = options().distance,distances = self.distances)
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
@@ -295,7 +294,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy)
+                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy, pdistance = options().distance,distances = self.distances)
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
