@@ -276,7 +276,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {},pdistance = options().distance,distances = self.distances)
+                                        tree_map = {},pdistance = options().distance,distances = 1)
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
