@@ -37,6 +37,24 @@ DATASET_CHAR_ATTR = "char_matrices"
 
 _LOG = get_logger(__name__)
 
+def get_pdistance(distances, leaves, stat = 'mean'):
+    """Returns the mean p-distance given a distance matrix and a set of names"""
+    counts = 0
+    pdistance = 0
+    for i in xrange(0,len(leaves)-1):
+        for j in xrange(i+1,len(leaves)):
+            name = "".join([leaves[i],leaves[j]])
+            if stat == 'mean':
+                pdistance = pdistance+distances[name]
+                counts = counts + 1
+            elif stat == 'max':
+                if (distance[name] > pdistance):
+                    pdistance = distances[name]
+
+    if (stat == 'mean'):
+        pdistance = pdistance / counts
+    return pdistance
+          
 def hamming_distance(seq1,seq2):
     """Returns hamming distance between two sequences"""
     #xors = [ord(a) ^ ord(b) for a,b in zip(seq1,seq2)]
@@ -52,18 +70,17 @@ def hamming_distance(seq1,seq2):
     #if non_gap == 0:
         #return -1
     #return num_mismatch/non_gap;
-            
     length = len(seq1)
     num_mismatch = 0.0
     non_gap = 0.0
     for i in xrange(0,length):
-        if seq1[i] == chr(255) or seq2[i] == chr(255):
+        if seq1[i] == "-" or seq2[i] == "-":
             continue
         non_gap+=1
         if seq1[i].lower() !=  seq2[i].lower():
             num_mismatch+=1
     if non_gap == 0:
-        return -1
+        return 0
     return num_mismatch/non_gap;
 
 

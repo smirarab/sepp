@@ -130,6 +130,12 @@ def _init_parser():
                       default = None, 
                       help = "max placement subset size of N "
                              "[default: 10%% of the total number of taxa]")
+
+    decompGroup.add_argument("-D", "--distance", type = float, 
+                      dest = "distance", metavar = "DISTANCE",
+                      default = 1, 
+                      help = "minimum p-distance before stopping the decomposition"
+                             "[default: 1]")                              
                              
     decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
                       dest = "decomp_strategy", metavar = "DECOMP",

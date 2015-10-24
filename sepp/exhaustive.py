@@ -6,7 +6,7 @@ Created on Oct 10, 2012
 from sepp.algorithm import AbstractAlgorithm
 from sepp.config import options
 from sepp.tree import PhylogeneticTree
-from sepp.alignment import MutableAlignment, ExtendedAlignment
+from sepp.alignment import MutableAlignment, ExtendedAlignment, hamming_distance
 from sepp.problem import SeppProblem
 from dendropy.dataobject.tree import Tree
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
@@ -194,6 +194,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
         self.molecule = self.options.molecule
+        self.distances = dict()
+
+    def compute_distances(self):
+    '''
+    This method computes the p-distances between all pairs of sequences.  The p-distances
+    govern whether or not to keep decomposing for certain options
+    '''
+        for seq1 in sequences.keys():
+            for seq2 in sequences.keys():
+                if ("".join([seq1,seq2]) not in self.distances):
+                  self.distances["".join([seq1,seq2])] = hamming_distance(sequences[seq1],sequences[seq2])
+                  self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
 
     def merge_results(self):
         ''' TODO: implement this 
@@ -238,6 +250,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def check_options(self, supply = []):
         AbstractAlgorithm.check_options(self,supply)
+        if options().distance != 1:
+            compute_distances()
+            
 
     def modify_tree(self,a_tree):
         pass
