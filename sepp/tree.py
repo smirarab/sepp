@@ -291,13 +291,13 @@ class PhylogeneticTree(object):
                 self._tree.reroot_at_midpoint()
         if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
             tree_map[len(tree_map)] = copy.deepcopy(self)
-        #pdb.set_trace()
         if (self.count_leaves() > maxSize or (pdistance != 1 and get_pdistance(distances, self.leaf_node_names()) > pdistance)):
             (t1, t2, e) = self.bisect_tree(strategy, minSize)
             if e is not None:
                 t1.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy, pdistance, distances)
                 t2.decompose_tree(maxSize, strategy, minSize, tree_map, decomp_strategy,pdistance, distances)
             else:
+                tree_map[len(tree_map)] = self
                 _LOG.warning("It was not possible to break-down the following tree according to given subset sizes: %d , %d:\n %s" %(minSize, maxSize, self._tree))
         else:
             tree_map[len(tree_map)] = self
