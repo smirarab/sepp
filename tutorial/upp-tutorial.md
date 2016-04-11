@@ -201,11 +201,8 @@ You can also run UPP from a config file.  From the same directory, type:
 python run_upp.py -c sample.config -o config_example
 ```
 
-
 ---------
 Contact
 ===
 
 Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
-
-

@@ -6,7 +6,7 @@ Created on Oct 10, 2012
 from sepp.algorithm import AbstractAlgorithm
 from sepp.config import options
 from sepp.tree import PhylogeneticTree
-from sepp.alignment import MutableAlignment, ExtendedAlignment
+from sepp.alignment import MutableAlignment, ExtendedAlignment, hamming_distance
 from sepp.problem import SeppProblem
 from dendropy.dataobject.tree import Tree
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
@@ -14,7 +14,7 @@ from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
 from sepp.math_utils import lcm
-
+import pdb
 _LOG = get_logger(__name__)
 
 class JoinSearchJobs(Join):
@@ -194,6 +194,14 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
         self.molecule = self.options.molecule
+        self.distances = dict()
+
+    def compute_distances(self, sequences):
+        for seq1 in sequences.keys():
+            for seq2 in sequences.keys():
+                if ("".join([seq1,seq2]) not in self.distances):
+                    self.distances["".join([seq1,seq2])] = hamming_distance(sequences[seq1],sequences[seq2])
+                    self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
 
     def merge_results(self):
         ''' TODO: implement this 
@@ -238,12 +246,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
 
     def check_options(self, supply = []):
         AbstractAlgorithm.check_options(self,supply)
+            
 
     def modify_tree(self,a_tree):
         pass
 
     def build_subproblems(self):
         (alignment, tree) = self.read_alignment_and_tree()
+        
+        if options().distance != 1:
+            self.compute_distances(alignment)
+        
+        
         assert isinstance(tree, PhylogeneticTree)
         assert isinstance(alignment, MutableAlignment)
 
@@ -262,7 +276,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {})
+                                        tree_map = {},pdistance = 1,distances = self.distances)
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
@@ -280,7 +294,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy)
+                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy, pdistance = options().distance,distances = self.distances)
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
@@ -331,6 +345,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
+                #pdb.set_trace()
                 bj.setup_for_subproblem(alg_problem,symfrac=self.symfrac, molecule=self.molecule,**vars(self.options.hmmbuild))
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''

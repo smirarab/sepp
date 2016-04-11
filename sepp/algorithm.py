@@ -62,10 +62,10 @@ class AbstractAlgorithm(object):
             raise ValueError ("Failed to supply: %s\nRun with -h option to see a list of options." % " , ".join(supply))
         if (options().info_file is None):
             supply = supply + ["raxml file"];
-            
+
         self.check_outputprefix()
         pass
-
+        
     
     @abstractmethod
     def build_subproblems(self):

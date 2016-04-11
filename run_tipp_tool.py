@@ -37,7 +37,7 @@ def profile(input, gene, output, prefix,threshold):
   sepp.config._read_config_file(open(os.path.expanduser("~/.sepp/tipp.config"),'r'),opts)
   (taxon_map, level_map, key_map) = sepp.metagenomics.load_taxonomy("%s/refpkg/%s.refpkg/all_taxon.taxonomy" % (opts.reference.path,gene))
   gene_classification = sepp.metagenomics.generate_classification(input,threshold)
-  sepp.metagenomics.remove_unclassified_level(gene_classification)
+  #sepp.metagenomics.remove_unclassified_level(gene_classification)
   sepp.metagenomics.write_classification(gene_classification,"%s/%s.classification" % (output,prefix))    
   sepp.metagenomics.write_abundance(gene_classification,output)
 

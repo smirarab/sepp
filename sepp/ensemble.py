@@ -62,8 +62,16 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
             _LOG.error("Specify the backbone alignment and tree and query sequences")
             exit(-1)
         sequences = MutableAlignment()
-        sequences.read_file_object(open(self.options.alignment_file.name))                 
+        sequences.read_file_object(open(self.options.alignment_file.name))  
         return ExhaustiveAlgorithm.check_options(self)
+            
+    def check_and_set_sizes(self, total):
+        assert (self.options.placement_size is None) or (
+                self.options.placement_size >= total), \
+                "currently eHMMs works with only one placement subset. Please leave placement subset size option blank."        
+        ExhaustiveAlgorithm.check_and_set_sizes(self, total)
+        self.options.placement_size = total
+        
         
     def merge_results(self):
         ''' merges search results'''
