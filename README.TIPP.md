@@ -48,12 +48,16 @@ TIPP is a part of the SEPP distribution package.  First install SEPP.  Once done
 
 1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
 2. Unzip it to a directory
-3. Set the environment variable REFERENCE to point to the location of the reference directory
-4. Set the environment variable BLAST to point to the location of blastn
+2. Set the environmental variables that will be used to create the configuration file.  The environmental variable can be set using the following command (shell-dependent)
+  `export VARIABLE_NAME=/path/to/file`  (bash shell)
+  `setenv VARIABLE_NAME /path/to/file` (tcsh shell)
+  
+  2a. Set the environment variable REFERENCE to point to the location of the reference directory
+  2b. Set the environment variable BLAST to point to the location of blastn
 5. Configure: run `sudo python setup.py tipp`. 
 
 
-The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs sepp needs to execute the last step. 
+The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs TIPP needs to execute the last step. 
 
 Common Problems:
 -------------------

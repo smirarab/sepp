@@ -82,15 +82,13 @@ Once done, do the following.
 3. Set the environment variable REFERENCE to point to the location of the reference directory.  This can be performed using:
 
 ```
-REFERENCE=/PATH/TO/REFERENCE
-export REFERENCE
+export REFERENCE=/PATH/TO/REFERENCE
 ```
 
-4. Set the environment variable BLAST to point to the directory containing the location of blastn.  This can be performed using:
+4. Set the environment variable BLAST to point to blastn.  This can be performed using:
 
 ```
-BLAST=/PATH/TO/BLASTN/DIRECTORY
-export BLAST
+export BLAST=/PATH/TO/DIRECTORY/blastn
 ```
 
 5. Run the following command from the SEPP directory:
@@ -115,25 +113,6 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 ### 2. From Virtual Machine (VM)
 
 VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/PASTA_TIPP_UPP.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the PASTA_TIPP_UPP.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
-
-Note that we constantly update our software.  Before running the tutorial, it's best to grab
-the most updated version of the software onto the VM machine.  This can be done by opening a terminal in the VM and typing the following commands:
-
-
-```
-cd ~/tools/sepp
-git pull
-```
-
-If this command fails due to an error that the repository is corrupted, this can be fixed by typing the following series of commands from the SEPP directory:
-
-```
-rm -fr .git
-git init
-git remote add origin https://github.com/smirarab/sepp.git
-git fetch
-git reset --hard origin/master
-```
 
 Finally, if the BLAST environmental variable or the REFERENCE environmental variable
 cannot be read by TIPP during the configuration, you can manually edit the ~/.sepp/tipp.config
