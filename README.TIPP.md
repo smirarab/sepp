@@ -38,7 +38,7 @@ Requirements:
 -------------------
 Before installing the software you need to make sure the following programs are installed on your machine.
 
-1. Python: Version > 2.6. 
+1. Python: Version > 2.7. 
 2. Java: Version > 1.5
 3. Blast: Version > 2.2.2
 
@@ -48,13 +48,13 @@ TIPP is a part of the SEPP distribution package.  First install SEPP.  Once done
 
 1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
 2. Unzip it to a directory
-2. Set the environmental variables that will be used to create the configuration file.  The environmental variable can be set using the following command (shell-dependent)
+3. Set the environmental variables that will be used to create the configuration file.  The environmental variable can be set using the following command (shell-dependent)
   `export VARIABLE_NAME=/path/to/file`  (bash shell)
-  `setenv VARIABLE_NAME /path/to/file` (tcsh shell)
-  
-  2a. Set the environment variable REFERENCE to point to the location of the reference directory
+  `setenv VARIABLE_NAME /path/to/file` (tcsh shell)  
+  2a. Set the environment variable REFERENCE to point to the location of the reference directory (i.e., the location of the tipp folder generated from unzipping the tipp.zip file)
   2b. Set the environment variable BLAST to point to the location of blastn
-5. Configure: run `sudo python setup.py tipp`. 
+4. Configure: run `sudo -E python setup.py tipp`. 
+  
 
 
 The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs TIPP needs to execute the last step. 
@@ -67,7 +67,6 @@ Common Problems:
    blast: http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
-   reference datasets: www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
    
 ---------------------------------------------
 Running TIPP

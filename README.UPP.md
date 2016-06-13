@@ -44,7 +44,7 @@ Requirements:
 -------------------
 Before installing the software you need to make sure the following programs are installed on your machine.  
 
-1. Python: Version > 2.6. 
+1. Python: Version > 2.7. 
 2. SEPP: Version > 3.0. 
 3. PASTA: Version > 1.0. 
 
