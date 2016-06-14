@@ -53,9 +53,10 @@ TIPP is a part of the SEPP distribution package.  First install SEPP.  Once done
   `export VARIABLE_NAME=/path/to/file`  (bash shell)
   
   `setenv VARIABLE_NAME /path/to/file` (tcsh shell)  
-  2a. Set the environment variable REFERENCE to point to the location of the reference directory (i.e., the location of the tipp folder generated from unzipping the tipp.zip file)
   
-  2b. Set the environment variable BLAST to point to the location of blastn
+  3a. Set the environment variable REFERENCE to point to the location of the reference directory (i.e., the location of the tipp folder generated from unzipping the tipp.zip file)
+  
+  3b. Set the environment variable BLAST to point to the location of blastn
   
 4. Configure: run `sudo -E python setup.py tipp`. 
   
