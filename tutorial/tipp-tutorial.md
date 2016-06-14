@@ -298,6 +298,8 @@ Finally, in order to find the best placement, we need the model parameters of th
 Thus, specialized marker datasets can be generated for any organisms, not just bacteria, by providing these files.
 
 Step 5: 16S amplicon analysis:
+---
+
 Finally, we have included a 16S reference marker gene that can be used to analyze 16S amplicon data.  Below is an example of running TIPP on 16S amplicon data.
 
 ```
