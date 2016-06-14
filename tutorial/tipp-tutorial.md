@@ -100,6 +100,7 @@ python setup.py tipp
 The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs tipp needs to execute the last step. 
 
 **Common Problems:**
+
 1.  TIPP requires SEPP to be installed.  If TIPP is not running, first check to see if TIPP was installed correctly.
 
 2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
@@ -108,11 +109,6 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
    reference datasets: www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
-
-
-### 2. From Virtual Machine (VM)
-
-VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
 Finally, if the BLAST environmental variable or the REFERENCE environmental variable
 cannot be read by TIPP during the configuration, you can manually edit the ~/.sepp/tipp.config
@@ -133,6 +129,10 @@ path=~/bin/blastn
 [reference]
 path=~/testdata/tipp/
 ```
+
+### 2. From Virtual Machine (VM)
+
+VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
 ---------
 Using TIPP
