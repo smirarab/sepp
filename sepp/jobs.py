@@ -228,15 +228,13 @@ class HMMBuildJob(ExternalSeppJob):
         
         
     def get_invocation(self):
-        invoc = [self.path, "--cpu", "1", "--%s" % self.molecule]
+        invoc = [self.path, '--ere', '0.59', "--cpu", "1", "--%s" % self.molecule]
         if self.symfrac == True:
             invoc.extend(["--symfrac", "0.0"])
         if self.options != "":
             invoc.extend(self.options.split())
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
-        if (self.path.find('bundled') == -1):
-            invoc.extend(['--ere', '0.59'])
         invoc.extend([self.outfile, self.infile])
         _LOG.debug("Running HMMBUILD command: %s" % " ".join(invoc))         
         return invoc
@@ -297,11 +295,7 @@ class HMMAlignJob(ExternalSeppJob):
         self._kwargs = kwargs  
                     
     def get_invocation(self):
-        if (self.path.find('bundled') != -1):
-          invoc = [self.path, "--allcol", "--%s" % self.molecule,
-                   "-o", self.outfile]
-        else:
-          invoc = [self.path, "--%s" % self.molecule,
+        invoc = [self.path, "--%s" % self.molecule,
                    "-o", self.outfile]
 
         if self.trim:

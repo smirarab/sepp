@@ -28,7 +28,7 @@ from setuptools import setup, find_packages
 from distutils.core import setup, Command
 from distutils.command.install import install
 
-version = "3.0"
+version = "3.1"
 
 class ConfigSepp(Command):
     """setuptools Command"""
@@ -203,9 +203,9 @@ setup(name = "sepp",
       description = "SATe enabled phylogenetic placement.",
       packages = find_packages(),
 
-      url = "http://www.cs.utexas.edu/~phylo/software/sepp", 
+      url = "https://github.com/smirarab/sepp", 
       author = "Siavash Mirarab and Nam Nguyen",
-      author_email = "smirarab@gmail.com, namphuon@cs.utexas.edu",
+      author_email = "smirarab@gmail.com, namphuon@cs.utah.edu",
 
       license="General Public License (GPL)",
       install_requires = ["dendropy >= 3.4, <= 3.99"],
