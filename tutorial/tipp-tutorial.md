@@ -82,15 +82,13 @@ Once done, do the following.
 3. Set the environment variable REFERENCE to point to the location of the reference directory.  This can be performed using:
 
 ```
-REFERENCE=/PATH/TO/REFERENCE
-export REFERENCE
+export REFERENCE=/PATH/TO/REFERENCE
 ```
 
-4. Set the environment variable BLAST to point to the directory containing the location of blastn.  This can be performed using:
+4. Set the environment variable BLAST to point to blastn.  This can be performed using:
 
 ```
-BLAST=/PATH/TO/BLASTN/DIRECTORY
-export BLAST
+export BLAST=/PATH/TO/DIRECTORY/blastn
 ```
 
 5. Run the following command from the SEPP directory:
@@ -102,6 +100,7 @@ python setup.py tipp
 The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs tipp needs to execute the last step. 
 
 **Common Problems:**
+
 1.  TIPP requires SEPP to be installed.  If TIPP is not running, first check to see if TIPP was installed correctly.
 
 2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
@@ -110,30 +109,6 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
    reference datasets: www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
-
-
-### 2. From Virtual Machine (VM)
-
-VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/PASTA_TIPP_UPP.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the PASTA_TIPP_UPP.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
-
-Note that we constantly update our software.  Before running the tutorial, it's best to grab
-the most updated version of the software onto the VM machine.  This can be done by opening a terminal in the VM and typing the following commands:
-
-
-```
-cd ~/tools/sepp
-git pull
-```
-
-If this command fails due to an error that the repository is corrupted, this can be fixed by typing the following series of commands from the SEPP directory:
-
-```
-rm -fr .git
-git init
-git remote add origin https://github.com/smirarab/sepp.git
-git fetch
-git reset --hard origin/master
-```
 
 Finally, if the BLAST environmental variable or the REFERENCE environmental variable
 cannot be read by TIPP during the configuration, you can manually edit the ~/.sepp/tipp.config
@@ -154,6 +129,10 @@ path=~/bin/blastn
 [reference]
 path=~/testdata/tipp/
 ```
+
+### 2. From Virtual Machine (VM)
+
+VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP is installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
 ---------
 Using TIPP
@@ -201,7 +180,7 @@ For example, the EAS25_26_1_15_381_1761_0_1 is classified as the species Methano
 threshold, we can see all possible classifications for a sequence.
 
 ```
-run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o lower_threshold -P 30 -pt 0.0
+run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas -o lower_threshold -P 30 -pt 0.0
 ```
 
 In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
@@ -214,7 +193,7 @@ The classification file lists all possible classifications for a fragment, even 
 
 ```
 mkdir profile
-run_tipp_tool.py  -g pyrg -a profile -o profile -p pyrg -i output_classification.txt -t 0.95
+run_tipp_tool.py -g pyrg -a profile -o profile -p pyrg -i output_classification.txt -t 0.95
 ```
 
 This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled pyrg.classification
@@ -317,6 +296,21 @@ Each sequence name is mapped to the unique id in the taxonomy file.
 Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` option.  
 
 Thus, specialized marker datasets can be generated for any organisms, not just bacteria, by providing these files.
+
+Step 5: 16S amplicon analysis:
+---
+
+Finally, we have included a 16S reference marker gene that can be used to analyze 16S amplicon data.  Below is an example of running TIPP on 16S amplicon data.
+
+```
+run_tipp.py -R 16S_bacteria -f test/unittest/data/mock/16s_bacteria/human_gut_16S.fas -o 16s -A 1000 -P 1000
+```
+
+As in the previous example, you can convert the classification results into a more easily digestible format using the run_tipp_tool.py script:
+
+```
+run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classification.txt -t 0.95
+```
 
 ---------
 Contact

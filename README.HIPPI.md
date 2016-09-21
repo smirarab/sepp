@@ -2,7 +2,7 @@
 Summary
 ------------------------------------
 
-UPP stands for `Ultra-large alignments using Phylogeny-aware Profiles`, and so is a method for the following problem:
+HIPPI stands for `Highly Accurate Protein Family Classification with Ensembles of HMMs`, and so is a method for the following problem:
 
 Alignment:
 - Input: A set of unaligned sequences `S`

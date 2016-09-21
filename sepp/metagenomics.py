@@ -13,7 +13,7 @@ global character_map,taxon_map,level_map,key_map,marker_genes,cog_genes
 character_map = {'A':'T', 'a':'t', 'C':'G', 'c':'g', 'T':'A', 't':'a', 'G':'C', 'g':'c', '-':'-'}
 global levels
 levels = ["species", "genus", "family", "order", "class", "phylum"]
-marker_genes = ["nusA","rplB","rplK","rplS","rpsE","rpsS", "pgk","rplC","rplL","rplT","rpsI","smpB","dnaG","pyrg", "rplD","rplM","rpmA","rpsJ","frr","pyrG","rplE","rplN", "rpsB","rpsK","infC","rplA","rplF","rplP","rpsC","rpsM"]
+marker_genes = ["nusA","rplB","rplK","rplS","rpsE","rpsS", "pgk","rplC","rplL","rplT","rpsI","smpB","dnaG","pyrg", "rplD","rplM","rpmA","rpsJ","frr","pyrG1","rplE","rplN", "rpsB","rpsK","infC","rplA","rplF","rplP","rpsC","rpsM"]
 cog_genes = ["COG0049", "COG0088", "COG0094", "COG0100", "COG0184", "COG0201", "COG0522", "COG0012", "COG0052", "COG0090", "COG0096", "COG0102", "COG0185", "COG0202", "COG0525", "COG0016", "COG0080", "COG0091", "COG0097", "COG0103", "COG0186", "COG0215", "COG0533", "COG0018", "COG0081", "COG0092", "COG0098", "COG0124", "COG0197", "COG0256", "COG0541", "COG0048", "COG0087", "COG0093", "COG0099", "COG0172", "COG0200", "COG0495", "COG0552"]
 
 #TODO Fix parameter passing
