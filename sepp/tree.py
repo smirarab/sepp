@@ -21,7 +21,7 @@
 
 from dendropy import Tree, Taxon, treecalc
 from dendropy import DataSet as Dataset
-from dendropy import convert_node_to_root_polytomy
+from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
 import cStringIO
@@ -184,7 +184,7 @@ class PhylogeneticTree(object):
         n = self.n_leaves
         potentially_deleted_nd = e.tail_node
         grandparent_nd = potentially_deleted_nd.parent_node
-        e.tail_node.remove_child(nr, suppress_deg_two=True)
+        e.tail_node.remove_child(nr, suppress_unifurcations=True)
 
         nr.edge.length = None
         nr.parent_node = None
@@ -224,7 +224,7 @@ class PhylogeneticTree(object):
 
     def compose_newick(self, labels = False):
         if not labels:
-            return self._tree.compose_newick()
+            return self._tree.as_string(schema="newick")
         else:
             stringIO = cStringIO.StringIO()
             write_newick_node(self._tree.seed_node, stringIO)
@@ -235,7 +235,7 @@ class PhylogeneticTree(object):
     def write_newick_to_path(self, path):
         tree_handle = open(path, "w")
         tree_handle.write(self.compose_newick())
-        tree_handle.write(";\n")
+        tree_handle.write("")
         tree_handle.close()
         
     def read_tree_from_file(self, treefile, file_format):
