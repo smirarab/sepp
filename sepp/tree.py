@@ -40,7 +40,7 @@ def write_newick_node(node, out):
             write_newick_node(child, out)
         out.write(')')
 
-    out.write(node.get_node_str())
+    out.write(node._get_node_token())
     e = node.edge
     if e:
         sel = e.length
