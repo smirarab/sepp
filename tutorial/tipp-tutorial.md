@@ -43,7 +43,7 @@ Windows won't work currently (future versions may or may not support Windows).
 
 You need to have:
 
-- Python (version 2.7 or later)
+- Python (version 2.7)
 - Blast (version 2.2.2 or later)
 - Java (version > 1.5 or later)
 
