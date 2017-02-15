@@ -55,20 +55,13 @@ TIPP is a part of the SEPP distribution package.  First download and install SEP
 2. Clone the SEPP code repository from our [github repository](https://github.com/smirarab/sepp). For example you can use `git clone https://github.com/smirarab/sepp.git`.
 If you don't have git, you can directly download a [zip file from the repository](https://github.com/smirarab/sepp/archive/master.zip)
 and decompress it into your desired directory. 
-
 3. `cd sepp` (or `cd sepp-master` if you used the zip file instead of cloning the git repository)
-
 4. Then run:
-
 ```
  sudo python setup.py install
-```
- 
+``` 
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
-
 5. Run the following command from the SEPP directory:
-
-
 ```
 python setup.py config
 ```
@@ -80,17 +73,13 @@ Once done, do the following.
 1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
 2. Unzip it to a directory
 3. Set the environment variable REFERENCE to point to the location of the reference directory.  This can be performed using:
-
 ```
 export REFERENCE=/PATH/TO/REFERENCE
 ```
-
 4. Set the environment variable BLAST to point to blastn.  This can be performed using:
-
 ```
 export BLAST=/PATH/TO/DIRECTORY/blastn
 ```
-
 5. Run the following command from the SEPP directory:
 
 ```
