@@ -96,9 +96,9 @@ The last step creates a ~/.sepp/tipp.config config file. Since this is specific 
 
 1.  TIPP requires SEPP to be installed.  If TIPP is not running, first check to see if TIPP was installed correctly.
 
-2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
-   blast: http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download
-   You can also download the linux version of blastn from: http://www.cs.utexas.edu/~phylo/software/blastn
+2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. You can download 
+   blast [here](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+   You can also download the linux version of blastn from [our repository](http://www.cs.utexas.edu/~phylo/software/blastn).
 
 3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
    reference datasets: www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
