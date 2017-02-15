@@ -64,9 +64,9 @@ and decompress it into your desired directory.
    If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable.
 
 5. Run the following command from the SEPP directory:
-```
-python setup.py config
-```
+    ```
+    python setup.py config
+    ```
 
 **Installation of TIPP**:
 
@@ -75,17 +75,20 @@ Once done, do the following.
 1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
 2. Unzip it to a directory
 3. Set the environment variable REFERENCE to point to the location of the reference directory.  This can be performed using:
+
     ```
       export REFERENCE=/PATH/TO/REFERENCE
     ```
 4. Set the environment variable BLAST to point to blastn.  This can be performed using:
+
     ```   
      export BLAST=/PATH/TO/DIRECTORY/blastn
     ```
 5. Run the following command from the SEPP directory:
-```
-python setup.py tipp
-```
+
+   ```
+   python setup.py tipp
+   ```
 
 The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs tipp needs to execute the last step. 
 
