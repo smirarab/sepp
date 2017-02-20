@@ -12,7 +12,7 @@ SEPP operates by using a divide-and-conquer strategy adopted from SATe-II (Liu e
 
 Developers: Siavash Mirarb, Tandy Warnow, and Nam Nguyen
 
-###Publication:
+### Publication:
 S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 (http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
 
 ### Note and Acknowledgment: 
@@ -23,6 +23,10 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement,
 - SEPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
 - SEPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
+### Related pages
+
+- SEPP on green genes: [wiki](https://github.com/smirarab/sepp/wiki/SEPP-on-Greengenes)
+- SEPP [tutorial](tutorial/sepp-tutorial.pdf).
 
 -------------------------------------
 Installation
