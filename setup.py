@@ -29,7 +29,7 @@ from distutils.core import setup, Command
 from distutils.command.install import install
 from distutils.spawn import find_executable
 
-version = "3.1"
+version = "3.2"
 
 class ConfigSepp(Command):
     """setuptools Command"""
@@ -216,7 +216,7 @@ setup(name = "sepp",
       author_email = "smirarab@gmail.com, namphuon@cs.utah.edu",
 
       license="General Public License (GPL)",
-      install_requires = ["dendropy >= 3.4, <= 3.99"],
+      install_requires = ["dendropy >= 4.0.0"],
       provides = ["sepp"],
       scripts = ["run_sepp.py",'run_tipp.py','run_upp.py','run_abundance.py',"split_sequences.py","run_tipp_tool.py"],
       cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP,"upp":ConfigUPP},

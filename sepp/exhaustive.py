@@ -8,7 +8,7 @@ from sepp.config import options
 from sepp.tree import PhylogeneticTree
 from sepp.alignment import MutableAlignment, ExtendedAlignment, hamming_distance
 from sepp.problem import SeppProblem
-from dendropy.dataobject.tree import Tree
+from dendropy.datamodel.treemodel import Tree
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
     MergeJsonJob
 from sepp.scheduler import JobPool, Join

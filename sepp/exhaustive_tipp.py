@@ -9,7 +9,7 @@ from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
 from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
-from dendropy.dataobject.tree import Tree
+from dendropy.datamodel.treemodel import Tree
 import dendropy,pickle,pdb
 from sepp import get_logger
 
@@ -430,7 +430,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             raise ValueError("Alignment decomposition tree can be different from placement tree only if placement subset size is set to the number of taxa (i.e. entire tree)")
         else:
             _LOG.info("Reading alignment decomposition input tree: %s" %(self.options.alignment_decomposition_tree))        
-            d_tree = PhylogeneticTree( dendropy.Tree(stream=self.options.alignment_decomposition_tree, 
+            d_tree = PhylogeneticTree( dendropy.Tree.get_from_stream(self.options.alignment_decomposition_tree, 
                                                schema="newick", 
                                                preserve_underscores=True,
                                                taxon_set=self.root_problem.subtree.get_tree().taxon_set))               

@@ -233,7 +233,7 @@ class AbstractAlgorithm(object):
         #fragments = MutableAlignment()
         #fragments.read_file_object(self.options.fragment_file);   
         _LOG.info("Reading input tree: %s" %(self.options.tree_file))        
-        tree = PhylogeneticTree( dendropy.Tree(stream=self.options.tree_file, 
+        tree = PhylogeneticTree( dendropy.Tree.get_from_stream(self.options.tree_file, 
                                                schema="newick", 
                                                preserve_underscores=True))        
         
