@@ -24,7 +24,12 @@ from dendropy import DataSet as Dataset
 from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
-import cStringIO
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import sys,copy,pdb
 
 _LOG = get_logger(__name__)
@@ -226,7 +231,7 @@ class PhylogeneticTree(object):
         if not labels:
             return self._tree.as_string(schema="newick")
         else:
-            stringIO = cStringIO.StringIO()
+            stringIO = StringIO()
             write_newick_node(self._tree.seed_node, stringIO)
             ret = stringIO.getvalue()
             stringIO.close()
@@ -316,7 +321,7 @@ class PhylogeneticTree(object):
         dist = {}                
         pdm = treecalc.PatristicDistanceMatrix(self.den_tree)
         for i , s in enumerate(self.den_tree.taxon_set): #@UnusedVariable
-            if kwargs.has_key("filterTaxon"):
+            if "filterTaxon" in kwargs:
                 if not kwargs["filterTaxon"](s):
                     continue;
             dist [s.label] = pdm(centerTaxon, s);

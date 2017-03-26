@@ -24,7 +24,7 @@ __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools", "
 
 version = "2.0"
 
-_DEBUG = os.environ.has_key("SEPP_DEBUG") and os.environ["SEPP_DEBUG"].lower() == "true"
+_DEBUG = "SEPP_DEBUG" in os.environ and os.environ["SEPP_DEBUG"].lower() == "true"
 #print "Debug mode is %s." %("on" if _DEBUG else "off")
 
 _INSTALL_PATH = __path__[0]
@@ -55,12 +55,12 @@ def get_logger(name="sepp"):
 
 def log_exception(logger):
     '''Logs the exception trace to the logObj as an error'''
-    import traceback, cStringIO
-    s = cStringIO.StringIO()
+    import traceback, io
+    s = io.StringIO()
     traceback.print_exc(None, s)
     logger.debug(s.getvalue())
     
 os.sys.setrecursionlimit(1000000)
 
 def sortByValue(d,reverse=False):
-    return sorted(d.iteritems(), key=itemgetter(1), reverse=reverse)
+    return sorted(iter(d.items()), key=itemgetter(1), reverse=reverse)

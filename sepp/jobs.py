@@ -24,7 +24,6 @@ class ExternalSeppJob(Job):
     should extend this abstract class.
     This class handles executing external jobs, error handling, and more.     
     '''
-    __metaclass__ = ABCMeta
     
     def __init__(self, jobtype, **kwargs):        
         Job.__init__(self)
@@ -86,7 +85,7 @@ class ExternalSeppJob(Job):
                     or os.path.exists(self.get_invocation()[0])), ("path for %s "
                             " does not exist (%s)" %(self.job_type, self.get_invocation()[0]))
             _LOG.debug("Invocation of %s", " ".join(self.get_invocation()));
-            self._process = Popen(self.get_invocation(), **self._kwargs)        
+            self._process = Popen(self.get_invocation(),  universal_newlines=True, **self._kwargs)        
             self._id = self._process.pid
 
             if self.stdindata is not None:            
@@ -131,7 +130,7 @@ class ExternalSeppJob(Job):
         '''    
         if self.stderrdata is not None:
             return self.stderrdata
-        elif self._kwargs.has_key("stderr") and isinstance(self._kwargs["stderr"],file):
+        elif "stderr" in self._kwargs and isinstance(self._kwargs["stderr"],file):
             return open(self._kwargs["stderr"].name,'r').read()
         else:
             return None
@@ -302,7 +301,7 @@ class HMMAlignJob(ExternalSeppJob):
             invoc.extend(["--trim"])
         #if self.base_alignment:
         #    invoc.extend["--mapali" , self.base_alignment]
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())        
         invoc.extend([self.hmmmodel, self.fragments])
         return invoc
@@ -373,7 +372,7 @@ class HMMSearchJob(ExternalSeppJob):
             invoc.extend(["-E", str(self.elim)])
         if not self.filters:
             invoc.extend(["--max"])
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())        
         invoc.extend([self.hmmmodel, self.fragments])      
         return invoc
@@ -476,7 +475,7 @@ class PplacerJob(ExternalSeppJob):
     def get_invocation(self):
         invoc = [self.path, 
                  "--out-dir", os.path.dirname(self.out_file)]   
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())
         
         if self.setup_setting == "File:TrInEx":

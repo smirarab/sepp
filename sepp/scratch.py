@@ -21,7 +21,7 @@ class JoinBlastJobs(Join):
     
     def figureout_fragment_marker(self):
         ''' Figure out which fragment should go to which marker'''
-        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+        if "fragments.distribution.done" in self.root_problem.annotations:
             return
         max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])
         for fragment_chunk_problem in self.root_problem.iter_leaves():
@@ -43,7 +43,7 @@ class JoinBlastJobs(Join):
         # TODO: is the following efficient enough? Do we need to make lists
         # and then turn them to sets?
         notScored = []
-        for key,v in max_evalues.iteritems():
+        for key,v in max_evalues.items():
             if v[1] is None:
                 notScored.append(key)
             else:

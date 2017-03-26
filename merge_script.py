@@ -35,7 +35,7 @@ dirs = glob.glob('/projects/sate8/namphuon/ultra_large/1000000/upp_100_10_new/te
 
 dirs.reverse()
 for dir in dirs:
-  print "Working on %s\n" % dir
+  print("Working on %s\n" % dir)
   aligned_files = glob.glob('%sFC_*/hmmalign.results.*' % dir)
   sequence_files = glob.glob('%sFC_*/hmmalign.frag.*' % dir)
   base_alignment_file = glob.glob('%s/*.fasta' % dir)
@@ -48,7 +48,7 @@ for dir in dirs:
     seq = MutableAlignment()
     done = seq.read_filepath(file)
     done = sequence_names.extend(seq.get_sequence_names())
-    for name, seq in seq.iteritems():
+    for name, seq in seq.items():
       frags[name] = seq.upper()
   problem = SeppProblem(sequence_names)  
   problem.set_subalignment(subbackbone)

@@ -33,9 +33,9 @@ class TIPPJoinSearchJobs(Join):
     def figureout_fragment_subset(self):
         ''' Figure out which fragment should go to which subproblem'''
         # We need to keep and check the following flag because of checkpoining scenarios (join already done before!)
-        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+        if "fragments.distribution.done" in self.root_problem.annotations:
             return
-        bitscores = dict([(name, []) for name in self.root_problem.fragments.keys()])
+        bitscores = dict([(name, []) for name in list(self.root_problem.fragments.keys())])
         for fragment_chunk_problem in self.root_problem.iter_leaves():
             align_problem = fragment_chunk_problem.get_parent()
             assert isinstance(align_problem, SeppProblem)
@@ -44,11 +44,11 @@ class TIPPJoinSearchJobs(Join):
             if align_problem.fragments is None:
                 align_problem.fragments = MutableAlignment()
             search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
-            for key in search_res.keys():
+            for key in list(search_res.keys()):
                 ''' keep a list of all hits, and their bit scores'''
                 bitscores[key].append( (search_res[key][1], align_problem) )
                 
-        for frag, tuplelist in bitscores.iteritems():
+        for frag, tuplelist in bitscores.items():
             ''' TODO: what to do with those that are not? For now, only output warning message'''
             #TODO:  Need to double check and fix the math
             if len(tuplelist) == 0:

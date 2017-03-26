@@ -46,7 +46,7 @@ class ConfigSepp(Command):
         pass
     
     def run(self):        
-        print "\nCreating main sepp config file at %s " %(self.configfile)            
+        print("\nCreating main sepp config file at %s " %(self.configfile))            
         def get_tools_dir(where):
             platform_name = platform.system()
             if where is None:
@@ -105,7 +105,7 @@ class ConfigUPP(Command):
         pass
     
     def run(self):                
-        print "\nCreating main upp config file at %s " %(self.configfile)
+        print("\nCreating main upp config file at %s " %(self.configfile))
         def get_tools_dir(where):    
             platform_name = platform.system()
             if where is None:
@@ -153,7 +153,7 @@ class ConfigTIPP(Command):
         pass
     
     def run(self):                
-        print "\nCreating main tipp config file at %s " %(self.configfile)
+        print("\nCreating main tipp config file at %s " %(self.configfile))
         def get_tools_dir(where):    
             platform_name = platform.system()
             if where is None:
@@ -187,17 +187,17 @@ class ConfigTIPP(Command):
         if not os.getenv('SATE') is None:
             d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         if os.getenv('BLAST') is None and not find_executable("blastn"):
-            print "\nWarning! BLAST variable is not defined.  If you plan to run TIPP for abundance profiling," \
+            print("\nWarning! BLAST variable is not defined.  If you plan to run TIPP for abundance profiling," \
                   " then have BLAST pointed to blastn executable.  You can also change your config to point to" \
                   " blastn by including the following line in your" \
-                  " config:\n[blast]\npath=/location/of/blast_directory/blastn\n"
+                  " config:\n[blast]\npath=/location/of/blast_directory/blastn\n")
             d.write('\n[blast]\npath=None\n')
         else:
             blastn_path = find_executable("blastn") if os.getenv('BLAST') is None else os.getenv('BLAST')
             d.write('\n[blast]\npath=%s\n' % blastn_path)
 
         if os.getenv('REFERENCE') is None:
-            print "\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n"            
+            print("\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n")            
         d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))
         d.write('\n[tipp]\npushdown = true\n')                    
         d.close()        

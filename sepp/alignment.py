@@ -29,6 +29,13 @@ from abc import ABCMeta
 import copy
 from sepp import get_logger
 import pdb
+import io
+try:
+    filetypes = (io.IOBase, file)
+except NameError:
+    filetypes = io.IOBase
+
+
 _INDEL = re.compile(r"[-]")
 _DANGEROUS_NAME_CHARS = re.compile(r"[^a-zA-Z0-9]")
 
@@ -41,8 +48,8 @@ def get_pdistance(distances, leaves, stat = 'mean'):
     """Returns the mean p-distance given a distance matrix and a set of names"""
     counts = 0
     pdistance = 0
-    for i in xrange(0,len(leaves)-1):
-        for j in xrange(i+1,len(leaves)):
+    for i in range(0,len(leaves)-1):
+        for j in range(i+1,len(leaves)):
             name = "".join([leaves[i],leaves[j]])
             if stat == 'mean':
                 pdistance = pdistance+distances[name]
@@ -73,7 +80,7 @@ def hamming_distance(seq1,seq2):
     length = len(seq1)
     num_mismatch = 0.0
     non_gap = 0.0
-    for i in xrange(0,length):
+    for i in range(0,length):
         if seq1[i] == "-" or seq2[i] == "-":
             continue
         non_gap+=1
@@ -98,8 +105,8 @@ def _read_fasta(src):
         try:
             file_obj = open(src, "rU")
         except IOError:
-            print("The file `%s` does not exist, exiting gracefully" % src)
-    elif isinstance(src, file):
+            print(("The file `%s` does not exist, exiting gracefully" % src))
+    elif isinstance(src, filetypes):
             file_obj = src
     else:
         raise TypeError('FASTA reader cannot recognize the source of %s' % src)
@@ -127,7 +134,7 @@ def _write_fasta(alignment, dest):
         file_obj = open(dest, "w")
     else:
         file_obj = dest
-    for name, seq in alignment.iteritems():
+    for name, seq in alignment.items():
         file_obj.write('>%s\n%s\n' % (name, seq))
     if isinstance(dest, str):
         file_obj.close()
@@ -144,7 +151,6 @@ class ReadOnlyAlignment(Mapping, object):
     '''
     An abstract class that provide all the read-only operations for an alignment
     '''
-    __metaclass__ = ABCMeta    
     def get_num_taxa(self):
         """returns the number sequences"""
         return len(self.get_sequence_names())
@@ -159,11 +165,11 @@ class ReadOnlyAlignment(Mapping, object):
         copy = MutableAlignment()
         copy.set_alignment(self)
         names = copy.get_sequence_names()
-        for name in copy.keys():
-            copy[name] = copy[name].replace('-',chr(255)).lower()            
+        for name, val in copy.items():
+            copy[name] = val.replace('-',chr(255)).lower()            
         
-        for x in xrange(0,self.get_num_taxa()):
-            for y in xrange(x+1,self.get_num_taxa()):
+        for x in range(0,self.get_num_taxa()):
+            for y in range(x+1,self.get_num_taxa()):
                 distance = hamming_distance(copy[names[x]],copy[names[y]])
                 if distance >= 0:
                     if distance > max:
@@ -178,11 +184,11 @@ class ReadOnlyAlignment(Mapping, object):
         if self.is_empty():
             raise ValueError("The alignment is empty.\n")
         else:
-            return len(self.values()[0])
+            return len(next(iter(self.values())))
 
     def get_sequence_names(self):
         """returns a list of sequence names"""
-        return self.keys()
+        return list(self.keys())
 
     def write_to_path(self, filename, schema='FASTA'):
         """Writes the sequence data in the specified `file_format` to `filename`"""
@@ -220,11 +226,11 @@ class ReadOnlyAlignment(Mapping, object):
             raise ValueError("The alignment is empty.\n")
         else:
             l0 = self.get_length()
-            return all([len(i) == l0 for i in self.values()])                
+            return all(len(i) == l0 for i in self.values())                
 
     def is_all_gap(self, pos):
         '''Checks to see if a column is all gap column at position x'''
-        for seq in self.itervalues():
+        for seq in self.values():
             if (seq[pos] != '-'):
                 return False
         return True    
@@ -235,7 +241,7 @@ class ReadOnlyAlignment(Mapping, object):
     def divide_to_equal_chunks(self,chunks):
         names = self.get_sequence_names()        
         ret = []
-        for i in xrange(0,chunks):
+        for i in range(0,chunks):
             subset = names[i:len(names):chunks]
             if subset:
                 subset_alg = self.get_soft_sub_alignment(subset)
@@ -261,7 +267,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         self.datatype = None
     
     def set_alignment(self, alignment):
-        for name, seq in alignment.iteritems():
+        for name, seq in alignment.items():
             self[name] = seq.upper()
 
     def read_filepath(self, filename, file_format='FASTA'):
@@ -289,7 +295,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         
     def add_column(self, pos, char='-'):
         #_LOG.debug("Added a column to reference alignment at position %d" %pos)
-        for name, seq in self.iteritems():
+        for name, seq in self.items():
             if hasattr(char, "get"):
                 c = char.get(name,'-')
             else:
@@ -298,12 +304,12 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             self[name] = seq
     
     def remove_column(self, pos):
-        for name, seq in self.iteritems():            
+        for name, seq in self.items():            
             seq = seq[:pos] + seq[pos + 1:]
             self[name] = seq
 
     def remove_columns(self, indexes):
-        for name, seq in self.iteritems():
+        for name, seq in self.items():
             self[name] = ''.join((char for idx, char in enumerate(seq) if idx not in indexes))
     
     def delete_all_gap(self):
@@ -374,7 +380,7 @@ class _AlignmentLookupHelper(object):
         self.ref = ref        
         
     def get(self, key, default=None):
-        if self.ref.has_key(key):
+        if key in self.ref:
             return self.ref[key][self.pos]
         else:
             return default
@@ -434,7 +440,7 @@ class ExtendedAlignment(MutableAlignment):
     
     def _reset_col_names(self):
         ''' sequentially label columns'''
-        self._col_labels = range(0,self.get_length())
+        self._col_labels = list(range(0,self.get_length()))
     
     def get_fragments_readonly_alignment(self):
         '''
@@ -543,7 +549,7 @@ class ExtendedAlignment(MutableAlignment):
             insertion -= 1
         ''' Adjust labels of other columns '''
         i = 0
-        for c in xrange(0,self.get_length()):
+        for c in range(0,self.get_length()):
             if self.col_labels[c] >= 0:
                 self.col_labels[c] = i
                 i += 1
@@ -563,7 +569,7 @@ class ExtendedAlignment(MutableAlignment):
         '''
         j = 0
         _LOG.debug("Relabeling %d (%d) with %d labels." %(self.get_length(),len(self._col_labels),len(original_labels)))
-        for i in xrange(0,self.get_length()):
+        for i in range(0,self.get_length()):
             if not self._is_insertion_label(self.col_labels[i]):
                 assert j < len(original_labels), ("Not enough labels"
                            " %d %d.\n %s" %(j,len(original_labels),str(self._col_labels)))
@@ -572,8 +578,8 @@ class ExtendedAlignment(MutableAlignment):
         assert j == len(original_labels), ("Some of original labels are unused."
                            " Some columns from original alignment went missing? %d %d" %(j,len(original_labels)))    
 
-    def get_insertion_columns(self):	
-	return [i for (i,x) in enumerate(self.col_labels) if self._is_insertion_label(x)]
+    def get_insertion_columns(self):
+        return [i for (i,x) in enumerate(self.col_labels) if self._is_insertion_label(x)]
 
     def get_insertion_column_ranges(self):
         pos=[]
@@ -608,7 +614,7 @@ class ExtendedAlignment(MutableAlignment):
                 s.append((a,b)); 
             a=b+1;
         s.append((a,len(self.col_labels)))
-        for name, seq in self.items():
+        for name, seq in list(self.items()):
             news = []
             for c in s:
                 news.append(seq[c[0]:c[1]])
@@ -632,12 +638,12 @@ class ExtendedAlignment(MutableAlignment):
         file_obj.close()
     
     def from_bytearray_to_string(self):
-        for k,v in self.iteritems():
-            self[k] = str(v)
+        for k,v in self.items():
+            self[k] = v.decode()
 
     def from_string_to_bytearray(self):
-        for k,v in self.iteritems():
-            self[k] = bytearray(v)   
+        for k,v in self.items():
+            self[k] = bytearray(v,encoding="utf8")   
                                 
     def merge_in(self, other, convert_to_string = True):
         '''
@@ -680,10 +686,10 @@ class ExtendedAlignment(MutableAlignment):
             self.from_string_to_bytearray()
         
         selfother={}
-        for k,v in other.iteritems():
+        for k,v in other.items():
             #assert k not in self, "Merging overlapping alignments not implemented"
             if (k not in self):
-              selfother[k] = bytearray(v)
+              selfother[k] = bytearray(v, encoding="utf8")
         while True:
             ''' Check exit conditions'''
             if me == me_len and she == she_len:
@@ -699,7 +705,7 @@ class ExtendedAlignment(MutableAlignment):
                         she += 1
                         merged_insertion_columns += 1
                     run = me - start
-                    self.col_labels[start:me] = range(insertion,insertion-run,-1)
+                    self.col_labels[start:me] = list(range(insertion,insertion-run,-1))
                 else:
                     ''' Hers is a series of insertion columns'''                
                     start = she
@@ -707,9 +713,9 @@ class ExtendedAlignment(MutableAlignment):
                         she += 1
                     run = she - start                    
                     ins = bytearray(b"-") * run 
-                    for seq in self.itervalues():               
+                    for seq in self.values():               
                         seq[me:me] = ins
-                    self._col_labels[me:me] = range(insertion,insertion-run,-1)
+                    self._col_labels[me:me] = list(range(insertion,insertion-run,-1))
                     insertion -= run   
                     me += run             
                     me_len += run            
@@ -720,9 +726,9 @@ class ExtendedAlignment(MutableAlignment):
                     me += 1
                 run = me - start
                 ins = bytearray(b"-") * run
-                for v in selfother.itervalues():
+                for v in selfother.values():
                     v[start:start] =ins
-                self.col_labels[start:me] = range(insertion,insertion-run,-1)
+                self.col_labels[start:me] = list(range(insertion,insertion-run,-1))
                 insertion -= run
             elif she == she_len or (me != me_len and self.col_labels[me] < other.col_labels[she]):
                 ''' My column is not present (i.e. was allgap) in the "other"'''
@@ -731,7 +737,7 @@ class ExtendedAlignment(MutableAlignment):
                     me += 1
                 run = me - start
                 ins = bytearray(b"-") * run
-                for v in selfother.itervalues():
+                for v in selfother.values():
                     v[start:start] = ins                         
             elif me == me_len or (she != she_len and self.col_labels[me] > other.col_labels[she]):
                 ''' Her column is not present (i.e. was allgap) in "me"'''
@@ -740,7 +746,7 @@ class ExtendedAlignment(MutableAlignment):
                     she += 1
                 run = she - start
                 ins = bytearray(b"-") * run 
-                for seq in self.itervalues():               
+                for seq in self.values():               
                     seq[me:me] = ins
                 self._col_labels[me:me] = other.col_labels[start:she]
                 me += run

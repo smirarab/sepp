@@ -28,8 +28,6 @@ class AbstractAlgorithm(object):
     New algorithms should be implemented by extending AbastractAlgorithm and 
     implementing its abstract methods.    
     '''
-
-    __metaclass__ = ABCMeta
     
     def __init__(self):
         '''
@@ -243,11 +241,11 @@ class AbstractAlgorithm(object):
         _LOG.debug("start reading fragment files and breaking to chunks: %d" %chunks)
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
-        for (k,v) in extra_frags.iteritems():
+        for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks)        
         ret = []
-        for i in xrange(0,chunks):
+        for i in range(0,chunks):
             temp_file = None
             if alg_chunks[i]:
                 temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")

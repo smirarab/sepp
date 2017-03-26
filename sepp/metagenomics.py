@@ -25,7 +25,7 @@ def load_taxonomy(taxonomy_file, lower=True):
   #First line is the keywords for the taxonomy, need to map the keyword to the positional 
   #index of each keyword
   results = f.readline().lower().replace('"','').strip().split(',')
-  key_map = dict([(results[i],i) for i in xrange(0,len(results))])
+  key_map = dict([(results[i],i) for i in range(0,len(results))])
     
   #Now fill up taxonomy, level maps keep track of what taxa exist at each level, taxon_map  
   #keep track of entire taxonomy
@@ -60,9 +60,9 @@ def build_profile(input,output_directory):
     binned_fragments=hmmer_to_markers(input,temp_dir)
   
   if binned_fragments:
-    print "Finished binning"
+    print("Finished binning")
   else:
-    print "Unable to bin any fragments!\n"
+    print("Unable to bin any fragments!\n")
     return
   
   #load up taxonomy for 30 marker genes
@@ -87,15 +87,15 @@ def build_profile(input,output_directory):
     if (decomp_size > total_taxa):
       decomp_size = int(total_taxa/2)
     cpus = options().cpu
-    if (len(frags.keys()) < cpus):
-      cpus = len(frags.keys())
+    if (len(frags) < cpus):
+      cpus = len(frags)
     extra = ''
     if options().dist == True:
       extra = '-D'
       
     if options().cutoff != 0:
       extra = extra+" -C %f" % options().cutoff
-    print 'Cmd:\nrun_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra)
+    print('Cmd:\nrun_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra))
     
     os.system('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra))
     if (not os.path.exists(output_directory+"/markers/tipp_%s_classification.txt" % gene)):
@@ -133,11 +133,11 @@ def distribution(classification_files,output_dir):
       if (name != old_name):
         total_frags+=1
         assert frag_info['phylum']['unclassified'] != 1
-        for clade in frag_info.keys():
-          for clade_name in frag_info[clade].keys():
-            if (clade_name not in distribution[clade]):
+        for clade, cladeval in frag_info.items():
+          for clade_name, cnc in cladeval.items():
+            if (clade_name, cnc not in distribution[clade]):
               distribution[clade][clade_name] = 0
-            distribution[clade][clade_name]+=frag_info[clade][clade_name]
+            distribution[clade][clade_name]+= cnc
         frag_info = {"species":{'unclassified':1}, "genus":{'unclassified':1}, "family":{'unclassified':1}, "order":{'unclassified':1}, "class":{'unclassified':1}, "phylum":{'unclassified':1}} 
         (old_name,old_rank,old_probability,old_line) = (name,rank,probability,line)
       if (id not in frag_info[rank]):
@@ -146,22 +146,22 @@ def distribution(classification_files,output_dir):
       frag_info[rank]['unclassified']-=probability        
     total_frags+=1
     assert frag_info['phylum']['unclassified'] != 1
-    for clade in frag_info.keys():
-      for clade_name in frag_info[clade].keys():
+    for clade, cladeval in frag_info.items():
+      for clade_name, cnc in cladeval.items():
         if (clade_name not in distribution[clade]):
           distribution[clade][clade_name] = 0
-        distribution[clade][clade_name]+=frag_info[clade][clade_name]
+        distribution[clade][clade_name]+= cnc
   
   level_names = {1:'species', 2:'genus', 3:'family', 4:'order', 5:'class', 6:'phylum'}
   for level in level_names:
     f = open(output_dir + "/abundance.distribution.%s.csv" % level_names[level],'w');
     f.write('taxa\tabundance\n')
     lines = []
-    for clade in distribution[level_names[level]].keys():
+    for clade, value in distribution[level_names[level]].items():
       name = clade
       if (name != 'unclassified'):
         name = taxon_map[clade][key_map['tax_name']]      
-      lines.append('%s\t%0.4f\n' % (name,float(distribution[level_names[level]][clade])/total_frags))
+      lines.append('%s\t%0.4f\n' % (name,float(value)/total_frags))
     lines.sort()
     f.write(''.join(lines))  
     f.close()  
@@ -170,7 +170,7 @@ def distribution(classification_files,output_dir):
     
 def remove_unclassified_level(classifications,level=6):
   global taxon_map,level_map,key_map,levels
-  frags = classifications.keys()
+  frags = list(classifications.keys())
   for frag in frags:
     if classifications[frag][level] == 'NA':
       del classifications[frag]
@@ -180,7 +180,7 @@ def write_classification(class_input, output):
   '''
   class_out = open(output, 'w')    
   class_out.write("fragment\tspecies\tgenus\tfamily\torder\tclass\tphylum\n");
-  keys = class_input.keys()
+  keys = list(class_input.keys())
   keys.sort()
   for frag in keys:
     class_out.write("%s\n" % "\t".join(class_input[frag]));
@@ -195,7 +195,7 @@ def write_abundance(classifications,output_dir,labels=True,remove_unclassified=T
   level_names = {1:'species', 2:'genus', 3:'family', 4:'order', 5:'class', 6:'phylum'}
   for lineage in classifications.values():
     #insert into level map
-    for level in xrange(1,7):
+    for level in range(1,7):
       if (lineage[level] == 'NA'):        
         if ('unclassified' not in level_abundance[level]):
           level_abundance[level]['unclassified'] = 0      
@@ -305,8 +305,8 @@ def hmmer_to_markers(input,temp_dir):
     results=read_hmmsearch_results(temp_dir+"/%s.out" % gene)
     
     #Now select best direction for each frag
-    for name in results.keys():
-      bitscore = results[name][1]
+    for name, value in results.items():
+      bitscore = value[1]
       direction = 'forward'
       true_name = name
       if (name.find('_rev') != -1):
@@ -317,17 +317,17 @@ def hmmer_to_markers(input,temp_dir):
     
   #Now bin the fragments
   genes = dict([])
-  for name in frag_scores.keys():
-    if (frag_scores[name][1] not in genes):
-      genes[frag_scores[name][1]] = {}
-    if (frag_scores[name][2] == 'forward'):
-      genes[frag_scores[name][1]][name] = fragments[name]
+  for name, val in frag_scores.items():
+    if (val[1] not in genes):
+      genes[val[1]] = {}
+    if (val[2] == 'forward'):
+      genes[val[1]][name] = fragments[name]
     else:
-      genes[frag_scores[name][1]][name] = reverse_sequence(fragments[name])    
+      genes[val[1]][name] = reverse_sequence(fragments[name])    
   genes.pop("NA", None)      
-  for gene in genes.keys():
+  for gene,seq in genes.items():
     gene_file=temp_dir+"/%s.frags.fas" % gene
-    _write_fasta(genes[gene],gene_file+".fixed")
+    _write_fasta(seq,gene_file+".fixed")
   return genes  
   
   
@@ -339,17 +339,17 @@ def blast_to_markers(input,temp_dir):
     #First blast sequences against all markers    
     blast_results=temp_dir+"/blast.out"
     if (options().blast_file == None):    
-      print "Blasting fragments against marker dataset\n"
+      print("Blasting fragments against marker dataset\n")
       blast_fragments(input,blast_results)
     else:
       blast_results=options().blast_file
     #Next bin the blast hits to the best gene    
     gene_binning = bin_blast_results(blast_results)
   else:
-    gene_binning = {options().gene:fragments.keys()}
+    gene_binning = {options().gene:list(fragments.keys())}
   #Now figure out direction of fragments
   binned_fragments = dict([(gene,dict([(seq_name,fragments[seq_name]) for seq_name in gene_binning[gene]])) for gene in gene_binning])
-  print "Finding best orientation of reads\n"
+  print("Finding best orientation of reads\n")
   align_name = 'sate'
   if (options().genes == 'cogs'):
     align_name = 'pasta'
