@@ -465,7 +465,7 @@ class PplacerJob(ExternalSeppJob):
         self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
                              self.extended_alignment_file.replace("fasta","jplace"))                       
         assert isinstance(subproblem.subtree, PhylogeneticTree)
-        subproblem.subtree.write_newick_to_path(self.tree_file)
+        subproblem.subtree.write_newick_to_path(self.tree_file,)
              
         self.info_file = info_file.name if hasattr(info_file,"name") else info_file
         self._kwargs = kwargs      

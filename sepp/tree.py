@@ -229,7 +229,7 @@ class PhylogeneticTree(object):
 
     def compose_newick(self, labels = False):
         if not labels:
-            return self._tree.as_string(schema="newick")
+            return self._tree.as_string(schema="newick", suppress_rooting = True)
         else:
             stringIO = StringIO()
             write_newick_node(self._tree.seed_node, stringIO)
