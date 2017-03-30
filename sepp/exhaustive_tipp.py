@@ -12,6 +12,7 @@ from sepp.tree import PhylogeneticTree
 from dendropy.datamodel.treemodel import Tree
 import dendropy,pickle,pdb
 from sepp import get_logger
+from functools import reduce 
 
 _LOG = get_logger(__name__)
 
@@ -51,14 +52,16 @@ class TIPPJoinSearchJobs(Join):
         for frag, tuplelist in bitscores.items():
             ''' TODO: what to do with those that are not? For now, only output warning message'''
             #TODO:  Need to double check and fix the math
+            _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
             if len(tuplelist) == 0:
                 _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
                 continue
             ''' convert bit scores to probabilities '''            
             denum = sum(math.pow(2, min(x[0],1022)) for x in tuplelist)
+            #_LOG.warning("Tuples: %s" %str(tuplelist))
             tuplelist = [((math.pow(2,min(x[0],1022))/denum*1000000),x[1]) for x in tuplelist]
             ''' Sort subsets by their probability'''
-            tuplelist.sort(reverse=True)
+            tuplelist.sort(reverse=True, key = lambda x: x[0])
             ''' Find enough subsets to reach the threshold '''
             selected = tuplelist[ 0 : max(1,
                 reduce(lambda x, y: (x[0],None) if x[1] is None else
@@ -318,14 +321,14 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'r')
+        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'rb')
         fullExtendedAlignment = pickle.load(align_input)
         align_input.close()
         #fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_file")
         for pp in self.root_problem.get_children()[1:]:
             #Removed this because it can cause unexpected lockups
             #extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
-            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'r')
+            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'rb')
             extended_alignment = pickle.load(align_input)
             align_input.close()
             
