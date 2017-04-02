@@ -39,19 +39,20 @@ except ImportError:
      import ConfigParser as configparser
 from sepp import version, get_logger
 import argparse
-import os
+import os, os.path
 from multiprocessing import cpu_count
 from sepp import scheduler
 
 _LOG = get_logger(__name__)
-   
-main_config_path = os.path.expanduser("~/.sepp/main.config")   
+
+root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"configs","home.path")).readlines()[0].strip()
+main_config_path = os.path.join(root_p, "main.config")
 
 def set_main_config_path(filename):
     global main_config_path
     main_config_path = filename
     
-def _read_config_file(filename, opts):
+def _read_config_file(filename, opts, expand= None):
     config_defaults = []
     cparser = configparser.ConfigParser()    
     cparser.optionxform = str
@@ -67,6 +68,8 @@ def _read_config_file(filename, opts):
             continue
         section_name_space = Namespace()
         for (k,v) in cparser.items(section):    
+            if expand and k == "path":
+                v = os.path.join(expand,v)
             section_name_space.__setattr__(k,v)        
         opts.__setattr__(section, section_name_space)
     

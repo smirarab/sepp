@@ -56,17 +56,21 @@ TIPP is a part of the SEPP distribution package.  First download and install SEP
 If you don't have git, you can directly download a [zip file from the repository](https://github.com/smirarab/sepp/archive/master.zip)
 and decompress it into your desired directory. 
 3. `cd sepp` (or `cd sepp-master` if you used the zip file instead of cloning the git repository)
-4. Then run: 
-
+4. Run the following command from the SEPP directory:
+    ```
+    python setup.py config
+    ```
+   or alternatively, 
+    ```
+    python setup.py config -c
+    ```
+   The first command puts all the config files under your home directory while the second version uses the current path. 
+5. Then run: 
    ```
    sudo python setup.py install
    ``` 
    If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable.
 
-5. Run the following command from the SEPP directory:
-    ```
-    python setup.py config
-    ```
 
 **Installation of TIPP**:
 
@@ -87,10 +91,16 @@ Once done, do the following.
 5. Run the following command from the SEPP directory:
 
    ```
-   python setup.py tipp
+   python setup.py tipp 
+   ```
+or 
+
+   ```
+   python setup.py tipp -c
    ```
 
-The last step creates a ~/.sepp/tipp.config config file. Since this is specific to a user, each user that runs tipp needs to execute the last step. 
+**Note:** It's important tat you use either use `-c` for both SEPP and TIPP or don't use it for both. 
+
 
 **Common Problems:**
 

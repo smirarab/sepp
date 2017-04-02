@@ -54,9 +54,9 @@ UPP is a part of the SEPP distribution package.
 
 1. Install SEPP (see [SEPP readme](https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  
 2. Install [PASTA](https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.
-3. Configure: run `sudo python setup.py upp`. 
+4. Configure: run `python setup.py upp` or `python setup.py upp -c` (you should use `-c` if you used `-c` when you installed SEPP). 
 
-The last step creates a ~/.sepp/upp.config config file. Since this is specific to a user, each user that runs UPP needs to execute the last step. 
+The last step creates an `upp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
 
 Common Problems:
 -------------------

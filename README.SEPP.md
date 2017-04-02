@@ -47,10 +47,16 @@ SEPP is distributed as Python source code. Once you have the above required soft
 
 1. Obtain the latest SEPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
 2. Go to the distribution directory
-3. Install: run `sudo python setup.py install`. 
-4. Configure: run `sudo python setup.py config`. 
+3. Configure: run `python setup.py config` (or `python setup.py config -c` to avoid using the home directory). 
+4. Install: run `python setup.py install`. 
 
-The last step creates a ~/.sepp/ directory and put the default config file under ~/.sepp/main.config. Since this is specific to a user, each user that runs sepp needs to execute the last step. 
+The third step creates a `~/.sepp/` directory, puts the default config file under `~/.sepp/main.config`, and puts all the binary executables under it as well. 
+* Since this (default location) is specific to a user, each user that runs sepp needs to execute the last step. 
+* To have a self-contained install instead of using the home directory, you should run step 3 with the `-c` option.
+With `-c`, the main config file and the binary files are kept under the place where you have downloaded SEPP. Therefore that
+directory should not be removed later if `-c` is used. 
+* To use any other location for the config file and the binary files, change the file `home.path` after step 3 and before step 4. 
+You need to also update the paths inside the `.sepp/main.config` file after step 3 and before step 4. 
 
 Common Problems:
 -------------------
