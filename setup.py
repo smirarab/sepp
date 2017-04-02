@@ -206,7 +206,7 @@ setup(name = "sepp",
       provides = ["sepp"],
       scripts = ["run_sepp.py",'run_tipp.py','run_upp.py','run_abundance.py',"split_sequences.py","run_tipp_tool.py"],
       cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP,"upp":ConfigUPP},
-      data_files=[('configs', ['home.path'])],
+      data_files=[('', ['home.path'])],
 
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",

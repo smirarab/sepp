@@ -45,7 +45,7 @@ from sepp import scheduler
 
 _LOG = get_logger(__name__)
 
-root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"configs","home.path")).readlines()[0].strip()
+root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
 main_config_path = os.path.join(root_p, "main.config")
 
 def set_main_config_path(filename):
