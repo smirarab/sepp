@@ -36,8 +36,7 @@ class AbstractAlgorithm(object):
         self.root_problem = None
         self.results = None
         self.options = options() # for ease of access
-        pass
-    
+
     
     def check_options(self, supply=[]):
         '''
@@ -62,8 +61,7 @@ class AbstractAlgorithm(object):
             supply = supply + ["raxml file"];
 
         self.check_outputprefix()
-        pass
-        
+
     
     @abstractmethod
     def build_subproblems(self):

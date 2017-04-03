@@ -203,9 +203,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                     self.distances["".join([seq1,seq2])] = hamming_distance(val1,val2)
                     self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
 
-    def merge_results(self):
-        ''' TODO: implement this 
-        '''        
+    def merge_results(self):    
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
@@ -233,7 +231,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         mergeJsonJob.setup(meregeinputstring, 
                            self.get_output_filename("placement.json"))
         mergeJsonJob.run()
-
+        
+    
     def output_results(self):
         ''' Merged json file is already saved in merge_results function and
             full extended alignment already created in merge_results function
@@ -243,6 +242,12 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.results.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         self.results.write_to_path(outfilename)
+        namerev_script = self.root_problem.subtree.rename_script()
+        if namerev_script:
+            outfilename = self.get_output_filename("rename-json.py")
+            with open(outfilename,'w') as s:
+                s.write(namerev_script)
+                
 
     def check_options(self, supply = []):
         AbstractAlgorithm.check_options(self,supply)

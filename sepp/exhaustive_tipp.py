@@ -316,8 +316,6 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         jsj.setup_with_root_problem(self.root_problem)
         
     def merge_results(self):
-        ''' TODO: implement this
-        '''
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
