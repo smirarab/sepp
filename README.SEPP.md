@@ -86,9 +86,18 @@ and to run using a configuration file, run
 
 `python <bin>/run_sepp.py -c sample.config`
 
+**Output:** 
+
 The main output of SEPP is a .json file, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
 
 In addition to the .json file, SEPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+
+Finally, SEPP internally renames internal node names to safe names because guppy cannot handle some complicated names. SEPP outputs a python script that can 
+be used to rename your internal nodes back to the original value. To update the json file using this script, you can run:
+
+```
+cat [the name of .json/.tre/.xml file with mapped names]| python output__rename-json.py > [name of the relabelled file]
+```
 
 By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 

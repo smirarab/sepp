@@ -80,7 +80,7 @@ def relabel_newick(newick_string):
     return t
 for l in sys.stdin.readlines():
         sys.stdout.write(relabel_newick(l))''' %(str(revnamemap),tag)
-        _LOG.info("Use this code to map back internal nodes::\n %s" %str(self._revscript))
+        #_LOG.info("Use this code to map back internal nodes::\n %s" %str(self._revscript))
     
     def rename_script(self):
         return self._revscript

@@ -22,7 +22,7 @@ import os
 
 __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder", "tools", "problem"]
 
-version = "3.2.0"
+version = "3.2.1"
 
 _DEBUG = "SEPP_DEBUG" in os.environ and os.environ["SEPP_DEBUG"].lower() == "true"
 #print "Debug mode is %s." %("on" if _DEBUG else "off")

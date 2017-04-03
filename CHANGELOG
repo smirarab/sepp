@@ -1,4 +1,7 @@
-Version 3.2:
+Version 3.2.1:
+  - Can now handle internal node names
+
+Version 3.2.0:
   - Can now have a contained installation
 
 Version 3.1:
