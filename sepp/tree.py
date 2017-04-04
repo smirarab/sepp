@@ -65,7 +65,7 @@ class PhylogeneticTree(object):
 revnamemap = ast.literal_eval("%s")
 def relabel_newick(newick_string):
     pattern = re.compile("(%sN[^(,:)<>]+)")
-    invalidChars = set(string.punctuation.replace("_", " "))
+    invalidChars = set(string.punctuation).union(set(string.whitespace))
     def replace_func(m):
         repl = m.group(1)
         if m.group(1) in revnamemap:
