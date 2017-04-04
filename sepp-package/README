@@ -1,0 +1,47 @@
+This pacakge enables you to run SEPP on the Greengenes reference tree with 203,452 leaves.
+
+### Download/install
+
+First, download [this package](https://drive.google.com/open?id=0B0lcoFFOYQf8SUhHNHpIcXNjY0E) and unzip it; then run:
+
+```
+cd sepp-package/sepp
+python setup.py config -c
+```
+to configure the package. 
+
+Anytime you move the package to a new directory, you need to run this again. 
+
+**Notes:** 
+
+* this is a self-contained package and does not require usual SEPP installation steps. 
+In fact, it will not use your installed SEPP even if you have it installed. 
+
+
+### Run
+Once configured, you can run
+
+```
+./sepp-package/run-sepp.sh [input file] [prefix of the output]
+```
+
+This will add the sequences from the input file to the Greengene tree. 
+
+
+### Results
+
+* You will get a `.json` file, a `.xml` file, and a `.tre` file. The `.json` file includes full results of placement. The `.tre` file is in the newick format and includes the best placement for each fragment. The xml file is similar, but in the NexML format. The `.json` file can be used with the [guppy](https://matsen.github.io/pplacer/generated_rst/guppy.html) package from pplacer to create visualizations and other stuff. To learn more about these, see [SEPP's tutorial](https://github.com/smirarab/sepp/tree/master/tutorial).
+* The reference tree has taxon ids instead of names. The mapping between names and the taxonomy is given in the file `sepp-package/ref/99_otu_taxonomy.txt`. 
+* You can use  [tax2tree](https://github.com/biocore/tax2tree) to decorate an existing taxonomy onto the resulting phylogenetic tree
+
+### Notes:
+
+* Any version of python works
+* To change the SEPP settings, you can directly edit the `run-sepp.sh` file.
+* By default, this package will use all available cores on your node. Change the cpu variable inside `run-sepp.sh` to manually control the number of cores. 
+  This may prove important if you have too many cores and not enough memory per core. 
+* Be default, subset size and placement size are set to 5,000 and 1,000. To change, edit `-A` and `-P` options in `run-sepp.sh`.
+* **Temporaries:** (ignore tips below if they don't make sense to you)
+    * To facilitate portability, we are putting the temporary directories inside the current directory. This is not the best strategy. To improve performance, you want to use the best available partition you have for temporary directories on your machine. Hopefully, you will use an SSD partition. To change the location of temporaries, edit the `run-sepp.sh` file and update `tmp` and `tmpssd`. See the file for examples. 
+    * After you are done with your run, you may want to remove the temporaries. Again, for portability, we don't put these on automatically removed temporary locations that all *nix systems have by default. You can change this by editing the two lines related to `tmp` and `tmpssd`. 
+
