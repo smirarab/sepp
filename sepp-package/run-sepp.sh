@@ -1,7 +1,10 @@
 #!/bin/bash  
 
 if [ $# -lt 2 ]; then
-   echo USAGE: $0 "[input fragments file] [output prefix] [optional: alignment subset size] [optional: placement subset size]"
+   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument]
+   Optional commands need not be in order. Any SEPP option can also be passed. For example, use
+   -x 8
+   to make SEPP us 8 threads"
    exit 1;
 fi
 
@@ -15,19 +18,39 @@ tmpssd=`mktemp -d sepp-tempssd-XXXX`
 
 # Input sequence file
 f=$1
+shift
 
 # Name of the output file prefix 
-name=$2
+name=$1
+shift
 
 # SEPP placement and alignment subset sizes
 p=5000
 a=1000
-test $# -lt 3 || a=$3
-test $# -lt 4 || p=$4
 
-# Leave blank to choose all available CPUs. Otherwise set to e.g., -x 16
-#cpus=-x 16
-cpus=""
+opts=""
+
+while [[ $# -gt 1 ]]
+do
+	key="$1"
+
+	case $key in
+		-A|--alignmentSize)
+			a="$2"
+			shift # past argument
+			;;
+		-P|--placementSize)
+			p="$2"
+			shift # past argument
+			;;
+		*)
+			opts="$opts"" ""$key"" ""$2"
+			shift # past argument
+			;;
+	esac
+	shift # past argument or value
+done
+
 
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
@@ -39,8 +62,9 @@ alg="$DIR/ref/gg_13_5_ssu_align_99_pfiltered.fasta"
 rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 
 set -e
+set -x
 
-python3 $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f $cpus -cp $tmpssd/chpoint-$name -o $name -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
+python3 $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -cp $tmpssd/chpoint-$name -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
 
 tail sepp-$name-*
 
