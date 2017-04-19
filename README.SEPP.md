@@ -38,7 +38,7 @@ Requirements:
 Before installing the software you need to make sure the following programs are installed on your machine.
 
 1. Python: Version 2.7. 
-2. Java: Version > 1.5
+2. Java: Version > 1.7
 
 Installation Steps:
 -------------------
