@@ -64,7 +64,7 @@ rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 set -e
 set -x
 
-python3 $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -cp $tmpssd/chpoint-$name -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
+python $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -cp $tmpssd/chpoint-$name -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
 
 tail sepp-$name-*
 
@@ -75,10 +75,10 @@ cp $tmp/${name}_rename-json.py .
 
 $DIR/sepp/.sepp/bundled-v3.2/guppy tog ${name}_placement.json
 
-cat ${name}_placement.tog.tre | python3 ${name}_rename-json.py > ${name}_placement.tog.relabelled.tre
+cat ${name}_placement.tog.tre | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.tre
 
 $DIR/sepp/.sepp/bundled-v3.2/guppy tog --xml ${name}_placement.json
 
-cat ${name}_placement.tog.xml | python3 ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
+cat ${name}_placement.tog.xml | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
 
 echo output files are at ${name}_placement.* and more files are at $tmp

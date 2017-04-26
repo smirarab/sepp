@@ -37,11 +37,10 @@ This will add the sequences from the input file to the Greengene tree.
 ### Notes:
 
 * Any version of python works
-* To pass any argument to SEPP, you can pass it to run-sepp.sh; all SEPP arguments (except the input fragment file, output prefix, and reference alignment/tree) can be provided.
+* To pass any argument to SEPP, you can pass them to `run-sepp.sh`; all SEPP arguments (except the input fragment file, output prefix, and reference alignment/tree) can be provided.
 * By default, this package will use all available cores on your node. Pass in `-x 4` to manually control the number of threads to limit it to 4. 
   This may prove important if you have too many cores and not enough memory per core. 
-* Be default, subset size and placement size are set to 5,000 and 1,000. To change, pass in `-A` and `-P` options to `run-sepp.sh`.
+* Be default, subset size and placement size are set to 1,000 and 5,000. To change, pass in `-A` and `-P` options to `run-sepp.sh`.
 * **Temporaries:** (ignore tips below if they don't make sense to you)
     * To facilitate portability, we are putting the temporary directories inside the current directory. This is not the best strategy. To improve performance, you want to use the best available partition you have for temporary directories on your machine. Hopefully, you will use an SSD partition. To change the location of temporaries, edit the `run-sepp.sh` file and update `tmp` and `tmpssd`. See the file for examples. 
     * After you are done with your run, you may want to remove the temporaries. Again, for portability, we don't put these on automatically removed temporary locations that all *nix systems have by default. You can change this by editing the two lines related to `tmp` and `tmpssd`. 
-
