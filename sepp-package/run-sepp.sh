@@ -10,11 +10,11 @@ fi
 
 # Should point to a (semi) permanent tmp for keeping the important parts of the results 
 tmp=/oasis/scratch/$USER/temp_project/sepp/$PBS_JOBID
-tmp=`mktemp -d sepp-temp-XXXX`
+tmp=`mktemp -t sepp-temp-XXXX`
 
 # Should point to a fast (hopefully ssd) tmp location which may be removed after the run
 tmpssd=/scratch/$USER/$PBS_JOBID
-tmpssd=`mktemp -d sepp-tempssd-XXXX`
+tmpssd=`mktemp -t sepp-tempssd-XXXX`
 
 # Input sequence file
 f=$1
@@ -62,7 +62,6 @@ alg="$DIR/ref/gg_13_5_ssu_align_99_pfiltered.fasta"
 rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 
 set -e
-set -x
 
 python $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -cp $tmpssd/chpoint-$name -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
 
@@ -81,4 +80,4 @@ $DIR/sepp/.sepp/bundled-v3.2/guppy tog --xml ${name}_placement.json
 
 cat ${name}_placement.tog.xml | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
 
-echo output files are at ${name}_placement.* and more files are at $tmp
+echo output files are at ${name}_placement.* and more files are at $tmp . Consider removing $tmp if its files are not needed. 

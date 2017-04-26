@@ -42,5 +42,11 @@ This will add the sequences from the input file to the Greengene tree.
   This may prove important if you have too many cores and not enough memory per core. 
 * Be default, subset size and placement size are set to 1,000 and 5,000. To change, pass in `-A` and `-P` options to `run-sepp.sh`.
 * **Temporaries:** (ignore tips below if they don't make sense to you)
-    * To facilitate portability, we are putting the temporary directories inside the current directory. This is not the best strategy. To improve performance, you want to use the best available partition you have for temporary directories on your machine. Hopefully, you will use an SSD partition. To change the location of temporaries, edit the `run-sepp.sh` file and update `tmp` and `tmpssd`. See the file for examples. 
-    * After you are done with your run, you may want to remove the temporaries. Again, for portability, we don't put these on automatically removed temporary locations that all *nix systems have by default. You can change this by editing the two lines related to `tmp` and `tmpssd`. 
+    * To facilitate portability, we are creating the temporary directories using `mktemp`. 
+      On your machine, this may not be the best strategy. 
+      To improve performance, you want to use the best available partition you have for temporary directories on your machine. 
+      For example, you may have an SSD partition. 
+      To change the location of temporaries, edit the `run-sepp.sh` file and update `tmp` and `tmpssd`. See the file for examples. 
+    * After you are done with your run, you may want to manually remove the temporaries or you may want to copy them to a permanent place. 
+      There are two temporary directories and the main (`sepp-temp-*`) will have the alignment files, which you may want to keep (these are huge). 
+      You can change this by editing the two lines related to `tmp` and `tmpssd`. 
