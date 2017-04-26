@@ -250,8 +250,10 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 
 
     def check_options(self, supply = []):
+        if (options().info_file is None):
+            supply = supply + ["raxml file"];
         AbstractAlgorithm.check_options(self,supply)
-            
+
 
     def modify_tree(self,a_tree):
         pass

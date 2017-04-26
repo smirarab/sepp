@@ -84,7 +84,7 @@ class ExternalSeppJob(Job):
             assert (self.get_invocation()[0].count("/") == 0 
                     or os.path.exists(self.get_invocation()[0])), ("path for %s "
                             " does not exist (%s)" %(self.job_type, self.get_invocation()[0]))
-            _LOG.debug("Invocation of %s", " ".join(self.get_invocation()));
+            _LOG.debug("Invocation of %s", " ".join((str(x) if x is not None else "?NoneType?" for x in self.get_invocation())));
             self._process = Popen(self.get_invocation(),  universal_newlines=True, **self._kwargs)        
             self._id = self._process.pid
 

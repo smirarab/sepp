@@ -44,7 +44,7 @@ class AbstractAlgorithm(object):
         sure every necessary argument is provided, and that the provided values
         are all fine. 
         
-        In the event of recognizing invalid or missing input, a an Exception
+        In the event of recognizing invalid or missing input, an Exception
         (maybe an ArgumentError) should be raised. 
         
         By default expects tree_file, raxml_file, and fragment_file. Overwrite if required. 
@@ -57,9 +57,6 @@ class AbstractAlgorithm(object):
             supply = supply + ["fragment file"]
         if (len(supply) != 0):
             raise ValueError ("Failed to supply: %s\nRun with -h option to see a list of options." % " , ".join(supply))
-        if (options().info_file is None):
-            supply = supply + ["raxml file"];
-
         self.check_outputprefix()
 
     
