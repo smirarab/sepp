@@ -272,7 +272,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self._create_root_problem(tree, alignment)
 
         ''' Decompose the tree based on placement subsets'''
-        placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
+        placement_tree_map = PhylogeneticTree(tree.den_tree).decompose_tree(
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
@@ -290,7 +290,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             placement_problem.label = "P_%s" %str(p_key)
             _LOG.debug("Placement subset %s has %d nodes" %(placement_problem.label,len(p_tree.leaf_node_names())))
             ''' Further decompose to alignment subsets '''
-            alignment_tree_map = PhylogeneticTree(Tree(p_tree.den_tree)).decompose_tree(
+            alignment_tree_map = PhylogeneticTree(p_tree.den_tree).decompose_tree(
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
