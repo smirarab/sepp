@@ -16,8 +16,8 @@ from multiprocessing import Lock
 from sepp.problem import Problem
 
 
-DEPTH = 9 # Depth of problem hierarchy (for decomposition). Tips are equivalent of alignment subsets 
-SUMMERIZE_LEVEL = 3 # The __level at which subproblems are aggregated (equivalent of placement subsets)
+DEPTH = 4 # Depth of problem hierarchy (for decomposition). Tips are equivalent of alignment subsets 
+SUMMERIZE_LEVEL = 3 # The level at which subproblems are aggregated (equivalent of placement subsets)
 
 class TestProblem(Problem):
     def __init__(self, parent):
@@ -26,7 +26,7 @@ class TestProblem(Problem):
         self.fragments = []
 
     def get_node_label(self):
-        #str(self.__level),str(self.result)
+        #str(self.level),str(self.result)
         return "%s" %(str(self.get_job_result_by_name("buildmodel")))
     
 class GenericJob(Job):
@@ -36,11 +36,11 @@ class GenericJob(Job):
     def __init__(self, problem):        
         Job.__init__(self)        
         problem.add_job(self.type, self)
-        self.problem_name = "__level " + str(problem.__level)
+        self.problem_name = "level " + str(problem.level)
         #self.add_call_Back(lambda res: problem.add_result_to_problem_object(res, self.type))
         
     def print_result(self,result):
-        print >>sys.stderr, "Process [%s]: %s finished with results: %s" %(os.getpid(),self.type,result)
+        print("Process [%s]: %s finished with results: %s" %(os.getpid(),self.type,result), file=sys.stderr)
                 
                    
 class BuildModelJob(GenericJob):  
@@ -58,10 +58,10 @@ class BuildModelJob(GenericJob):
         The model is going to be a random number calculated in an unnecessarily 
         lengthy fashion.
         '''
-        print >>sys.stderr, "Process [%s]: buildmodel running %s" %(os.getpid(),self.problem_name)                 
+        print("Process [%s]: buildmodel running %s" %(os.getpid(),self.problem_name), file=sys.stderr)                 
         h=0
         step = random()/10000
-        for i in xrange(0,100000):
+        for i in range(0,100000):
             h+=step*i
             #time.sleep(step/100)
         return int(h)
@@ -91,10 +91,10 @@ class SearchJob(GenericJob):
         Simply find the difference between each fragment value and the model
         associated with this job. Do this in an inefficient way. 
         '''
-        print >>sys.stderr, "Process [%s]: %s running %s with model %d" %(os.getpid(),self.type,self.problem_name, self.model)  
+        print("Process [%s]: %s running %s with model %d" %(os.getpid(),self.type,self.problem_name, self.model), file=sys.stderr)  
         #time.sleep(random()/10)    
         #self.state = step
-        for i in xrange(1,10000):
+        for i in range(1,10000):
             ret = [abs(self.model-fragment) for fragment in self.fragments]
         return ret
 
@@ -116,10 +116,10 @@ class ApplyModelJob(GenericJob):
         '''
         Do some mathematical calculation involving each fragment and the model.
         '''
-        print >>sys.stderr, "Process [%s]: %s running %s with model %d" %(os.getpid(),self.type,self.problem_name, self.model)  
+        print("Process [%s]: %s running %s with model %d" %(os.getpid(),self.type,self.problem_name, self.model), file=sys.stderr)  
         #time.sleep(random()/20)    
         #self.state = step
-        for i in xrange(1,10000):
+        for i in range(1,10000):
             ret = [self.model*fragment/10000.0 for fragment in self.fragments]
         return ret
     
@@ -139,12 +139,12 @@ class SummarizeJob(GenericJob):
         '''
         Simply normalize the model-applied fragments across
         '''
-        print >>sys.stderr, "Process [%s]: %s running %s with results from tips %s" %(os.getpid(),self.type,self.problem_name, str(self.resultsPerTipSubproblem))  
+        print("Process [%s]: %s running %s with results from tips %s" %(os.getpid(),self.type,self.problem_name, str(self.resultsPerTipSubproblem)), file=sys.stderr)  
         #time.sleep(random()/20)    
         #self.state = step
         all_fragments = []
         for fragments in self.resultsPerTipSubproblem: all_fragments.extend(fragments)
-        for i in xrange(1,100000):
+        for i in range(1,100000):
             fsum=sum(all_fragments)
             ret = [(fragment+.0)/fsum for fragment in all_fragments]
         return ret    
@@ -154,24 +154,24 @@ class Join_BuildModel_SearchFragment(Join):
     '''
     A join object used to join buildmodel jobs with their __parent 
     searchfragments jobs. The input to the constructor is the 
-    grandparent problem; i.e., the problem two __level above buildmodel jobs,
-    and one __level above searchfragment jobs to be joined together        
+    grandparent problem; i.e., the problem two level above buildmodel jobs,
+    and one level above searchfragment jobs to be joined together        
     '''
     def __init__(self, problem):
         Join.__init__(self)      
         self.grandparent_problem = problem
         '''automatically add appropriate jobs to this join''' 
-        for l1  in self.grandparent_problem.__children:
+        for l1  in self.grandparent_problem.children:
             self.add_job(l1.jobs["searchfragment"])
-            for l2 in l1.__children:
+            for l2 in l1.children:
                 self.add_job(l2.jobs["buildmodel"])               
 
     def perform(self):
-        print >>sys.stderr, "Process [%s]: Join_BuildModel_SearchFragment joining %s" %(os.getpid(),self.grandparent_problem)
+        print("Process [%s]: Join_BuildModel_SearchFragment joining %s" %(os.getpid(),self.grandparent_problem), file=sys.stderr)
         '''
         1 - start from grandparent fragments.
         2 - Based on results from joined search operations, figure out for each 
-            grandparent fragments whether it is closer to parent1 or parent2 (grandparent's __children), 
+            grandparent fragments whether it is closer to parent1 or parent2 (grandparent's children), 
             and divide the fragments accordingly
         3 - Set fragments attribute of parent1 and parent2 based on preceding calculation 
         4 - For each of grandchildrens of the grandparent problem, 
@@ -185,15 +185,15 @@ class Join_BuildModel_SearchFragment(Join):
         a fragment is closer to, and classifying it accordingly.    
         '''
         fragments = self.grandparent_problem.fragments
-        frags_range = range(0,len(fragments))
-        c1_res = self.grandparent_problem.__children[0].get_job_result_by_name("searchfragment")
-        c2_res = self.grandparent_problem.__children[1].get_job_result_by_name("searchfragment")
+        frags_range = list(range(0,len(fragments)))
+        c1_res = self.grandparent_problem.children[0].get_job_result_by_name("searchfragment")
+        c2_res = self.grandparent_problem.children[1].get_job_result_by_name("searchfragment")
         model_search = [c1_res[i] - c2_res[i] for i in frags_range]
-        self.grandparent_problem.__children[0].fragments = [fragments[i] for i in frags_range if model_search[i] < 0]
-        self.grandparent_problem.__children[1].fragments = [fragments[i] for i in frags_range if model_search[i] >= 0]
-        for l1  in self.grandparent_problem.__children:
+        self.grandparent_problem.children[0].fragments = [fragments[i] for i in frags_range if model_search[i] < 0]
+        self.grandparent_problem.children[1].fragments = [fragments[i] for i in frags_range if model_search[i] >= 0]
+        for l1  in self.grandparent_problem.children:
             fragments = l1.fragments                            
-            for l2 in l1.__children:
+            for l2 in l1.children:
                 l2j = l2.jobs["searchfragment"]
                 l2j.model = l2.get_job_result_by_name("buildmodel")
                 l2j.fragments = fragments 
@@ -206,16 +206,16 @@ class Join_ApplyModel_Summarize(Join):
     def __init__(self, problem):
         Join.__init__(self)      
         self.summarylevel_problem = problem
-        '''Add jobs of applymodel of the grand __parent's __children (parents)''' 
+        '''Add jobs of applymodel of the grand __parent's children (parents)''' 
         for tip  in self.summarylevel_problem.iter_leaves():
             self.add_job(tip.jobs["applymodel"])
     
     def perform(self):
         '''
-        Aggregate fragments from tips to the SUMMERIZE_LEVEL __level problem, 
+        Aggregate fragments from tips to the SUMMERIZE_LEVEL level problem, 
         and enqueue a summarize job
         '''
-        print >>sys.stderr, "Process [%s]: Join_ApplyModel_Summarize joining %s" %(os.getpid(),self.summarylevel_problem)
+        print("Process [%s]: Join_ApplyModel_Summarize joining %s" %(os.getpid(),self.summarylevel_problem), file=sys.stderr)
         resultsPerTipSubproblem = []
         for tip  in self.summarylevel_problem.iter_leaves():
             resultsPerTipSubproblem.append(tip.get_job_result_by_name("applymodel"))
@@ -241,10 +241,10 @@ class Join_tip_searchfragment(Join):
         Then update applymodel jobs with correct fragment and model, and 
         then enqueue them.  
         '''
-        print >>sys.stderr, "Process [%s]: Join_tip_searchfragment joining %s" %(os.getpid(),self.root_problem)                
+        print("Process [%s]: Join_tip_searchfragment joining %s" %(os.getpid(),self.root_problem), file=sys.stderr)                
         def print_fragments(problem):
-            print "__level " + str(problem.__level), str(problem.get_job_result_by_name("buildmodel")),  problem.fragments
-            for c in problem.__children:
+            print("level " + str(problem.level), str(problem.get_job_result_by_name("buildmodel")),  problem.fragments)
+            for c in problem.children:
                 print_fragments(c)                 
         print_fragments(self.root_problem)
         
@@ -260,12 +260,12 @@ class Join_tip_searchfragment(Join):
 
 
 def build_subproblems(problem = None):
-    ''' Makes a fully balanced problem (binary) tree upto __level DEPTH'''
+    ''' Makes a fully balanced problem (binary) tree upto level DEPTH'''
     if problem is None:
         problem = TestProblem(None)
         ''' Root problem needs to have fragments assigned to it'''
         problem.fragments = [int(random()*1000000) for i in range(1,2000)] 
-    if problem.__level < DEPTH:            
+    if problem.level < DEPTH:            
         subproblem = TestProblem(problem)
         build_subproblems(subproblem)
         problem.add_child(subproblem)
@@ -279,10 +279,10 @@ def build_job_dag(root_problem):
     def recursive_add_buildmodel_and_searchfragment_job(problem):
         '''build a search job and a buildmodel job for each problem in
         the problem tree.'''
-        if problem.__parent is not None:
+        if problem.parent is not None:
             BuildModelJob(problem)
             SearchJob(problem)
-        for subp in problem.__children:
+        for subp in problem.children:
             recursive_add_buildmodel_and_searchfragment_job(subp)                          
     
     def connect_buildmodel_and_searchfragment_jobs(problem):
@@ -290,9 +290,9 @@ def build_job_dag(root_problem):
         Connect all searchfragment jobs for nodes under a certain node ("grandparent")
         with all the buildmodels jobs under all those nodes (grandchildren).    
         '''
-        if len(problem.__children) > 0: # and sum((len(c.__children) for c in problem.__children)) > 0:
+        if len(problem.children) > 0: # and sum((len(c.children) for c in problem.children)) > 0:
             Join_BuildModel_SearchFragment(problem)
-            for c in problem.__children:
+            for c in problem.children:
                 connect_buildmodel_and_searchfragment_jobs(c)
                 
     recursive_add_buildmodel_and_searchfragment_job (root_problem)                            
@@ -311,10 +311,10 @@ def build_job_dag(root_problem):
         Join_ApplyModel_Summarize(problem)
 
     '''
-    highest __level needs special handling. Make sure you add a call_back function
-    to call searchfragment after buildmodel for the top __level buildmodel jobs. 
+    highest level needs special handling. Make sure you add a call_back function
+    to call searchfragment after buildmodel for the top level buildmodel jobs. 
     Note that this could have been also achived using a join that has only one job.'''
-    for c in root_problem.__children:
+    for c in root_problem.children:
         def enq_job_searchfragment(result, next_job):
             next_job.model = result
             next_job.fragments = root_problem.fragments
@@ -337,9 +337,9 @@ if __name__ == '__main__':
     Queue them up. Once they run, they will automatically enqueue the rest of the
     DAG through joins and callbacks ''' 
     def enqueue_buildmodel_job(problem):
-        if problem.__parent is not None:
+        if problem.parent is not None:
             JobPool().enqueue_job(problem.jobs["buildmodel"])
-        for child in problem.__children:
+        for child in problem.children:
             enqueue_buildmodel_job(child)            
     enqueue_buildmodel_job(root_problem)
     
@@ -349,5 +349,5 @@ if __name__ == '__main__':
     ''' print out the results of summarize jobs. We could merge the 
     results from all summarize jobs here if we wanted '''
     for problem in root_problem.iter_nodes_at_level(SUMMERIZE_LEVEL):
-        print  problem.get_job_result_by_name("buildmodel"), problem.get_job_result_by_name("summarize")      
+        print(problem.get_job_result_by_name("buildmodel"), problem.get_job_result_by_name("summarize"))      
     #print [str(x) for x in root_problem.iter_leaves()]

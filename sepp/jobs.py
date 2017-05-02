@@ -16,6 +16,12 @@ from sepp.tree import PhylogeneticTree
 import sepp.config
 import traceback,pdb
 
+import io
+try:
+    filetypes = (io.IOBase, file)
+except NameError:
+    filetypes = io.IOBase
+
 _LOG = get_logger(__name__)
     
 class ExternalSeppJob(Job):
@@ -25,7 +31,7 @@ class ExternalSeppJob(Job):
     This class handles executing external jobs, error handling, and more.     
     '''
     
-    def __init__(self, jobtype, **kwargs):        
+    def __init__(self, jobtype, path = None, **kwargs):        
         Job.__init__(self)
         self.job_type = jobtype
         self._id = None #_process id for this job
@@ -42,7 +48,10 @@ class ExternalSeppJob(Job):
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
         self.fake_run = False
         self.attributes=dict()
-        self.path = sepp.config.options().__getattribute__(self.job_type).path         
+        if path:
+            self.path  = path
+        else:
+            self.path = sepp.config.options().__getattribute__(self.job_type).path         
     
     def get_id(self):
         return self._id
@@ -70,13 +79,13 @@ class ExternalSeppJob(Job):
             if 'stdout' not in self._kwargs:      
                 self._kwargs['stdout'] = subprocess.PIPE
             elif isinstance(self._kwargs['stdout'],str):
-                self._kwargs['stdout'] = file(self._kwargs['stdout'], 'w')
+                self._kwargs['stdout'] = open(self._kwargs['stdout'], 'w')
     
             if 'stderr' not in self._kwargs:            
                 self._kwargs['stderr'] = subprocess.PIPE
-                #k['stderr'] = file(os.devnull, 'w')    
+                #k['stderr'] = open(os.devnull, 'w')    
             elif isinstance(self._kwargs['stderr'],str):
-                self._kwargs['stderr'] = file(self._kwargs['stderr'], 'w')
+                self._kwargs['stderr'] = open(self._kwargs['stderr'], 'w')
             
             if self.stdindata is not None:
                 self._kwargs['stdin'] = subprocess.PIPE        
@@ -107,7 +116,8 @@ class ExternalSeppJob(Job):
                 _LOG.info("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
-                        self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], len(self.stdoutdata)) if len(self.stdoutdata) > 100 else self.stdoutdata))
+                        self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], 
+                                                                                 len(self.stdoutdata)) if self.stdoutdata and len(self.stdoutdata) > 100 else self.stdoutdata))
     
             else:         
                 _LOG.info("Finished %s Job with input: %s with:\n"
@@ -130,7 +140,7 @@ class ExternalSeppJob(Job):
         '''    
         if self.stderrdata is not None:
             return self.stderrdata
-        elif "stderr" in self._kwargs and isinstance(self._kwargs["stderr"],file):
+        elif "stderr" in self._kwargs and isinstance(self._kwargs["stderr"],filetypes):
             return open(self._kwargs["stderr"].name,'r').read()
         else:
             return None

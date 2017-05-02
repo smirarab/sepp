@@ -68,12 +68,12 @@ class Problem(object):
     def iter_nodes_at_level(self, level):
         '''
         a generator function, returning all Problems under the current problem,
-        with a label tag equal to the given __level.
+        with a label tag equal to the given level.
         
-        Note that this is NOT returning nodes that are '__level' levels below 
+        Note that this is NOT returning nodes that are 'level' levels below 
         self. 
         '''
-        if self.__level == level:
+        if self.level == level:
             yield self
         else:
             for c in self.__children:
