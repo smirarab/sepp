@@ -184,7 +184,7 @@ class PhylogeneticTree(object):
         n = self.n_leaves
         potentially_deleted_nd = e.tail_node
         grandparent_nd = potentially_deleted_nd.parent_node
-        e.tail_node.remove_child(nr, suppress_unifurcations=True)
+        e.tail_node.remove_child(nr, suppress_deg_two=True)
 
         nr.edge.length = None
         nr.parent_node = None
