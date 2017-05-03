@@ -144,7 +144,7 @@ Sample Datasets: default parameters
     `~/sepp`). For example, on Unix run:
     
     ```    
-    ln -s ~/sepp/test/unittest/data/mock .
+    cp -R ~/sepp/test/unittest/data/mock .
     ```
     
     Note that on the VM, the files to copy are found in
@@ -154,7 +154,7 @@ Sample Datasets: default parameters
     biological dataset.
 
     ```
-        run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas
+    run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas
     ```
 
     (SEPP should finish running in about 2 minutes.)
