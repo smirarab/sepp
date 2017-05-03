@@ -27,7 +27,7 @@ S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement,
 ### Related pages
 
 - SEPP on green genes: to run SEPP on green genes, it would be easier to use: [wiki](https://github.com/smirarab/sepp/wiki/SEPP-on-Greengenes)
-- SEPP [tutorial](tutorial/sepp-tutorial.pdf).
+- SEPP [tutorial](tutorial/sepp-tutorial.md).
 
 -------------------------------------
 Installation
