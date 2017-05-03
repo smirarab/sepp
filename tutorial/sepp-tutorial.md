@@ -20,9 +20,9 @@ reads on the fixed tree `T` (<span>*backbone*</span>
 tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
-from SATé[2] andSATé-II[3] to improve the alignment of
+from SATé [2] andSATé-II [3] to improve the alignment of
 fragments to the backbone alignment (produced by running
-HMMER[4]). It then places each fragment into the
+HMMER [4]). It then places each fragment into the
 user-provided tree using pplacer [5]. 
 
 Our studies shows
@@ -512,6 +512,8 @@ testing.
     estimate the backbone alignment and RAxML can be used to estimate
     the backbone tree. The query sequences can be inserted into the
     tree.
+
+### Refrences
 
 [1]: Mirarab, S., Nguyen, N. & Warnow, T. SEPP: SATé-Enabled Phylogenetic Placement. Pacific Symp. Biocomput. 247–58 (2012).
 
