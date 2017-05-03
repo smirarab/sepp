@@ -1,7 +1,7 @@
 Introduction to SEPP 
 =================================
 
-SEPP [^sepp] stands for SATé-Enabled Phylogenetic
+SEPP [1] stands for SATé-Enabled Phylogenetic
 Placement and addresses the problem of phylogenetic placement for
 meta-genomic short reads. More precisely, SEPP addresses the
 following problem.
@@ -20,10 +20,10 @@ reads on the fixed tree `T` (<span>*backbone*</span>
 tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
-from SATé [^sate] and <span>SATé-II</span>  [^sate2] to improve the alignment of
+from SATé[2] andSATé-II[3] to improve the alignment of
 fragments to the backbone alignment (produced by running
-<span>HMMER</span>[^hmmer]). It then places each fragment into the
-user-provided tree using pplacer  [^pplacer]. 
+HMMER[4]). It then places each fragment into the
+user-provided tree using pplacer [5]. 
 
 Our studies shows
 that SEPP provides improved accuracy for quickly evolving
@@ -38,22 +38,25 @@ SEPP currently runs only on Linux and Mac. Those running a
 Windows need to either use cygwin (<http://www.cygwin.com/>), or a
 Ubuntu virtual machine image we have created.
 
-Installing on a Linux Machine
+Installing on a Linux/MAC Machine
 -----------------------------
 
 To download and install SEPP , follow these steps:
 
-1.  Download software from
-    <https://github.com/smirarab/sepp/zipball/master>.
+1.  Obtain the software code. There are two options
+	-  From the zip file:
+		1. Download software from
+    <https://github.com/smirarab/sepp/zipball/master>
+    	2. Copy the archive to your favorite location (we will use
+    `~/sepp` in this tutorial)
+    	3. Unpack the zip file using your favorite software.
+	-  Clone the git repository <https://github.com/smirarab/sepp>
+	(we will assume SEPP is clone to `~/sepp` in this tutorial)
 
-2.  Copy the archive to your favorite location (we will use
-    `~/sepp` in this tutorial), and
-    unpack the zip file using your favorite software.
-
-3.  Open a terminal and change into the unpacked directory
+2.  Open a terminal and change into the unpacked directory
     (`cd ~/sepp`).
 
-4.  Run the following command:
+3.  Run the following command:
     
     `
         python setup.py config
@@ -72,7 +75,7 @@ To download and install SEPP , follow these steps:
     instead. This will ensure that the main config file and binary files
     are written to your current directory instead of the home.
 
-5.  In the new directory, there should be a
+4.  In the new directory, there should be a
     `setup.py` file. Run the following command:
 
     `sudo python setup.py install`
@@ -107,7 +110,7 @@ so the tutorial is based on this command line usage.
 In this section we will run SEPP on a small sample dataset
 provided with the software. The sample dataset consists of a
 SATé backbone alignment and tree on the “pyrg” marker gene
-with only 65 sequences (previously studied in Metaphyler[^metaphyler]). The
+with only 65 sequences (previously studied in Metaphyler [6]). The
 fragments are from a WGS sample of a mock community created by the NIH
 Human Microbiome Project (<http://www.hmpdacc.org/HMMC/>). The fragment
 file we provide includes only 106 fragments that we found to possibly
@@ -134,14 +137,14 @@ Run SEPP with `-h` option to see the help
 Sample Datasets: default parameters
 ------------------------------------
 
--   Copy test datasets into your directory. Test datasets are part of the distribution and can be found under
+-   Copy test datasets into your directory. 
+    Test datasets are part of the distribution and can be found under
     `/test/unittest/data` (use the directory
     where you unpacked SEPP instead of
-    `~/sepp`). For example, on Unix
-    run:
+    `~/sepp`). For example, on Unix run:
     
     ```    
-    cp -R ~/sepp/test/unittest/data/* .
+    ln -s ~/sepp/test/unittest/data/mock .
     ```
     
     Note that on the VM, the files to copy are found in
@@ -165,8 +168,8 @@ Backbone tree
 :  this is the tree on which SEPP places short fragments.
     This tree should be a binary maximum likelihood (ML) tree in newick
     format; we therefore recommend you estimate the ML tree using
-    RAxML[^raxml] or Phyml[^phyml] on the backbone
-    alignment (see below)[^1]. The input tree is given to
+    RAxML[7] or Phyml[8] on the backbone
+    alignment. The input tree is given to
     SEPP using `-t` option.
 
 Backbone Alignment
@@ -192,7 +195,7 @@ Stats or info file
     To be able to use SEPP you need to make sure you keep
     your info file when you are generating the backbone tree. If you do
     not have the info file (or if you used some other software programs,
-    such as PASTA[^pasta], to produce the backbone tree), you can use
+    such as PASTA[9], to produce the backbone tree), you can use
     RAxML’s `-f e` option to quickly estimate
     the model parameters (including branch lengths) on your backbone
     tree topology (see [this section](#sec:backbone)). The RAxML info file
@@ -510,15 +513,19 @@ testing.
     the backbone tree. The query sequences can be inserted into the
     tree.
 
-*[SEPP]: SATé-Enabled Phylogenetic Placement
+[1]: Mirarab, S., Nguyen, N. & Warnow, T. SEPP: SATé-Enabled Phylogenetic Placement. Pacific Symp. Biocomput. 247–58 (2012).
 
-[^1]: Note - we haven’t tested SEPP with phyml trees yet, and all our analyses are based on RAxML.
-[^sepp]: Mirarab, S., Nguyen, N. & Warnow, T. SEPP: SATé-Enabled Phylogenetic Placement. Pacific Symp. Biocomput. 247–58 (2012).
-[^sate]: Liu, K., Raghavan, S., Nelesen, S. M., Linder, C. R. & Warnow, T. Rapid and Accurate Large-Scale Coestimation of Sequence Alignments and Phylogenetic Trees. Science (80-. ). 324, 1561–1564 (2009).
-[^sate2]: Liu, K. et al. SATe-II: Very Fast and Accurate Simultaneous Estimation of Multiple Sequence Alignments and Phylogenetic Trees. Syst. Biol. 61, 90–106 (2011).
-[^hmmer]: Eddy, S. R. A new generation of homology search tools based on probabilistic inference. Genome Inf. 23, 205–211 (2009).
-[^pplacer]: Matsen, F. A., Kodner, R. B. & Armbrust, E. V. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. BMC Bioinformatics 11, 538 (2010).
-[^metaphyler]:  Liu, B., Gibbons, T., Ghodsi, M. & Pop, M. MetaPhyler: Taxonomic profiling for metagenomic sequences. in Bioinformatics and Biomedicine (BIBM), 2010 IEEE International Conference on 95–100 (IEEE, 2011).
-[^phyml]: Guindon, S. et al. New Algorithms and Methods to Estimate Maximum-Likelihood Phylogenies: Assessing the Performance of PhyML 3.0. Syst. Biol. 59, 307–321 (2010).
-[^raxml]: Stamatakis, A. RAxML version 8: A tool for phylogenetic analysis and post-analysis of large phylogenies. Bioinformatics 30, 1312–1313 (2014).
-[^pasta]:  Mirarab, S. et al. PASTA: Ultra-Large Multiple Sequence Alignment for Nucleotide and Amino-Acid Sequences. J. Comput. Biol. 22, 377–386 (2015).
+[2]: Liu, K., Raghavan, S., Nelesen, S. M., Linder, C. R. & Warnow, T. Rapid and Accurate Large-Scale Coestimation of Sequence Alignments and Phylogenetic Trees. Science (80-. ). 324, 1561–1564 (2009).
+
+[3]: Liu, K. et al. SATe-II: Very Fast and Accurate Simultaneous Estimation of Multiple Sequence Alignments and Phylogenetic Trees. Syst. Biol. 61, 90–106 (2011).
+
+[4]: Eddy, S. R. A new generation of homology search tools based on probabilistic inference. Genome Inf. 23, 205–211 (2009).
+
+[5]: Matsen, F. A., Kodner, R. B. & Armbrust, E. V. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. BMC Bioinformatics 11, 538 (2010).
+[6]:  Liu, B., Gibbons, T., Ghodsi, M. & Pop, M. MetaPhyler: Taxonomic profiling for metagenomic sequences. in Bioinformatics and Biomedicine (BIBM), 2010 IEEE International Conference on 95–100 (IEEE, 2011).
+
+[7]: Guindon, S. et al. New Algorithms and Methods to Estimate Maximum-Likelihood Phylogenies: Assessing the Performance of PhyML 3.0. Syst. Biol. 59, 307–321 (2010).
+
+[8]: Stamatakis, A. RAxML version 8: A tool for phylogenetic analysis and post-analysis of large phylogenies. Bioinformatics 30, 1312–1313 (2014).
+
+[9]:  Mirarab, S. et al. PASTA: Ultra-Large Multiple Sequence Alignment for Nucleotide and Amino-Acid Sequences. J. Comput. Biol. 22, 377–386 (2015).
