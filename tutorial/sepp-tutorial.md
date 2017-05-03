@@ -141,7 +141,7 @@ Sample Datasets: default parameters
     run:
     
     ```    
-        cp -R ~/sepp/test/unittest/data/* .
+    cp -R ~/sepp/test/unittest/data/* .
     ```
     
     Note that on the VM, the files to copy are found in
