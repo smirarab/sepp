@@ -235,10 +235,6 @@ for l in sys.stdin.readlines():
         n = self.n_leaves
         potentially_deleted_nd = e.tail_node
         grandparent_nd = potentially_deleted_nd.parent_node
-<<<<<<< HEAD
-=======
-        _LOG.debug("Removing node: %s" %str(nr))
->>>>>>> python3
         e.tail_node.remove_child(nr, suppress_deg_two=True)
 
         nr.edge.length = None

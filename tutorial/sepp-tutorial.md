@@ -121,13 +121,15 @@ Run SEPP with `-h` option to see the help
 -   Make a directory where you will run SEPP and `cd` into it; e.g.
     
     ```    
-         mkdir seppRuns
-         cd seppRuns
+     mkdir seppRuns
+     cd seppRuns
     ```
 
 -   run SEPP with the `-h` option to see a help:
 
-    `run_sepp.py -h`
+    ```
+    run_sepp.py -h
+    ````
 
 Sample Datasets: default parameters
 ------------------------------------
