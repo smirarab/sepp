@@ -30,31 +30,63 @@ from distutils.command.install import install
 from distutils.spawn import find_executable
 
 version = "3.2"
+    
+def get_tools_dir(where):
+    platform_name = platform.system()
+    if where is None:
+       where = os.path.join("bundled",platform_name)
+    path = os.path.join(os.getcwd(),"tools",where)
+    if not os.path.exists(path):
+       raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
+    return path
+
+def get_tool_name(tool,bits):
+    if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
+        return tool
+    is_64bits = sys.maxsize > 2**32
+    return "%s-%s" %(tool,"64" if is_64bits else "32")
+        
 
 class ConfigSepp(Command):
     """setuptools Command"""
     description = "Configures Sepp for the current user"
-    user_options = []
+    user_options = [('contained','c',"Whether SEPP should be installed in a self-contained manner or on user's home")]
+
+    def initopts(self):
+        self.contained = None
+        self.configfile = None
+        self.basepath = None
+   
+    def initpath(self,name):
+        if self.contained:
+            self.configfile = os.path.expanduser(os.path.abspath(os.path.join(".sepp",name)))
+            self.basepath = os.path.dirname(self.configfile)
+        else:
+            self.configfile = os.path.expanduser("~/.sepp/%s" %name)
+            self.basepath = os.path.expanduser("~/.sepp")
+        with open('home.path','w') as fo:
+            fo.write(self.basepath)
+            fo.close()
+
+    def get_tools_dest(self):
+        return os.path.join(self.basepath,"bundled-v%s"%version) 
+
+    def copy_tool_to_lib(self, tool,where=None,bits=True):
+        shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
+			os.path.join(self.get_tools_dest(),tool))
+
     
     def initialize_options(self):
         """init options"""
-        self.configfile = os.path.expanduser("~/.sepp/main.config")
-        pass
-
+        self.initopts()
+    
+       
     def finalize_options(self):
         """finalize options"""
-        pass
-    
+        self.initpath("main.config")
+        print("\nCreating main sepp config file at %s and tools at %s" %(self.configfile,self.basepath))            
+
     def run(self):        
-        print "\nCreating main sepp config file at %s " %(self.configfile)            
-        def get_tools_dir(where):
-            platform_name = platform.system()
-            if where is None:
-                where = os.path.join("bundled",platform_name)
-            path = os.path.join(os.getcwd(),"tools",where)
-            if not os.path.exists(path):
-                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
-            return path
     
         def get_tool_name(tool,bits):
             if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
@@ -62,149 +94,103 @@ class ConfigSepp(Command):
             is_64bits = sys.maxsize > 2**32
             return "%s-%s" %(tool,"64" if is_64bits else "32")
         
-        def get_tools_dest():
-            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
+        def get_tool_name(tool,bits):
+            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
+                return tool
+            is_64bits = sys.maxsize > 2**32
+            return "%s-%s" %(tool,"64" if is_64bits else "32")
         
-        def copy_tool_to_lib(tool,where=None,bits=True):    
-            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
-                        os.path.join(get_tools_dest(),tool))
                     
         # Create the default config file
-        if not os.path.exists(os.path.expanduser("~/.sepp")):
-            os.mkdir(os.path.expanduser("~/.sepp"))
-        if not os.path.exists(get_tools_dest()):
-            os.mkdir(get_tools_dest())
+        if not os.path.exists(self.basepath):
+            os.mkdir(self.basepath)
+        if not os.path.exists(self.get_tools_dest()):
+            os.mkdir(self.get_tools_dest())
         c = open("default.main.config")
         d = open(self.configfile,"w")
         for l in c:
-            l = l.replace("~",get_tools_dest())
+            l = l.replace("~",self.get_tools_dest())
             d.write(l)
         d.close()
     
         # Copy tools to a bundled directory inside .sepp
-        copy_tool_to_lib("guppy")
-        copy_tool_to_lib("pplacer")
-        copy_tool_to_lib("hmmalign")
-        copy_tool_to_lib("hmmsearch")
-        copy_tool_to_lib("hmmbuild")
+        self.copy_tool_to_lib("guppy")
+        self.copy_tool_to_lib("pplacer")
+        self.copy_tool_to_lib("hmmalign")
+        self.copy_tool_to_lib("hmmsearch")
+        self.copy_tool_to_lib("hmmbuild")
         #TODO: should we compile and build merge.jar?
-        copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
+        self.copy_tool_to_lib("seppJsonMerger.jar",where="merge",bits=False)
         
-class ConfigUPP(Command):
+class ConfigUPP(ConfigSepp):
     """setuptools Command"""
     description = "Configures UPP for the current user"
-    user_options = []
+    user_options = [('contained','c',"Whether SEPP should be installed in a self-contained manner or on user's home")]
     
     def initialize_options(self):
         """init options"""
-        self.configfile = os.path.expanduser("~/.sepp/upp.config")
-        pass
+        self.initopts()
 
     def finalize_options(self):
         """finalize options"""
-        pass
+        self.initpath("upp.config")
+        print("\nCreating main UPP config file at %s and tools at %s" %(self.configfile,self.basepath))            
     
     def run(self):                
-        print "\nCreating main upp config file at %s " %(self.configfile)
-        def get_tools_dir(where):    
-            platform_name = platform.system()
-            if where is None:
-                where = os.path.join("bundled",platform_name)
-            path = os.path.join(os.getcwd(),"tools",where)
-            if not os.path.exists(path):
-                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
-            return path
-    
-        def get_tool_name(tool,bits):
-            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
-                return tool
-            is_64bits = sys.maxsize > 2**32
-            return "%s-%s" %(tool,"64" if is_64bits else "32")
-        
-        def get_tools_dest():
-            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
-        
-        def copy_tool_to_lib(tool,where=None,bits=True):    
-            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
-                        os.path.join(get_tools_dest(),tool))
-                    
         # Create the default config file
         c = open("default.main.config")
         d = open(self.configfile,"w")
         for l in c:
-            l = l.replace("~",get_tools_dest())
+            l = l.replace("~",self.get_tools_dest())
             d.write(l)
         d.write('\n[pasta]\npath=run_pasta.py\n')            
         d.close()        
 
 
-class ConfigTIPP(Command):
+class ConfigTIPP(ConfigSepp):
     """setuptools Command"""
     description = "Configures TIPP for the current user"
-    user_options = []
+    user_options = [('contained','c',"Whether SEPP should be installed in a self-contained manner or on user's home")]
     
     def initialize_options(self):
         """init options"""
-        self.configfile = os.path.expanduser("~/.sepp/tipp.config")
-        pass
+        self.initopts()
 
     def finalize_options(self):
         """finalize options"""
-        pass
+        self.initpath("tipp.config")
+        print("\nCreating main TIPP config file at %s and tools at %s" %(self.configfile,self.basepath))            
     
     def run(self):                
-        print "\nCreating main tipp config file at %s " %(self.configfile)
-        def get_tools_dir(where):    
-            platform_name = platform.system()
-            if where is None:
-                where = os.path.join("bundled",platform_name)
-            path = os.path.join(os.getcwd(),"tools",where)
-            if not os.path.exists(path):
-                raise OSError("SEPP does not bundle tools for '%s' at this time!" % platform_name)
-            return path
-    
-        def get_tool_name(tool,bits):
-            if platform.system() == "Darwin" or not bits:#MAC doesn't have 32/64
-                return tool
-            is_64bits = sys.maxsize > 2**32
-            return "%s-%s" %(tool,"64" if is_64bits else "32")
-        
-        def get_tools_dest():
-            return os.path.join(os.path.dirname(self.configfile),"bundled-v%s"%version) 
-        
-        def copy_tool_to_lib(tool,where=None,bits=True):    
-            shutil.copy2(os.path.join(get_tools_dir(where),get_tool_name(tool,bits)), 
-                        os.path.join(get_tools_dest(),tool))
-                    
         # Create the default config file
         c = open("default.main.config")
         d = open(self.configfile,"w")
         for l in c:
-            l = l.replace("~",get_tools_dest())
+            l = l.replace("~",self.get_tools_dest())
             if (l.find('seppJsonMerger.jar') != -1):
               l=l.replace('seppJsonMerger.jar','tippJsonMerger.jar')
             d.write(l)
         if not os.getenv('SATE') is None:
             d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
         if os.getenv('BLAST') is None and not find_executable("blastn"):
-            print "\nWarning! BLAST variable is not defined.  If you plan to run TIPP for abundance profiling," \
+            print("\nWarning! BLAST variable is not defined.  If you plan to run TIPP for abundance profiling," \
                   " then have BLAST pointed to blastn executable.  You can also change your config to point to" \
                   " blastn by including the following line in your" \
-                  " config:\n[blast]\npath=/location/of/blast_directory/blastn\n"
+                  " config:\n[blast]\npath=/location/of/blast_directory/blastn\n")
             d.write('\n[blast]\npath=None\n')
         else:
             blastn_path = find_executable("blastn") if os.getenv('BLAST') is None else os.getenv('BLAST')
             d.write('\n[blast]\npath=%s\n' % blastn_path)
 
         if os.getenv('REFERENCE') is None:
-            print "\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n"            
+            print("\nWarning! REFERENCE variable is not defined.  If you plan to run TIPP for abundance profiling, then have REFERENCE pointed to Reference directory.  You can also change your config to point to the Reference directory by including the following line in your config:\n[reference]\npath=/location/of/reference_directory/\n")            
         d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))
         d.write('\n[tipp]\npushdown = true\n')                    
         d.close()        
 
     
         # Copy tools to a bundled directory inside .sepp
-        copy_tool_to_lib("tippJsonMerger.jar",where="merge",bits=False)
+        self.copy_tool_to_lib("tippJsonMerger.jar",where="merge",bits=False)
     
 setup(name = "sepp",
       version = version,
@@ -220,7 +206,8 @@ setup(name = "sepp",
       provides = ["sepp"],
       scripts = ["run_sepp.py",'run_tipp.py','run_upp.py','run_abundance.py',"split_sequences.py","run_tipp_tool.py"],
       cmdclass = {"config": ConfigSepp,"tipp": ConfigTIPP,"upp":ConfigUPP},
-      
+      data_files=[('', ['home.path'])],
+
       classifiers = ["Environment :: Console",
                      "Intended Audience :: Developers",
                      "Intended Audience :: Science/Research",

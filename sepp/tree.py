@@ -24,44 +24,95 @@ from dendropy import DataSet as Dataset
 from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
-import cStringIO
-import sys,copy,pdb
+
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+import sys, copy, pdb, string, random, re
 
 _LOG = get_logger(__name__)
 
-def write_newick_node(node, out):
-    child_nodes = node.child_nodes()
-    if child_nodes:
-        out.write('(')
-        f_child = child_nodes[0]
-        for child in child_nodes:
-            if child is not f_child:
-                out.write(',')
-            write_newick_node(child, out)
-        out.write(')')
-
-    out.write(node._get_node_token())
-    e = node.edge
-    if e:
-        sel = e.length
-        if sel is not None:
-            s = ""
-            try:
-                s = float(sel)
-                s = str(s)
-            except ValueError:
-                s = str(sel)
-            if s:
-                out.write(":%s[%s]" % (s , e.label))             
+            
 
 class PhylogeneticTree(object):
     """Data structure to store phylogenetic tree, wrapping dendropy.Tree."""
-    def __init__(self, dendropy_tree):
+    def __init__(self, dendropy_tree, map_internal_node_names = True):
         self._tree = dendropy_tree
+        assert isinstance(self._tree, Tree)
         self.n_leaves = self.count_leaves()
         self._tree.seed_node.edge.tail_node = None
-        self._tree.seed_node.edge.length = None                  
-
+        self._tree.seed_node.edge.length = None
+        self._namemap = None
+        self._revscript = None
+        
+        if map_internal_node_names:
+           self.map_seq_names()
+            
+    def map_seq_names(self):
+        i = 1
+        tag = ''.join(random.choice(string.ascii_letters) for letter in range(8)) 
+        self._namemap = dict()
+        revnamemap = dict()
+        for n in self._tree.internal_nodes():
+            if n.label:
+                l = '%sN%06d%s' %(tag, i, re.sub(r"[%s]" %string.punctuation.replace("_", " "),repl="_", string=n.label))
+                self._namemap[n] = l
+                revnamemap[l] = n.label 
+                i = i + 1
+        self._revscript = '''import ast, re, string, sys
+revnamemap = ast.literal_eval("%s")
+def relabel_newick(newick_string):
+    pattern = re.compile("(%sN[^(,:)<>]+)")
+    invalidChars = set(string.punctuation).union(set(string.whitespace))
+    def replace_func(m):
+        repl = m.group(1)
+        if m.group(1) in revnamemap:
+            repl = revnamemap[m.group(1)]
+            if any(char in invalidChars for char in repl):
+                repl = "'%%s'" %%repl
+        else:
+            repl = m.group(1)
+        
+        return repl 
+    t = pattern.sub(replace_func,newick_string)
+    return t
+for l in sys.stdin.readlines():
+        sys.stdout.write(relabel_newick(l))''' %(str(revnamemap),tag)
+        #_LOG.info("Use this code to map back internal nodes::\n %s" %str(self._revscript))
+    
+    def rename_script(self):
+        return self._revscript
+                
+    def write_newick_node(self, node, out):
+        child_nodes = node.child_nodes()
+        if child_nodes:
+            out.write('(')
+            f_child = child_nodes[0]
+            for child in child_nodes:
+                if child is not f_child:
+                    out.write(',')
+                self.write_newick_node(child, out)
+            out.write(')')
+    
+        if node.is_leaf() or not self._namemap:
+            out.write("%s" %node._get_node_token())
+        elif node in self._namemap:
+            out.write("%s" %self._namemap[node])
+        e = node.edge
+        if e:
+            sel = e.length
+            if sel is not None:
+                s = ""
+                try:
+                    s = float(sel)
+                    s = str(s)
+                except ValueError:
+                    s = str(sel)
+                if s:
+                    out.write(":%s[%s]" % (s , e.label)) 
+                    
     def get_tree(self):
         return self._tree
     den_tree = property(get_tree)
@@ -184,6 +235,10 @@ class PhylogeneticTree(object):
         n = self.n_leaves
         potentially_deleted_nd = e.tail_node
         grandparent_nd = potentially_deleted_nd.parent_node
+<<<<<<< HEAD
+=======
+        _LOG.debug("Removing node: %s" %str(nr))
+>>>>>>> python3
         e.tail_node.remove_child(nr, suppress_deg_two=True)
 
         nr.edge.length = None
@@ -224,10 +279,10 @@ class PhylogeneticTree(object):
 
     def compose_newick(self, labels = False):
         if not labels:
-            return self._tree.as_string(schema="newick")
+            return self._tree.as_string(schema="newick", suppress_rooting = True, suppress_internal_node_labels = not labels )
         else:
-            stringIO = cStringIO.StringIO()
-            write_newick_node(self._tree.seed_node, stringIO)
+            stringIO = StringIO()
+            self.write_newick_node(self._tree.seed_node, stringIO)
             ret = stringIO.getvalue()
             stringIO.close()
             return ret
@@ -316,7 +371,7 @@ class PhylogeneticTree(object):
         dist = {}                
         pdm = treecalc.PatristicDistanceMatrix(self.den_tree)
         for i , s in enumerate(self.den_tree.taxon_set): #@UnusedVariable
-            if kwargs.has_key("filterTaxon"):
+            if "filterTaxon" in kwargs:
                 if not kwargs["filterTaxon"](s):
                     continue;
             dist [s.label] = pdm(centerTaxon, s);

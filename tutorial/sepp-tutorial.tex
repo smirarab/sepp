@@ -101,6 +101,22 @@ To download and install \sepp, follow these steps:
 \item Download software from \url{https://github.com/smirarab/sepp/zipball/master}. 
 \item Copy the archive to your favorite location (we will use \sepphome in this tutorial), and unpack the zip file using your favorite software. 
 \item Open a terminal and change into the unpacked directory (\ins{cd \sepphome}). 
+
+\item Run the following command:\\
+
+\ins{python setup.py config}\\
+
+Note that this step needs to be run by each individual user. This step creates a \file{.sepp/main.config}
+file in your home directory and copies the bundled tool under the same directory. 
+This file contains defaults settings of sepp, and can be modified by users if needed.
+
+If you wish not to use the home directory, you can use 
+
+\ins{python setup.py config -c}\\
+
+instead. This will ensure that the main config file and binary files are written to your current
+directory instead of the home. 
+
 \item In the new directory, there should be a \file{setup.py} file. Run the following command:\\
 
 \ins{sudo python setup.py install}\\
@@ -109,12 +125,6 @@ If you don't have root access, instead use the following command (or use \ins{--
 
 \ins{python setup.py install --user}
 
-\item Run the following command:\\
-
-\ins{python setup.py config}\\
-
-Note that while step 1-4 can be done once per machine (if installed with root access), step 5 needs to be run by each individual user.
-This step creates a \file{.sepp/main.config} file in your home directory and copies the bundled tool under the same directory. This file contains defaults settings of sepp, and can be modified by users if needed.
 
 \end{enumerate}
 Refer to the README file for more information regarding the installation, and solutions to common installation problems. 

@@ -29,7 +29,7 @@
 
   <target name="compile">
         <mkdir dir="${deploy.home}/classes"/>
-        <javac srcdir="src" destdir="${deploy.home}/classes">
+        <javac srcdir="src" destdir="${deploy.home}/classes" source="1.6" target="1.6" debug="on" >
 	        <classpath refid="classpath"/>
         </javac>
   </target>

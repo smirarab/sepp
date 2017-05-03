@@ -66,6 +66,16 @@ and decompress it into your desired directory.
 
 3. `cd sepp` (or `cd sepp-master` if you used the zip file instead of cloning the git repository)
 
+4. Run the following command from the SEPP directory:
+    ```
+    python setup.py config
+    ```
+   or alternatively, 
+    ```
+    python setup.py config -c
+    ```
+   The first command puts all the config files under your home directory while the second version uses the current path. 
+
 4. Then run:
 
 ```
@@ -74,12 +84,6 @@ and decompress it into your desired directory.
  
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
 
-5. Run the following command from the SEPP directory:
-
-
-```
-python setup.py config
-```
 
 **Installation of UPP**:
 
@@ -90,8 +94,15 @@ Next install [PASTA] (https://github.com/smirarab/PASTA/) and make sure the run_
 ```
 python setup.py upp
 ```
+or 
 
-The last step creates a ~/.sepp/upp.config config file. Since this is specific to a user, each user that runs UPP needs to execute the last step. 
+```
+python setup.py upp -c
+```
+
+**Note:** It's important tat you use either use `-c` for both SEPP and UPP or don't use it for both. 
+
+
 
 **Common Problems:**
 1.  UPP requires SEPP to be installed.  If UPP is not running, first check to see if UPP was installed correctly.

@@ -1,6 +1,16 @@
-Version 1.1:
- - Added -d option for directories
- - Bundled all requied software
- - Changed installation so that dependencies are automatically installed
- - Moved to latest pplacer
- - Misc. bug fixes
+* Version 3.2.2:
+     * Bug fix: check for info file for SEPP
+* Version 3.2.1:
+     * Can now handle internal node names
+* Version 3.2.0:
+     * Can now have a contained installation
+* Version 3.1:
+     * Bug fix for TIPP for python 3
+* Version 3:0:
+    * Moved to python3
+* Version 1.1:
+    * Added -d option for directories
+    * Bundled all requied software
+    * Changed installation so that dependencies are automatically installed
+    * Moved to latest pplacer
+    * Misc. bug fixes

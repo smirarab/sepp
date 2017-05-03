@@ -22,7 +22,7 @@ class TestJob(Job):
         self.state = None
         
         def add_a_child(parent):
-            print >>sys.stderr, "Adding a child job for %s" %(parent) 
+            print("Adding a child job for %s" %(parent), file=sys.stderr) 
             JobPool().enqueue_job(TestJob("%s.child" %parent))
             #print "Added a child for: ",parent
 
@@ -40,13 +40,13 @@ class TestJob(Job):
 
     def print_res(self,result):
         global s
-        print "%s returned: %d" %( self.jobname,self.result)
+        print("%s returned: %d" %( self.jobname,self.result))
         lock.acquire()
         s-=1
         lock.release()
         
     def run(self):
-        print >>sys.stderr, "Process [%s]: running %s" %(os.getpid(),self.jobname)
+        print("Process [%s]: running %s" %(os.getpid(),self.jobname), file=sys.stderr)
         ## Adding the following line results in a failure:
         ## AssertionError: daemonic processes are not allowed to have children.
         ## This is expected because the new process is going to try to start a new
@@ -73,7 +73,7 @@ if __name__ == '__main__':
     try:
         pool3 = JobPool(4)
     except Exception as e:
-        print "As expected, making a new JobPool with a different cpu count failed: %s" %e
+        print("As expected, making a new JobPool with a different cpu count failed: %s" %e)
         
     pool = JobPool()
     jobs = []
@@ -96,23 +96,23 @@ if __name__ == '__main__':
         assert jobs[3].result_set == False
     
     errors = pool.get_all_job_errors()
-    print "Following job errors were raised:", errors 
+    print("Following job errors were raised:", errors) 
     
     try:
         pool.wait_for_all_jobs(ignore_error=False)
     except Exception as e:
-        print "Seems we have some jobs that failed (expected): ", e    
+        print("Seems we have some jobs that failed (expected): ", e)    
     
     errs = [pool.get_job_error(job) for job in pool.get_failed_jobs()]
     
-    print errs
+    print(errs)
     
     assert len(errs) == len(errors), "Number of errors from failed jobs: %d. Number of errors: %d" %(len(errs), len(errors))
     assert False not in [x in errors for x in errs]
     
     #print [job.state for job in jobs]
-    print "Number of started jobs - number of printed results:", s
-    print "Number of failed jobs:", len(errors)
+    print("Number of started jobs - number of printed results:", s)
+    print("Number of failed jobs:", len(errors))
     assert s == len (errors), "Parallelization Error, what happened to the rest?"
 
-    print "Everything seems fine!"
+    print("Everything seems fine!")

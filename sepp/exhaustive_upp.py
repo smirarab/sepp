@@ -62,7 +62,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         fragments = MutableAlignment()
         if (options().median_full_length is not None):
           if (options().median_full_length == -1):
-            seq_lengths = sorted([len(seq) for seq in sequences.values()])              
+            seq_lengths = sorted([len(seq) for seq in list(sequences.values())])              
             lengths = len(seq_lengths)
             if lengths % 2:
               options().median_full_length = (seq_lengths[lengths / 2] + seq_lengths[lengths / 2 - 1]) / 2.0
@@ -73,14 +73,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
           if (len(frag_names) > 0):
               fragments = sequences.get_hard_sub_alignment(frag_names)        
-              [sequences.pop(i) for i in fragments.keys()]        
+              [sequences.pop(i) for i in list(fragments.keys())]        
         if (options().backbone_size is None):            
             options().backbone_size = min(1000,int(sequences.get_num_taxa()))
             _LOG.info("Backbone size set to: %d" %(options().backbone_size))
-        if (options().backbone_size > len(sequences.keys())):
-          options().backbone_size = len(sequences.keys())
-        backbone_sequences = sequences.get_hard_sub_alignment(random.sample(sequences.keys(), options().backbone_size))        
-        [sequences.pop(i) for i in backbone_sequences.keys()]
+        if (options().backbone_size > len(list(sequences.keys()))):
+          options().backbone_size = len(list(sequences.keys()))
+        backbone_sequences = sequences.get_hard_sub_alignment(random.sample(list(sequences.keys()), options().backbone_size))        
+        [sequences.pop(i) for i in list(backbone_sequences.keys())]
                 
         _LOG.info("Writing backbone set. ")
         backbone = get_temp_file("backbone", "backbone", ".fas")
@@ -238,7 +238,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             elensort = sorted(elen.values())
             mid = elensort[len(elensort)/2]
             torem = []
-            for k,v in elen.items():
+            for k,v in list(elen.items()):
                 if v > mid * self.options.long_branch_filter:
                     self.filtered_taxa.append(k.head_node.taxon.label)
                     torem.append(k.head_node.taxon)

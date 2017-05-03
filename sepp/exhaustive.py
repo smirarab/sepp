@@ -33,7 +33,7 @@ class JoinSearchJobs(Join):
     
     def figureout_fragment_subset(self):
         ''' Figure out which fragment should go to which subproblem'''
-        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+        if "fragments.distribution.done" in self.root_problem.annotations:
             return
         max_evalues = dict([(name, (None, None)) for name in self.root_problem.fragments.keys()])
         for fragment_chunk_problem in self.root_problem.iter_leaves():
@@ -44,18 +44,18 @@ class JoinSearchJobs(Join):
             if align_problem.fragments is None: 
                 align_problem.fragments = self.root_problem.fragments.get_soft_sub_alignment([])
             search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
-            for key in search_res.keys():
+            for key, val in search_res.items():
                 (best_value, prev_align_problem) = max_evalues[key]
                 ''' If this is better than previous best hit, remove this
                 fragment from the previous hit, and add it to this subproblem 
                 '''
-                if best_value is None or (best_value < search_res[key][1]):
-                    max_evalues[key] = (search_res[key][1], align_problem)
+                if best_value is None or (best_value < val[1]):
+                    max_evalues[key] = (val[1], align_problem)
                     
         # TODO: is the following efficient enough? Do we need to make lists
         # and then turn them to sets?
         notScored = []
-        for key,v in max_evalues.iteritems():
+        for key,v in max_evalues.items():
             if v[1] is None:
                 notScored.append(key)
             else:
@@ -197,15 +197,13 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.distances = dict()
 
     def compute_distances(self, sequences):
-        for seq1 in sequences.keys():
-            for seq2 in sequences.keys():
+        for seq1, val1 in sequences.keys():
+            for seq2, val2 in sequences.keys():
                 if ("".join([seq1,seq2]) not in self.distances):
-                    self.distances["".join([seq1,seq2])] = hamming_distance(sequences[seq1],sequences[seq2])
+                    self.distances["".join([seq1,seq2])] = hamming_distance(val1,val2)
                     self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
 
-    def merge_results(self):
-        ''' TODO: implement this 
-        '''        
+    def merge_results(self):    
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
@@ -233,7 +231,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         mergeJsonJob.setup(meregeinputstring, 
                            self.get_output_filename("placement.json"))
         mergeJsonJob.run()
-
+        
+    
     def output_results(self):
         ''' Merged json file is already saved in merge_results function and
             full extended alignment already created in merge_results function
@@ -243,10 +242,18 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.results.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         self.results.write_to_path(outfilename)
+        namerev_script = self.root_problem.subtree.rename_script()
+        if namerev_script:
+            outfilename = self.get_output_filename("rename-json.py")
+            with open(outfilename,'w') as s:
+                s.write(namerev_script)
+                
 
     def check_options(self, supply = []):
+        if (options().info_file is None):
+            supply = supply + ["raxml file"];
         AbstractAlgorithm.check_options(self,supply)
-            
+
 
     def modify_tree(self,a_tree):
         pass
@@ -299,7 +306,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
                         
-            _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map.keys()),str(sorted(alignment_tree_map.keys()))))
+            _LOG.debug("Placement subset %s has %d alignment subsets: %s" %(placement_problem.label,len(alignment_tree_map),str(sorted(alignment_tree_map.keys()))))
             _LOG.debug("Placement subset %s has %d taxa:" %(placement_problem.label,sum([len(a_tree.leaf_node_names()) for a_tree in alignment_tree_map.values()])))
             for (a_key, a_tree) in alignment_tree_map.items():
                 assert isinstance(a_tree, PhylogeneticTree)  
@@ -312,7 +319,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         ''' Divide fragments into chunks, to help achieve better parallelism'''
         fragment_chunk_files = self.create_fragment_files()                
         for alignment_problem in self.root_problem.iter_leaves():       
-            for afc in xrange(0,len(fragment_chunk_files)):
+            for afc in range(0,len(fragment_chunk_files)):
                 frag_chunk_problem  = SeppProblem(alignment_problem.taxa, 
                                               alignment_problem)
                 frag_chunk_problem.subtree = alignment_problem.subtree
