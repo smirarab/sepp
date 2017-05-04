@@ -31,7 +31,7 @@ def parse_args():
   args = parser.parse_args()                     
   return args
 
-root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
+root_p = open(os.path.join(os.path.split(__file__)[0],"home.path")).readlines()[0].strip()
 tipp_config_path = os.path.join(root_p, "tipp.config")
 
 def profile(input, gene, output, prefix,threshold):
