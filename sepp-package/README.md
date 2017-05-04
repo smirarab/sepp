@@ -15,7 +15,6 @@ Anytime you move the package to a new directory, you need to run this again.
 **Note:**  this is a self-contained package and does not require usual SEPP installation steps. 
 In fact, it will not use your installed SEPP even if you have it installed. 
 
-
 ### Running
 Once configured, you can run
 
@@ -25,6 +24,11 @@ Once configured, you can run
 
 This will add the sequences from the input file to the Greengene tree. 
 
+A test file is provided. You can test by running:
+
+```
+./sepp-package/run-sepp.sh sepp-package/test.frag test-gg
+```
 
 ### Results
 
@@ -35,9 +39,10 @@ This will add the sequences from the input file to the Greengene tree.
 * You can use  [tax2tree](https://github.com/biocore/tax2tree) to decorate an existing taxonomy onto the resulting phylogenetic tree. However, with the current
 version, the final newick output is already decorated. 
 
-### Notes on running
+### Notes on installation/running
 
 * Any version of python works
+* If you already have SEPP installed an you want to simply use your current installation, instead of the package, don't despair. Check out the DEVGUIDE and you will get an idea of how this can be done. You simply need to simlink `ref` and `python` in the right place. 
 * To pass any argument to SEPP, you can pass them to `run-sepp.sh`; all SEPP arguments (except the input fragment file, output prefix, and reference alignment/tree) can be provided.
 * By default, this package will use all available cores on your node. Pass in `-x 4` to manually control the number of threads to limit it to 4. 
   This may prove important if you have too many cores and not enough memory per core. 
