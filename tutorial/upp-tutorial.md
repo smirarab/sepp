@@ -9,9 +9,11 @@ Alignment:
 
 UPP is a modification of SEPP for performing alignments of ultra-large and fragmentary datasets.  UPP operates in four steps.  In the first step, UPP partitions set `S` into a backbone set and a query set and computes an alignment and tree on the backbone set using [PASTA](https://github.com/smirarab/pasta) (Mirarab et al., RECOMB 2014 and Journal of Computational Biology 2014), which is a direct improvement to SATe (Liu et al., Science 2009 and Systematic Biology 2012).  In the next step, UPP decomposes the backbone alignment into an ensemble of profile Hidden Markov Models (HMMs).  The third step in UPP searches for the best alignment of the query sequence to each HMM.  The final step inserts the query sequence into the backbone alignment using the best scoring HMM.  Our study shows that UPP results in accurate alignments, and that ML trees estimated on the alignments are also highly accurate. UPP has good accuracy on datasets that contain fragmentary sequences. 
 
-UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
+* UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
 
-UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 10,000 sequences in less than an hour using 12 processors, and on 1,000,000 sequences in less than 12 days; the default version requires seven hours on 10,000 sequences and would take an estimated 120 days on 1,000,000 sequences. The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution -- datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
+* UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 10,000 sequences in less than an hour using 12 processors, and on 1,000,000 sequences in less than 12 days; the default version requires seven hours on 10,000 sequences and would take an estimated 120 days on 1,000,000 sequences. 
+
+* The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution. Datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
 
 FRAGMENTARY DATASETS: UPP can be used in default mode, which will select the backbone sequences randomly and without trying to restrict the backbone to full length sequences. However, if the dataset contains fragments, then UPP should be used in a mode that restricts the backbone to just the "full-length" sequences. To do this, you will need to provide UPP with an estimate of the full length of sequences for your locus. See Advanced Usage information about how to do this.
 
@@ -34,7 +36,7 @@ You have two options for installing UPP.
  - **Windows:** If you have a Windows machine, currently using the Virtual Machine (VM) image we provide is your only option. 
  - **Linux:** and **MAC:**  If you have Linux (or other \*nix systems) or MAC, you can still use VM, but downloading the code from github and installing it is what we strongly recommend. 
  
- ### 1. From Source Code
+###  From Source Code
 Current version of UPP has been developed and tested entirely on Linux and MAC. 
 Windows won't work currently (future versions may or may not support Windows). 
 
@@ -44,19 +46,9 @@ You need to have:
 - Java (version > 1.5)
 - PASTA (version 1.0 or later)
 
-**Installation of SEPP**:
-### 1. From Source Code
-Current version of TIPP has been developed and tested entirely on Linux and MAC. 
-Windows won't work currently (future versions may or may not support Windows). 
 
-You need to have:
-
-- Python (version 2.7 or later)
-- Blast (version 2.2.2 or later)
-- Java (version > 1.5 or later)
-
-**Installation of SEPP**:
-TIPP is a part of the SEPP distribution package.  First download and install SEPP:
+#### Step 1: Install SEPP
+UPP is a part of the SEPP distribution package.  First download and install SEPP:
 
 1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir ~/sepp-code`. Go to this directory. e.g. `cd ~/sepp-code`.
 
@@ -85,11 +77,11 @@ and decompress it into your desired directory.
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
 
 
-**Installation of UPP**:
+#### Step 2: Install of UPP
 
-Next install [PASTA] (https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.  Once done, do the following. 
+1. install [PASTA](https://github.com/smirarab/PASTA/) and make sure the `run_pasta.py` executable is on the `PATH` variable.  
 
-1. Run the following command:
+2. Run the following command:
 
 ```
 python setup.py upp
