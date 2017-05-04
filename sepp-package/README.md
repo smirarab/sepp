@@ -64,7 +64,7 @@ version, the final newick output is already decorated.
     raxmlHPC-PTHREADS -s gg_13_5_ssu_align_99_pfiltered.fasta -m GTRCAT -n score-f -F -g 99_otus_nice.tree -T 16 -p 32323
     ```
     the use of `GTRCAT` and `-F` are not ideal, but are necessary because of the dataset size
-* The tree is rerooted and taxonomic branch labels are put back on the tree
+* The tree is rerooted and taxonomic branch labels are put back on the tree using [this script](relabel.py)
 
 
 #### Acknowledgments 
