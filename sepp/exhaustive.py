@@ -142,10 +142,10 @@ class JoinAlignJobs(Join):
             aligned_files = [fp.get_job_result_by_name('hmmalign') for 
                                 fp in ap.children if 
                                 fp.get_job_result_by_name('hmmalign') is not None]
-            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
+            _LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
-            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
+            _LOG.debug("Merging alignment subset into placement subset: %s." %(ap.label))
             extendedAlignment.merge_in(ap_alg,convert_to_string=False)
             del ap_alg
         

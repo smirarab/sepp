@@ -1,3 +1,5 @@
+* Version 4.1.0:
+     * Reduce verbosity by moving some logs from info to debug
 * Verstion 4.0.1:
      * Small bug fixes in UPP after transition to python3
 * Version 4.0.0

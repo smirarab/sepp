@@ -113,6 +113,7 @@ class ExternalSeppJob(Job):
                       
                
             if self.process.returncode == 0:
+                _LOG.info("Finished %s Job with input: %s" %(self.job_type, self.characterize_input()))
                 _LOG.debug("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
