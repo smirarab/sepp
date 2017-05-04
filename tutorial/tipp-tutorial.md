@@ -28,7 +28,7 @@ Nguyen, Nam , Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow. `TIPP: Taxon
 - TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
 - TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
----
+
 Installation
 ===
 
@@ -43,7 +43,7 @@ Windows won't work currently (future versions may or may not support Windows).
 
 You need to have:
 
-- Python (version 2.7)
+- Python (version 2.7 or later, including version python 3)
 - Blast (version 2.2.2 or later)
 - Java (version > 1.5 or later)
 
@@ -93,7 +93,7 @@ Once done, do the following.
    ```
    python setup.py tipp 
    ```
-or 
+   or 
 
    ```
    python setup.py tipp -c
@@ -166,7 +166,7 @@ run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o output -P 
 
 This will run TIPP on the fragmentary sequences that have been binned to the pyrg gene.  This will use the pre-computed alignment and tree that has been estimated on the known bacterial pyrg genes.
 
-The main output of TIPP is a _classification.txt file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
+The main output of TIPP is a `output_classification.txt` file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
 
 ```
 EAS25_26_1_15_381_1761_0_1,2157,Archaea,superkingdom,1.0000
@@ -186,9 +186,9 @@ threshold, we can see all possible classifications for a sequence.
 run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas -o lower_threshold -P 30 -pt 0.0
 ```
 
-In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently <http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification>) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
  
-In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+In addition to the `.json` file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
 Step 2: Converting the result into an abundance profile
 ---
@@ -199,7 +199,7 @@ mkdir profile
 run_tipp_tool.py -g pyrg -a profile -o profile -p pyrg -i output_classification.txt -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled pyrg.classification
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `pyrg.classification`
 
 ```
 fragment        species genus   family  order   class   phylum
@@ -211,7 +211,7 @@ EAS25_26_1_15_381_1761_0_2      NA      NA      2206    94695   224756  28890
 
 This file lists the classification (shown as NCBI taxonomic ids) of each fragment at each of the taxonomic rankings.  If a fragment does not meet the support threshold (95% in this case), it will be left as unclassified (NA).  
 
-Let's look at abundance.species.csv.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
+Let's look at `abundance.species.csv`.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
 ```
 taxa    abundance
 Methanobrevibacter smithii      0.7969

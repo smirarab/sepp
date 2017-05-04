@@ -31,13 +31,16 @@ def parse_args():
   args = parser.parse_args()                     
   return args
 
+root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
+tipp_config_path = os.path.join(root_p, "tipp.config")
+
 def profile(input, gene, output, prefix,threshold):
-  sepp.config.set_main_config_path(os.path.expanduser("~/.sepp/tipp.config"))  
+  sepp.config.set_main_config_path(tipp_config_path)  
   opts=Namespace()
-  sepp.config._read_config_file(open(os.path.expanduser("~/.sepp/tipp.config"),'r'),opts)
+  sepp.config._read_config_file(open(tipp_config_path,'r'),opts)
   (taxon_map, level_map, key_map) = sepp.metagenomics.load_taxonomy("%s/refpkg/%s.refpkg/all_taxon.taxonomy" % (opts.reference.path,gene))
   gene_classification = sepp.metagenomics.generate_classification(input,threshold)
-  #sepp.metagenomics.remove_unclassified_level(gene_classification)
+  sepp.metagenomics.remove_unclassified_level(gene_classification)
   sepp.metagenomics.write_classification(gene_classification,"%s/%s.classification" % (output,prefix))    
   sepp.metagenomics.write_abundance(gene_classification,output)
 
