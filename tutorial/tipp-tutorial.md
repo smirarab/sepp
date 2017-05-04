@@ -224,57 +224,84 @@ Step 3: Running TIPP for profiling:
 
 The previous example shows how to analyze a dataset when the fragments come from a specific gene.  When analyzing shotgun metagenomic reads, however, the reads originate from all across the genome.  Thus, we need to take a different approach for analyzing such a dataset.
 
-TIPP comes with a collection of 30 single copy housekeeping genes which are used for abundance profiling of metagenomic reads.  The pipeline to analyze a metagenomic dataset is to first bin the reads to each of the marker genes, and then run TIPP individual on each of the individual marker genes.  We have simplified this process with a helper script run_abundance.py.
+TIPP comes with a collection of 30 single copy housekeeping genes which are used for abundance profiling of metagenomic reads.  The pipeline to analyze a metagenomic dataset is to first bin the reads to each of the marker genes, and then run TIPP individual on each of the individual marker genes.  We have simplified this process with a helper script `run_abundance.py`.
 
-The general command for run_abudnance.py is:
+The general command for `run_abudnance.py` is:
 
 ```
 run_abundance.py -f fragment_file -c ~/.sepp/tipp.config -d output_directory
 ```
 
-The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the test/unittest/data/mock/mixed directory and run 
+The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the `test/unittest/data/mock/mixed` directory and run 
 
 ```
 run_abundance.py -f facs_simhc.short.fas -c ~/.sepp/tipp.config -d out
 ```
+**Note:** If you used the `-c` option when installing TIPP and SEPP, then instead of `~/.sepp/tipp.config` you would use `[path_to_your_SEPP_installation]/.sepp/tipp.config`
 
-Running this command bin the fragments to the marker genes using BLAST.  Once the sequences have been binned to the marker genes, the direction of the sequences will be estimated by aligning the forward and reverse complemented sequences against the HMM.  The orientation with the best HMM score is selected.  Finally, TIPP is run on the sequence to classify it.  The markers directory contains the individual results for each marker.
+Running this command:
 
-Below is an example of the abundance.species.csv output from the run.
+1. Assigns the fragments to the marker genes using BLAST.  
+2. Once the sequences have been assigned to the marker genes, the direction of the sequences will be estimated by aligning the forward and reverse complemented sequences against the HMM.  The orientation with the best HMM score is selected.
+3. Finally, TIPP is run on the sequence to classify it.  
+
+The `markers` directory contains the individual results for each marker.
+
+Below is an example of the `abundance.species.csv` output from the run.
 
 ```
 taxa    abundance
-Agrobacterium tumefaciens       0.0370
-Alcanivorax borkumensis 0.0370
-Alcanivorax sp. DG881   0.0062
-Anabaena variabilis     0.0432
-Archaeoglobus fulgidus  0.0556
-Bdellovibrio bacteriovorus      0.0247
-Brucella abortus        0.0062
-Burkholderia cenocepacia        0.0062
-Campylobacter jejuni    0.0802
-Candidatus Blochmannia floridanus       0.0432
-Candidatus Phytoplasma australiense     0.0062
-...
-Pseudomonas fluorescens 0.0741
-Pseudomonas putida      0.0062
-Roseobacter denitrificans       0.0062
-Streptomyces coelicolor 0.0494
-Streptomyces ghanaensis 0.0062
-Streptomyces griseoflavus       0.0062
-Streptomyces scabiei    0.0123
-Sulfolobus tokodaii     0.0494
-Xanthomonas oryzae      0.0062
-Yersinia pestis 0.0062
-unclassified    0.0185
+Actinomyces sp. oral taxon 848  0.0064
+Agrobacterium tumefaciens       0.0382
+Alcanivorax borkumensis 0.0382
+Alcanivorax sp. DG881   0.0064
+Anabaena variabilis     0.0446
+Archaeoglobus fulgidus  0.0446
+Bacillus cereus 0.0064
+Bdellovibrio bacteriovorus      0.0255
+Bifidobacterium bifidum 0.0064
+Burkholderia cenocepacia        0.0064
+Campylobacter jejuni    0.0892
+Candidatus Blochmannia floridanus       0.0446
+Candidatus Phytoplasma australiense     0.0064
+Clostridium acetobutylicum      0.0446
+Clostridium botulinum   0.0064
+Desulfuromonas acetoxidans      0.0064
+Escherichia coli        0.0382
+Flavobacterium psychrophilum    0.0064
+Francisella tularensis  0.0318
+Fulvimarina pelagi      0.0064
+Lactococcus lactis      0.0255
+Marvinbryantia formatexigens    0.0064
+Methanocaldococcus fervens      0.0064
+Methanoculleus marisnigri       0.0191
+Nitrosomonas europaea   0.0382
+Pasteurella multocida   0.0637
+Polynucleobacter necessarius    0.0064
+Pseudomonas aeruginosa  0.0382
+Pseudomonas entomophila 0.0446
+Pseudomonas fluorescens 0.0764
+Pseudomonas putida      0.0064
+Rickettsiella grylli    0.0064
+Roseobacter denitrificans       0.0064
+Streptococcus pneumoniae        0.0064
+Streptomyces coelicolor 0.0446
+Streptomyces ghanaensis 0.0064
+Streptomyces griseoflavus       0.0064
+Streptomyces lividans   0.0064
+Streptomyces scabiei    0.0127
+Sulfolobus tokodaii     0.0382
+Xanthomonas oryzae      0.0064
+Yersinia pestis 0.0064
+unclassified    0.0191
 ```
 
-This profile estimates that Pseudomonas fluorescens make up 7.4% of the species abundance, and 1.9% of the species could not be classified.
+This profile estimates that `Pseudomonas fluorescens` make up 7.6% of the species abundance, and 1.9% of the fragments could not be classified even though they are classified at other levels.
 
 Step 4: Looking a reference dataset:
 ---
 
-Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the 16S_bacteria.refpkg directory (can be found in the tipp.zip archive)
+Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the `16S_bacteria.refpkg` directory (can be found in the `tipp.zip` archive)
 
 ```
 head all_taxon.taxonomy
@@ -296,7 +323,7 @@ S000539682,100
 
 Each sequence name is mapped to the unique id in the taxonomy file.
 
-Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` option.  
+Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` or the `-g` option.  
 
 Thus, specialized marker datasets can be generated for any organisms, not just bacteria, by providing these files.
 
@@ -309,7 +336,7 @@ Finally, we have included a 16S reference marker gene that can be used to analyz
 run_tipp.py -R 16S_bacteria -f test/unittest/data/mock/16s_bacteria/human_gut_16S.fas -o 16s -A 1000 -P 1000
 ```
 
-As in the previous example, you can convert the classification results into a more easily digestible format using the run_tipp_tool.py script:
+As in the previous example, you can convert the classification results into a more easily digestible format using the `run_tipp_tool.py` script:
 
 ```
 run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classification.txt -t 0.95
@@ -318,6 +345,6 @@ run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classificati
 ---------
 Contact
 ===
-Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
+Post all questions, comments, requests to: <https://groups.google.com/forum/#!forum/ensemble-of-hmms>
 
 
