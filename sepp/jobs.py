@@ -71,7 +71,7 @@ class ExternalSeppJob(Job):
         if self.fake_run:
             return self.read_results()        
         try:
-            _LOG.info("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
+            _LOG.debug("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
             
             assert self.result_set is False, "Job is already run."
             
@@ -113,14 +113,14 @@ class ExternalSeppJob(Job):
                       
                
             if self.process.returncode == 0:
-                _LOG.info("Finished %s Job with input: %s with:\n"
+                _LOG.debug("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
                         self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], 
                                                                                  len(self.stdoutdata)) if self.stdoutdata and len(self.stdoutdata) > 100 else self.stdoutdata))
     
             else:         
-                _LOG.info("Finished %s Job with input: %s with:\n"
+                _LOG.debug("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s\n error:%s" 
                       %(self.job_type, self.characterize_input(),
                         self.process.returncode, self.stdoutdata, self.read_stderr()))              
