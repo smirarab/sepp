@@ -64,10 +64,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           if (options().median_full_length == -1):
             seq_lengths = sorted([len(seq) for seq in list(sequences.values())])              
             lengths = len(seq_lengths)
+            l2 = int ( lengths / 2 )
             if lengths % 2:
-              options().median_full_length = (seq_lengths[lengths / 2] + seq_lengths[lengths / 2 - 1]) / 2.0
+              options().median_full_length = (seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
             else:
-              options().median_full_length = seq_lengths[lengths / 2]              
+              options().median_full_length = seq_lengths[l2]              
             
           (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
           frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
