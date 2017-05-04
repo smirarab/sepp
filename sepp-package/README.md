@@ -2,8 +2,6 @@ This pacakge enables you to run SEPP on the Greengenes reference tree with 203,4
 
 ### Download/install
 
-Refer to this [wiki page](https://github.com/smirarab/sepp//wiki/SEPP-on-Greengenes) for the latest and greatest.
-
 First, download [this package](https://drive.google.com/open?id=0B0lcoFFOYQf8SUhHNHpIcXNjY0E) and unzip it; then run:
 
 ```
