@@ -304,11 +304,9 @@ Step 4: Looking a reference dataset:
 Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the `16S_bacteria.refpkg` directory (can be found in the `tipp.zip` archive)
 
 ```
-head all_taxon.taxonomy
-
+head -n2 all_taxon.taxonomy
 "tax_id","parent_id","rank","tax_name","root","below_root","below_below_root","superkingdom","below_superkingdom","below_below_superkingdom","below_below_below_superkingdom","superphylum","phylum","below_phylum","below_below_phylum","subphylum","class","below_class","below_below_class","below_below_below_class","subclass","order","below_order","below_below_order","suborder","below_suborder","family","below_family","below_below_family","below_below_below_family","subfamily","tribe","genus","below_genus","subgenus","species_group","species_subgroup","species"
 "1","1","root","root","1","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
-...
 ```
 
 This file represents a taxonomy as a comma delimited file.  The first line is the header that describes each column.  The important files are the unique id of each clade, the clade name, rank, and the parent of the clade.
