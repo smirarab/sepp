@@ -399,13 +399,25 @@ If your backbone tree is estimated using RAxML you already have the info
 file. Otherwise, you can optimize model parameters on your backbone tree
 by running the following:
 
-`raxml -f e -t [backbone tree] -s [backbone alignment] -m
-GTRGAMMA -n some_name_you_chooose`
+```
+raxml -g [backbone tree] -s [backbone alignment] -m GTRGAMMA -n some_name_you_chooose -p some_random_number
+```
 
 This will optimize GTRGAMMA model parameters on your input
 alignment/tree pair and will generate a info file
 (`RAxML_info.some_name_you_chooose`), that can be used with
 SEPP .
+
+**Note:** with new versions of RAxML, you may have to manually edit the RAxML info file to fix some formatting changes. For example, with version 8.0.22, we had to manually remove a line that read: ` Partition: 0 with name: No Name Provided` and
+only then, the info file was recognized by pplacer.
+
+For example, in the test directory, you can go to `mock/pyrg` and run:
+
+```
+raxmlHPC-SSE3 -g sate.tre -s sate.fasta  -m GTRGAMMA -n newraxmlinf -p 24222
+```
+which produced a file called `RAxML_info.newraxmlinf`, which, after removing the line mentioned above, can be used as input to the `-r` option in SEPP. 
+
 
 SEPP Miscellaneous 
 ===============================
