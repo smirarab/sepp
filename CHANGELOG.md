@@ -1,3 +1,5 @@
+* Version 4.2.0:
+     * Major change (trying again): TIPP should not include fragments that are fully unclassified in its profile. Fixed this
 * Version 4.1.0:
      * Reduce verbosity by moving some logs from info to debug
 * Verstion 4.0.1:
