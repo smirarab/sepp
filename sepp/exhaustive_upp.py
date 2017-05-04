@@ -253,7 +253,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                                                          self.filtered_taxa))
                 
 def augment_parser():
-    sepp.config.set_main_config_path(os.path.expanduser("~/.sepp/upp.config"))
+    root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
+    upp_config_path = os.path.join(root_p, "upp.config")
+    sepp.config.set_main_config_path(upp_config_path)
     parser = sepp.config.get_parser()    
     parser.description = "This script runs the UPP algorithm on set of sequences.  A backbone alignment and tree can be given as input.  If none is provided, a backbone will be automatically generated."
     
