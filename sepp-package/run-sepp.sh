@@ -10,11 +10,11 @@ fi
 
 # Should point to a (semi) permanent tmp for keeping the important parts of the results 
 tmp=/oasis/scratch/$USER/temp_project/sepp/$PBS_JOBID
-tmp=`mktemp -t sepp-temp-XXXX`
+tmp=`mktemp -d -t sepp-temp-XXXX`
 
 # Should point to a fast (hopefully ssd) tmp location which may be removed after the run
 tmpssd=/scratch/$USER/$PBS_JOBID
-tmpssd=`mktemp -t sepp-tempssd-XXXX`
+tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
 
 # Input sequence file
 f=$1

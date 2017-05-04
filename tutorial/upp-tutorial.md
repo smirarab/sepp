@@ -9,21 +9,31 @@ Alignment:
 
 UPP is a modification of SEPP for performing alignments of ultra-large and fragmentary datasets.  UPP operates in four steps.  In the first step, UPP partitions set `S` into a backbone set and a query set and computes an alignment and tree on the backbone set using [PASTA](https://github.com/smirarab/pasta) (Mirarab et al., RECOMB 2014 and Journal of Computational Biology 2014), which is a direct improvement to SATe (Liu et al., Science 2009 and Systematic Biology 2012).  In the next step, UPP decomposes the backbone alignment into an ensemble of profile Hidden Markov Models (HMMs).  The third step in UPP searches for the best alignment of the query sequence to each HMM.  The final step inserts the query sequence into the backbone alignment using the best scoring HMM.  Our study shows that UPP results in accurate alignments, and that ML trees estimated on the alignments are also highly accurate. UPP has good accuracy on datasets that contain fragmentary sequences. 
 
-UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
+* UPP(Default): The default version selects 1000 sequences at random for the backbone alignment. If the dataset has at most 1000 sequences, this means that UPP(Default) is identical to PASTA. 
 
-UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 10,000 sequences in less than an hour using 12 processors, and on 1,000,000 sequences in less than 12 days; the default version requires seven hours on 10,000 sequences and would take an estimated 120 days on 1,000,000 sequences. The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution -- datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
+* UPP(Fast): We have designed a fast version of UPP that uses a backbone with at most 100 sequences. The default version uses a backbone of 1000 sequences. The fast version can produce an alignment on 10,000 sequences in less than an hour using 12 processors, and on 1,000,000 sequences in less than 12 days; the default version requires seven hours on 10,000 sequences and would take an estimated 120 days on 1,000,000 sequences. 
 
-FRAGMENTARY DATASETS: UPP can be used in default mode, which will select the backbone sequences randomly and without trying to restrict the backbone to full length sequences. However, if the dataset contains fragments, then UPP should be used in a mode that restricts the backbone to just the "full-length" sequences. To do this, you will need to provide UPP with an estimate of the full length of sequences for your locus. See Advanced Usage information about how to do this.
+* The difference in accuracy between UPP(Fast) and UPP(Default) depends on the rate of evolution. Datasets with low to moderate evolutionary diameters can be analyzed well with UPP(Fast); otherwise, we recommend the use of UPP(Default). However, on large datasets, UPP(Default) will take nearly ten times as much running time.
 
-SUPPLYING YOUR OWN SEED ALIGNMENT AND TREE: If you have a pre-computed seed alignment (with phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
+**Custom seed alignment and tree**: If you have a pre-computed seed alignment (with phylogenetic tree), you can provide this to UPP. See Advanced Usage information below about how to do this.
 
-PARALLEL IMPLEMENTATION: UPP is embarrassingly parallel. See Advanced Usage information about how to do this.
+**Parallel implementation**: UPP, like SEPP and TIPP, is embarrassingly parallel. See Advanced Usage information about how to do this.
+
+
+#### Fragmentary Datasets
+
+UPP can be used in default mode, which will select the backbone sequences randomly and without trying to restrict the backbone to full length sequences. However, if the dataset contains fragments, then UPP should be used in a mode that restricts the backbone to just the "full-length" sequences. To do this, you will need to provide UPP with an estimate of the full length of sequences for your locus. See Advanced Usage information about how to do this.
+Note that if there are no fragmentary sequences, running UPP using this option will be equivalent of running PASTA on the entire dataset.
+
 
 
 Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow.
 
-###Publication:
-Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large alignments using Phylogeny Aware Profiles`. Accepted to RECOMB 2015 (Research in Computational Molecular Biology 2015) and Genome Biology.
+####Publication
+
+
+* Nguyen, Nam-phuong D., Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. 2015. “Ultra-Large Alignments Using Phylogeny-Aware Profiles.” Genome Biology 16 (1): 124. doi:[10.1186/s13059-015-0688-z](http://genomebiology.com/2015/16/1/124).
+
 
 ---
 Installation
@@ -34,7 +44,7 @@ You have two options for installing UPP.
  - **Windows:** If you have a Windows machine, currently using the Virtual Machine (VM) image we provide is your only option. 
  - **Linux:** and **MAC:**  If you have Linux (or other \*nix systems) or MAC, you can still use VM, but downloading the code from github and installing it is what we strongly recommend. 
  
- ### 1. From Source Code
+###  From Source Code
 Current version of UPP has been developed and tested entirely on Linux and MAC. 
 Windows won't work currently (future versions may or may not support Windows). 
 
@@ -44,19 +54,9 @@ You need to have:
 - Java (version > 1.5)
 - PASTA (version 1.0 or later)
 
-**Installation of SEPP**:
-### 1. From Source Code
-Current version of TIPP has been developed and tested entirely on Linux and MAC. 
-Windows won't work currently (future versions may or may not support Windows). 
 
-You need to have:
-
-- Python (version 2.7 or later)
-- Blast (version 2.2.2 or later)
-- Java (version > 1.5 or later)
-
-**Installation of SEPP**:
-TIPP is a part of the SEPP distribution package.  First download and install SEPP:
+#### Step 1: Install SEPP
+UPP is a part of the SEPP distribution package.  First download and install SEPP:
 
 1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir ~/sepp-code`. Go to this directory. e.g. `cd ~/sepp-code`.
 
@@ -85,11 +85,11 @@ and decompress it into your desired directory.
 If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
 
 
-**Installation of UPP**:
+#### Step 2: Install of UPP
 
-Next install [PASTA] (https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.  Once done, do the following. 
+1. install [PASTA](https://github.com/smirarab/PASTA/) and make sure the `run_pasta.py` executable is on the `PATH` variable.  
 
-1. Run the following command:
+2. Run the following command:
 
 ```
 python setup.py upp
@@ -107,9 +107,12 @@ python setup.py upp -c
 **Common Problems:**
 1.  UPP requires SEPP to be installed.  If UPP is not running, first check to see if UPP was installed correctly.
 
-2.  UPP requires PASTA to be installed and the run_pasta.py executable to be on the path.  
+2.  UPP requires PASTA to be installed and the `run_pasta.py` executable to be on the path.  
 
-### 2. From Virtual Machine (VM)
+3. SEPP is installed with `-c` but UPP is not.
+
+
+### From Virtual Machine (VM)
 
 VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
@@ -153,7 +156,9 @@ run_upp.py -A alignment_size -B backbone_size -M -1 -m molecule_type -s input
 Step 1: Running a test job
 ---
 
-UPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is running a small amino acid dataset found in test/unittest/data/upp_frag/amino.fas.  Let's take a look at this file:
+UPP currently can only be run from the command line.  We have provided some test data files under the `test/` directory.  A good start is running a small amino acid dataset found in `test/unittest/data/upp_frag/amino.fas`.  
+
+Let's take a look at this file:
 
 ```
 >SEQ0
@@ -175,9 +180,12 @@ run_upp.py -A 10 -B 1000 -M -1 -m amino -s test/unittest/data/upp_frag/amino.fas
 
 This command results in UPP building a backbone alignment and tree on any sequences that is between 75% to 125% the median length sequence; all other sequences are treated as fragmentary.  The backbone will be generated using PASTA.  The remaining sequences are then aligned using UPP.
 
-The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  Note that UPP does not report a tree.  Trees can be computed using your favorite tree estimation software.  We prefer RAxML or FastTree.
+#### Output files:
+The main outputs of UPP are two alignmet files, `<prefix>_alignment.fasta` and `<prefix>_alignment_masked.fasta`.  The  `<prefix>_alignment.fasta` file is the alignment of the unaligned sequences.  The `<prefix>_alignment_masked.fasta` is the masked alignment file; non-homologous sites in the query set are removed.  Note that UPP does not report a tree.  Trees can be computed using your favorite tree estimation software.  We prefer RAxML or FastTree (and more recently, IQTree).
 
-The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named _insertion_columns.txt).  Note that if there are no fragmentary sequences, running UPP using this option will be equivalent of running PASTA on the entire dataset.
+The secondary outputs are the backbone alignment and tree (always named as `pasta.fasta` and `pasta.fasttree`) and the list of insertion columns (named `<prefix>_insertion_columns.txt`). 
+
+
 
 Step 2: Viewing the resulting alignment
 ---
@@ -195,25 +203,25 @@ In this tutorial, we will use both a text editor and the Seaview. But feel free 
 
 Step 3: Using an existing alignment and tree
 ---
-Suppose that you have computed an accurate alignment and tree using your favorite methods.  You can use the alignment and tree to align the remaining sequences in your dataset.  Go to the test/unittest/data/upp/ directory and type:
+Suppose that you have computed an accurate alignment and tree using your favorite methods.  You can use the alignment and tree to align the remaining sequences in your dataset.  Go to the `test/unittest/data/upp/` directory and type:
 
 ```
-run_upp.py -A 10 -m amino -s query.fas -a pasta.fasta -t pasta.fasttree
+run_upp.py -A 10 -s query.fas -a test.fasta -t test.tree
 ```
 
 This command will run UPP using the backbone alignment and tree given in the command line.
 
-Step 3: Running UPP from a config file:
+Step 4: Running UPP from a config file
 ---
 
 You can also run UPP from a config file.  From the same directory, type:
 
 ```
-python run_upp.py -c sample.config -o config_example
+run_upp.py -c sample.config -o config_example
 ```
 
 ---------
 Contact
 ===
 
-Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
+Post all questions, comments, requests to: <https://groups.google.com/forum/#!forum/ensemble-of-hmms>

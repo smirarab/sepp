@@ -64,10 +64,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           if (options().median_full_length == -1):
             seq_lengths = sorted([len(seq) for seq in list(sequences.values())])              
             lengths = len(seq_lengths)
+            l2 = int ( lengths / 2 )
             if lengths % 2:
-              options().median_full_length = (seq_lengths[lengths / 2] + seq_lengths[lengths / 2 - 1]) / 2.0
+              options().median_full_length = (seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
             else:
-              options().median_full_length = seq_lengths[lengths / 2]              
+              options().median_full_length = seq_lengths[l2]              
             
           (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
           frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
@@ -154,10 +155,10 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             aligned_files = [fp.get_job_result_by_name('hmmalign') for 
                                 fp in ap.children if 
                                 fp.get_job_result_by_name('hmmalign') is not None]
-            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
+            _LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
             ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                         (ap.jobs["hmmbuild"].infile , aligned_files)
-            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
+            _LOG.debug("Merging alignment subset into placement subset: %s." %(ap.label))
             extendedAlignment.merge_in(ap_alg,convert_to_string=False)
         
         extendedAlignment.from_bytearray_to_string()
@@ -253,7 +254,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                                                          self.filtered_taxa))
                 
 def augment_parser():
-    sepp.config.set_main_config_path(os.path.expanduser("~/.sepp/upp.config"))
+    root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
+    upp_config_path = os.path.join(root_p, "upp.config")
+    sepp.config.set_main_config_path(upp_config_path)
     parser = sepp.config.get_parser()    
     parser.description = "This script runs the UPP algorithm on set of sequences.  A backbone alignment and tree can be given as input.  If none is provided, a backbone will be automatically generated."
     

@@ -1,12 +1,12 @@
 Introduction to SEPP 
 =================================
 
-SEPP [^sepp] stands for SATé-Enabled Phylogenetic
+SEPP [1] stands for SATé-Enabled Phylogenetic
 Placement and addresses the problem of phylogenetic placement for
 meta-genomic short reads. More precisely, SEPP addresses the
 following problem.
 
-* **Input**:  i) <span>*backbone*</span> tree `T` and backbone alignment `A` for a set of
+* **Input**:  i) *backbone* tree `T` and backbone alignment `A` for a set of
     full-length gene sequences and ii) the set `X` of fragmentary sequences from
     the same gene as the backbone
 * **Output**: the placement of each fragment in `X` onto the tree T and the alignment of
@@ -15,15 +15,14 @@ following problem.
 Phylogenetic placement puts unknown (short) fragments into a phylogenetic
 context and hence helps identifying species included in a metagenomic
 dataset. Phylogenetic placement involves two steps: alignment of short
-fragments to full length sequence alignment `A` (<span>*backbone*</span> alignment) and then placement of aligned short
-reads on the fixed tree `T` (<span>*backbone*</span>
-tree).
+fragments to full length sequence alignment `A` (*backbone* alignment) and then placement of aligned short
+reads on the fixed tree `T` (*backbone* tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
-from SATé [^sate] and <span>SATé-II</span>  [^sate2] to improve the alignment of
+from SATé [2] andSATé-II [3] to improve the alignment of
 fragments to the backbone alignment (produced by running
-<span>HMMER</span>[^hmmer]). It then places each fragment into the
-user-provided tree using pplacer  [^pplacer]. 
+HMMER [4]). It then places each fragment into the
+user-provided tree using pplacer [5]. 
 
 Our studies shows
 that SEPP provides improved accuracy for quickly evolving
@@ -38,22 +37,27 @@ SEPP currently runs only on Linux and Mac. Those running a
 Windows need to either use cygwin (<http://www.cygwin.com/>), or a
 Ubuntu virtual machine image we have created.
 
-Installing on a Linux Machine
+**No setup-up Greengrenes version:** on [this page](../sepp-package/) you can find a version of SEPP that doesn't require installation and comes prepackaged ready to add taxa to the greenness dataset. 
+
+Installing on a Linux/MAC Machine
 -----------------------------
 
 To download and install SEPP , follow these steps:
 
-1.  Download software from
-    <https://github.com/smirarab/sepp/zipball/master>.
+1.  Obtain the software code. There are two options
+	-  From the zip file:
+		1. Download software from
+    <https://github.com/smirarab/sepp/zipball/master>
+    	2. Copy the archive to your favorite location (we will use
+    `~/sepp` in this tutorial)
+    	3. Unpack the zip file using your favorite software.
+	-  Clone the git repository <https://github.com/smirarab/sepp>
+	(we will assume SEPP is clone to `~/sepp` in this tutorial)
 
-2.  Copy the archive to your favorite location (we will use
-    `~/sepp` in this tutorial), and
-    unpack the zip file using your favorite software.
-
-3.  Open a terminal and change into the unpacked directory
+2.  Open a terminal and change into the unpacked directory
     (`cd ~/sepp`).
 
-4.  Run the following command:
+3.  Run the following command:
     
     `
         python setup.py config
@@ -62,7 +66,7 @@ To download and install SEPP , follow these steps:
     Note that this step needs to be run by each individual user. This
     step creates a `.sepp/main.config` file in
     your home directory and copies the bundled tool under the same
-    directory. This file contains defaults settings of sepp, and can be
+    directory. This file contains defaults settings of SEPP, and can be
     modified by users if needed.
 
     If you wish not to use the home directory, you can use
@@ -72,7 +76,7 @@ To download and install SEPP , follow these steps:
     instead. This will ensure that the main config file and binary files
     are written to your current directory instead of the home.
 
-5.  In the new directory, there should be a
+4.  In the new directory, there should be a
     `setup.py` file. Run the following command:
 
     `sudo python setup.py install`
@@ -107,7 +111,7 @@ so the tutorial is based on this command line usage.
 In this section we will run SEPP on a small sample dataset
 provided with the software. The sample dataset consists of a
 SATé backbone alignment and tree on the “pyrg” marker gene
-with only 65 sequences (previously studied in Metaphyler[^metaphyler]). The
+with only 65 sequences (previously studied in Metaphyler [6]). The
 fragments are from a WGS sample of a mock community created by the NIH
 Human Microbiome Project (<http://www.hmpdacc.org/HMMC/>). The fragment
 file we provide includes only 106 fragments that we found to possibly
@@ -134,14 +138,14 @@ Run SEPP with `-h` option to see the help
 Sample Datasets: default parameters
 ------------------------------------
 
--   Copy test datasets into your directory. Test datasets are part of the distribution and can be found under
+-   Copy test datasets into your directory. 
+    Test datasets are part of the distribution and can be found under
     `/test/unittest/data` (use the directory
     where you unpacked SEPP instead of
-    `~/sepp`). For example, on Unix
-    run:
+    `~/sepp`). For example, on Unix run:
     
     ```    
-        cp -R ~/sepp/test/unittest/data/* .
+    cp -R ~/sepp/test/unittest/data/mock .
     ```
     
     Note that on the VM, the files to copy are found in
@@ -151,28 +155,25 @@ Sample Datasets: default parameters
     biological dataset.
 
     ```
-        run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas
+    run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas
     ```
 
-    (SEPP should finish running in about 2 minutes.)
+    (SEPP should finish running quickly; 10 seconds on my machine)
 
 This runs SEPP on the given example dataset. All the options
 provided to SEPP in this example run are mandatory. As you
 can see, there are few inputs required to run SEPP . The
 following describes the minimum input of SEPP:
 
-Backbone tree
-:  this is the tree on which SEPP places short fragments.
+* **Backbone tree**:  this is the tree on which SEPP places short fragments.
     This tree should be a binary maximum likelihood (ML) tree in newick
     format; we therefore recommend you estimate the ML tree using
-    RAxML[^raxml] or Phyml[^phyml] on the backbone
-    alignment (see below)[^1]. The input tree is given to
+    RAxML [7] or Phyml [8] on the backbone
+    alignment. The input tree is given to
     SEPP using `-t` option.
-
-Backbone Alignment
-:   this is a multiple sequence alignment of full length sequences for
+* **Backbone Alignment**: this is a multiple sequence alignment of full length sequences for
     some gene. These sequences need to be for the same gene as the
-    fragmentary sequences, as phylogenetic placemeent only makes sense
+    fragmentary sequences, as phylogenetic placement only makes sense
     in this case. The backbone alignment needs to be highly accurate,
     since it determines the backbone tree, and the use of RAxML to
     estimate an ML tree on the backbone alignment may help with the
@@ -183,8 +184,7 @@ Backbone Alignment
     You can use refseq, available at
     <http://www.ncbi.nlm.nih.gov/RefSeq/> to convert between different
     alignment formats.
-
-Stats or info file
+* **Stats or info file**
 :   this is the info file generated by RAxML (or phyml) when it computes
     the ML tree on the backbone alignment (i.e., the backbone tree).
     This file is required by pplacer (run internally by
@@ -192,14 +192,12 @@ Stats or info file
     To be able to use SEPP you need to make sure you keep
     your info file when you are generating the backbone tree. If you do
     not have the info file (or if you used some other software programs,
-    such as PASTA[^pasta], to produce the backbone tree), you can use
+    such as PASTA [9], to produce the backbone tree), you can use
     RAxML’s `-f e` option to quickly estimate
     the model parameters (including branch lengths) on your backbone
     tree topology (see [this section](#sec:backbone)). The RAxML info file
     should be provided to SEPP using `-r` option.
-
-**Fragments file**
-:   this is a Fasta file containing the actual short fragments that are
+* **Fragments file**:   this is a Fasta file containing the actual short fragments that are
     going to be placed. Fragments file should be given to
     SEPP using `-f` option.
 
@@ -229,18 +227,18 @@ on the other hand, as explained below.
     memory footprint, and hence enables placement on larger trees given
     a fixed amount of memory available. This would be one of the main
     motivations to reduce placement subset size. Reducing the placement
-    subset <span>*can*</span> result in reduced running time as well,
+    subset *can* result in reduced running time as well,
     especially if your placement tree has thousands of taxa. For smaller
     trees, the effect of the placement size on the running time is not
     easily predicted, and is practically of less interest.
 
 By default, when alignment and placement subset sizes are not explicitly
-specified by user, SEPP uses what we call the \`\`10% rule"
+specified by user, SEPP uses what we call the “10% rule”
 to automatically set those parameters. 10% rule specifies that alignment
 and placement subset sizes should be both set to 10% of the number of
 full length sequences (i.e. number of leaves in the backbone tree). The
 10% rule is just a heuristic setting we have found empirically to give a
-reasonable tradeoff <span>*in general*</span> between accuracy and
+reasonable tradeoff *in general* between accuracy and
 computational requirements on the datasets we have tried. Users are
 encouraged to change subsets sizes based on their available
 computational resources, and the desired accuracy, according to the
@@ -264,9 +262,9 @@ respectively.
 -   Execute the following command to run SEPP with `-A=10`
     and `-P=65`:
 
-    `run_sepp.py -t mock/pyrg/sate.tre -r
-    mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f
-    mock/pyrg/pyrg.even.fas -A 10 -P 65 -o run2.A10P65`
+    ```
+    run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas -A 10 -P 65 -o run2.A10P65
+    ```
 
     (SEPP should finish in less than a minute.)
 
@@ -299,11 +297,10 @@ sequences and 2101 fragments. We are going to start a
 SEPP run on this dataset. Run the following command:
 
 ```
-   run_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML_info -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default
+run_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML_info -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default
 ```
 
-This run is going to take about 4 minutes. While this is running, we are
-going to look at SEPP outputs.
+While this is running (30 seconds on my laptop), we are going to look at SEPP outputs.
 
 SEPP output 
 ========================
@@ -337,7 +334,7 @@ content, and then will use guppy to visualize results.
     Everything between “{” and “}” describes the placement of a
     single fragment. Each fragment can have multiple placements, with
     different likelihoods. Each line under the “p” attribute
-    indicates one placement of the fragment. The first value gives the
+    indicates one placement of the fragment.     The first value gives the
     edge label, the second value gives the log likelihood, the third
     value gives probability of that placement, and the final two values
     give the position on the edge where the fragment is placed, and the
@@ -358,7 +355,7 @@ tree that has fragments placed on the backbone tree based only on
 *the best placement* of each fragment.
 
 ```
-    ~/.sepp/bundled-v3.2/guppy tog –xml output_placement.json
+    ~/.sepp/bundled-v3.2/guppy tog --xml output_placement.json
 ```
 
 This command generates a new file called
@@ -387,6 +384,8 @@ alignment. The extended alignment is a simple Fasta file, and can be
 viewed in any alignment visualization tool (e.g. JalView available at
 <http://www.jalview.org/>).
 
+
+
 SEPP Obtaining Backbone Alignment and Trees <a name="sec:backbone"></a>
 =======
 
@@ -404,13 +403,44 @@ If your backbone tree is estimated using RAxML you already have the info
 file. Otherwise, you can optimize model parameters on your backbone tree
 by running the following:
 
-`raxml -f e -t [backbone tree] -s [backbone alignment] -m
-GTRGAMMA -n some_name_you_chooose`
+```
+raxml -g [backbone tree] -s [backbone alignment] -m GTRGAMMA -n some_name_you_chooose -p some_random_number
+```
 
 This will optimize GTRGAMMA model parameters on your input
 alignment/tree pair and will generate a info file
 (`RAxML_info.some_name_you_chooose`), that can be used with
 SEPP .
+
+**Note:** with new versions of RAxML, you may have to manually edit the RAxML info file to fix some formatting changes. 
+For example, with version 8.0.22, we had to manually remove a line that read: ` Partition: 0 with name: No Name Provided` and
+only then, the info file was recognized by pplacer.
+
+For example, in the test directory, you can go to `mock/pyrg` and run:
+
+```
+raxmlHPC-SSE3 -g sate.tre -s sate.fasta  -m GTRGAMMA -n newraxmlinf -p 24222
+```
+which produced a file called `RAxML_info.newraxmlinf`, which, after removing the line mentioned above, can be used as input to the `-r` option in SEPP. 
+
+
+SEPP On Greengenes
+==============================
+
+We have built a stand-alone version of SEPP to place 16S fragments on the greengenes dataset.
+
+1. Refer to [this page](../sepp-package/) for setting up (super-easy)
+
+2. One installed, placing on the greengenes, is a one line simple command. 
+   To place a test fragmentary file:
+
+   ```
+   cd [sepp-installation-location]/sepp-package
+   ./run-sepp.sh test.frag test-gg
+   ```
+
+This will create the `test-gg_placement.tog.tre` file, which you can see using Archaeopteryx
+
 
 SEPP Miscellaneous 
 ===============================
@@ -444,19 +474,21 @@ testing.
     run_sepp.py -c config.run1
     ```
 
-    Commandline options can be specified in the configuration file under
-    the section. For specifying options under , you need to use their
-    long format name (as show in the SEPP help invoked by
+    -   Commandline options can be specified in the configuration file under
+    the section `command line`. For specifying options from command line, 
+    you need to use their long format name (as show in the SEPP help invoked by
     `-h`). For example, to set input to “rpsS”
-    dataset and the alignment size to 10 and number of cpus to 3 use:
+    dataset and the alignment size to 100 and number of cpus to 3 use:
 
     ```
-    alignmentSize = 10
-    tree= mock/rpsS/sate.tre
-    raxml = mock/rpsS/sate.tre.RAxML_info
-    alignment = mock/rpsS/sate.fasta
-    fragment = mock/rpsS/rpsS.even.fas
-    cpu = 3
+	[commandline]
+	alignmentSize = 100
+	tree= mock/rpsS/sate.tre
+	raxml = mock/rpsS/sate.tre.RAxML_info
+	alignment = mock/rpsS/sate.fasta
+	fragment = mock/rpsS/rpsS.even.fas
+	cpu = 3
+    output = config
     ```
 
     -   Some extra options not available in the commandline can be
@@ -501,24 +533,30 @@ testing.
     full-length sequences and a query set on the fragmentary sequences.
     From there, an alignment and tree can be estimated on the backbone
     set, and SEPP can be used to insert the query sequences back into
-    the backbone tree. Run `split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100`
+    the backbone tree. Run `split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 150`
 
     This will split the sequences into two files, `split.full.fas` (all
-    sequences longer than 100 bps) and `split.frag.fas` (all sequences
-    shorter than or equal to 100 bps). From here, PASTA can be used to
+    sequences longer than 150 bps) and `split.frag.fas` (all sequences
+    shorter than or equal to 150 bps). From here, PASTA can be used to
     estimate the backbone alignment and RAxML can be used to estimate
     the backbone tree. The query sequences can be inserted into the
     tree.
 
-*[SEPP]: SATé-Enabled Phylogenetic Placement
+### Refrences
 
-[^1]: Note - we haven’t tested SEPP with phyml trees yet, and all our analyses are based on RAxML.
-[^sepp]: Mirarab, S., Nguyen, N. & Warnow, T. SEPP: SATé-Enabled Phylogenetic Placement. Pacific Symp. Biocomput. 247–58 (2012).
-[^sate]: Liu, K., Raghavan, S., Nelesen, S. M., Linder, C. R. & Warnow, T. Rapid and Accurate Large-Scale Coestimation of Sequence Alignments and Phylogenetic Trees. Science (80-. ). 324, 1561–1564 (2009).
-[^sate2]: Liu, K. et al. SATe-II: Very Fast and Accurate Simultaneous Estimation of Multiple Sequence Alignments and Phylogenetic Trees. Syst. Biol. 61, 90–106 (2011).
-[^hmmer]: Eddy, S. R. A new generation of homology search tools based on probabilistic inference. Genome Inf. 23, 205–211 (2009).
-[^pplacer]: Matsen, F. A., Kodner, R. B. & Armbrust, E. V. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. BMC Bioinformatics 11, 538 (2010).
-[^metaphyler]:  Liu, B., Gibbons, T., Ghodsi, M. & Pop, M. MetaPhyler: Taxonomic profiling for metagenomic sequences. in Bioinformatics and Biomedicine (BIBM), 2010 IEEE International Conference on 95–100 (IEEE, 2011).
-[^phyml]: Guindon, S. et al. New Algorithms and Methods to Estimate Maximum-Likelihood Phylogenies: Assessing the Performance of PhyML 3.0. Syst. Biol. 59, 307–321 (2010).
-[^raxml]: Stamatakis, A. RAxML version 8: A tool for phylogenetic analysis and post-analysis of large phylogenies. Bioinformatics 30, 1312–1313 (2014).
-[^pasta]:  Mirarab, S. et al. PASTA: Ultra-Large Multiple Sequence Alignment for Nucleotide and Amino-Acid Sequences. J. Comput. Biol. 22, 377–386 (2015).
+[1]: Mirarab, S., Nguyen, N. & Warnow, T. SEPP: SATé-Enabled Phylogenetic Placement. Pacific Symp. Biocomput. 247–58 (2012).
+
+[2]: Liu, K., Raghavan, S., Nelesen, S. M., Linder, C. R. & Warnow, T. Rapid and Accurate Large-Scale Coestimation of Sequence Alignments and Phylogenetic Trees. Science (80-. ). 324, 1561–1564 (2009).
+
+[3]: Liu, K. et al. SATe-II: Very Fast and Accurate Simultaneous Estimation of Multiple Sequence Alignments and Phylogenetic Trees. Syst. Biol. 61, 90–106 (2011).
+
+[4]: Eddy, S. R. A new generation of homology search tools based on probabilistic inference. Genome Inf. 23, 205–211 (2009).
+
+[5]: Matsen, F. A., Kodner, R. B. & Armbrust, E. V. pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree. BMC Bioinformatics 11, 538 (2010).
+[6]:  Liu, B., Gibbons, T., Ghodsi, M. & Pop, M. MetaPhyler: Taxonomic profiling for metagenomic sequences. in Bioinformatics and Biomedicine (BIBM), 2010 IEEE International Conference on 95–100 (IEEE, 2011).
+
+[7]: Guindon, S. et al. New Algorithms and Methods to Estimate Maximum-Likelihood Phylogenies: Assessing the Performance of PhyML 3.0. Syst. Biol. 59, 307–321 (2010).
+
+[8]: Stamatakis, A. RAxML version 8: A tool for phylogenetic analysis and post-analysis of large phylogenies. Bioinformatics 30, 1312–1313 (2014).
+
+[9]:  Mirarab, S. et al. PASTA: Ultra-Large Multiple Sequence Alignment for Nucleotide and Amino-Acid Sequences. J. Comput. Biol. 22, 377–386 (2015).

@@ -134,8 +134,8 @@ def _write_fasta(alignment, dest):
         file_obj = open(dest, "w")
     else:
         file_obj = dest
-    for name, seq in alignment.items():
-        file_obj.write('>%s\n%s\n' % (name, seq))
+    for name in  sorted(alignment.keys()):
+        file_obj.write('>%s\n%s\n' % (name, alignment[name]))
     if isinstance(dest, str):
         file_obj.close()
 

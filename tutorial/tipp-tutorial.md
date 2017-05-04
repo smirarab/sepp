@@ -28,7 +28,7 @@ Nguyen, Nam , Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow. `TIPP: Taxon
 - TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
 - TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
----
+
 Installation
 ===
 
@@ -43,7 +43,7 @@ Windows won't work currently (future versions may or may not support Windows).
 
 You need to have:
 
-- Python (version 2.7)
+- Python (version 2.7 or later, including version python 3)
 - Blast (version 2.2.2 or later)
 - Java (version > 1.5 or later)
 
@@ -93,7 +93,7 @@ Once done, do the following.
    ```
    python setup.py tipp 
    ```
-or 
+   or 
 
    ```
    python setup.py tipp -c
@@ -166,7 +166,7 @@ run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas  -o output -P 
 
 This will run TIPP on the fragmentary sequences that have been binned to the pyrg gene.  This will use the pre-computed alignment and tree that has been estimated on the known bacterial pyrg genes.
 
-The main output of TIPP is a _classification.txt file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
+The main output of TIPP is a `output_classification.txt` file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
 
 ```
 EAS25_26_1_15_381_1761_0_1,2157,Archaea,superkingdom,1.0000
@@ -186,9 +186,9 @@ threshold, we can see all possible classifications for a sequence.
 run_tipp.py -R pyrg -f test/unittest/data/mock/pyrg/pyrg.even.fas -o lower_threshold -P 30 -pt 0.0
 ```
 
-In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently <http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification>) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
  
-In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+In addition to the `.json` file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
 
 Step 2: Converting the result into an abundance profile
 ---
@@ -199,7 +199,7 @@ mkdir profile
 run_tipp_tool.py -g pyrg -a profile -o profile -p pyrg -i output_classification.txt -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled pyrg.classification
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `pyrg.classification`
 
 ```
 fragment        species genus   family  order   class   phylum
@@ -211,7 +211,7 @@ EAS25_26_1_15_381_1761_0_2      NA      NA      2206    94695   224756  28890
 
 This file lists the classification (shown as NCBI taxonomic ids) of each fragment at each of the taxonomic rankings.  If a fragment does not meet the support threshold (95% in this case), it will be left as unclassified (NA).  
 
-Let's look at abundance.species.csv.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
+Let's look at `abundance.species.csv`.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
 ```
 taxa    abundance
 Methanobrevibacter smithii      0.7969
@@ -224,64 +224,89 @@ Step 3: Running TIPP for profiling:
 
 The previous example shows how to analyze a dataset when the fragments come from a specific gene.  When analyzing shotgun metagenomic reads, however, the reads originate from all across the genome.  Thus, we need to take a different approach for analyzing such a dataset.
 
-TIPP comes with a collection of 30 single copy housekeeping genes which are used for abundance profiling of metagenomic reads.  The pipeline to analyze a metagenomic dataset is to first bin the reads to each of the marker genes, and then run TIPP individual on each of the individual marker genes.  We have simplified this process with a helper script run_abundance.py.
+TIPP comes with a collection of 30 single copy housekeeping genes which are used for abundance profiling of metagenomic reads.  The pipeline to analyze a metagenomic dataset is to first bin the reads to each of the marker genes, and then run TIPP individual on each of the individual marker genes.  We have simplified this process with a helper script `run_abundance.py`.
 
-The general command for run_abudnance.py is:
+The general command for `run_abudnance.py` is:
 
 ```
 run_abundance.py -f fragment_file -c ~/.sepp/tipp.config -d output_directory
 ```
 
-The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the test/unittest/data/mock/mixed directory and run 
+The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the `test/unittest/data/mock/mixed` directory and run 
 
 ```
 run_abundance.py -f facs_simhc.short.fas -c ~/.sepp/tipp.config -d out
 ```
+**Note:** If you used the `-c` option when installing TIPP and SEPP, then instead of `~/.sepp/tipp.config` you would use `[path_to_your_SEPP_installation]/.sepp/tipp.config`
 
-Running this command bin the fragments to the marker genes using BLAST.  Once the sequences have been binned to the marker genes, the direction of the sequences will be estimated by aligning the forward and reverse complemented sequences against the HMM.  The orientation with the best HMM score is selected.  Finally, TIPP is run on the sequence to classify it.  The markers directory contains the individual results for each marker.
+Running this command:
 
-Below is an example of the abundance.species.csv output from the run.
+1. Assigns the fragments to the marker genes using BLAST.  
+2. Once the sequences have been assigned to the marker genes, the direction of the sequences will be estimated by aligning the forward and reverse complemented sequences against the HMM.  The orientation with the best HMM score is selected.
+3. Finally, TIPP is run on the sequence to classify it.  
+
+The `markers` directory contains the individual results for each marker.
+
+Below is an example of the `abundance.species.csv` output from the run.
 
 ```
 taxa    abundance
-Agrobacterium tumefaciens       0.0370
-Alcanivorax borkumensis 0.0370
-Alcanivorax sp. DG881   0.0062
-Anabaena variabilis     0.0432
-Archaeoglobus fulgidus  0.0556
-Bdellovibrio bacteriovorus      0.0247
-Brucella abortus        0.0062
-Burkholderia cenocepacia        0.0062
-Campylobacter jejuni    0.0802
-Candidatus Blochmannia floridanus       0.0432
-Candidatus Phytoplasma australiense     0.0062
-...
-Pseudomonas fluorescens 0.0741
-Pseudomonas putida      0.0062
-Roseobacter denitrificans       0.0062
-Streptomyces coelicolor 0.0494
-Streptomyces ghanaensis 0.0062
-Streptomyces griseoflavus       0.0062
-Streptomyces scabiei    0.0123
-Sulfolobus tokodaii     0.0494
-Xanthomonas oryzae      0.0062
-Yersinia pestis 0.0062
-unclassified    0.0185
+Actinomyces sp. oral taxon 848  0.0064
+Agrobacterium tumefaciens       0.0382
+Alcanivorax borkumensis 0.0382
+Alcanivorax sp. DG881   0.0064
+Anabaena variabilis     0.0446
+Archaeoglobus fulgidus  0.0446
+Bacillus cereus 0.0064
+Bdellovibrio bacteriovorus      0.0255
+Bifidobacterium bifidum 0.0064
+Burkholderia cenocepacia        0.0064
+Campylobacter jejuni    0.0892
+Candidatus Blochmannia floridanus       0.0446
+Candidatus Phytoplasma australiense     0.0064
+Clostridium acetobutylicum      0.0446
+Clostridium botulinum   0.0064
+Desulfuromonas acetoxidans      0.0064
+Escherichia coli        0.0382
+Flavobacterium psychrophilum    0.0064
+Francisella tularensis  0.0318
+Fulvimarina pelagi      0.0064
+Lactococcus lactis      0.0255
+Marvinbryantia formatexigens    0.0064
+Methanocaldococcus fervens      0.0064
+Methanoculleus marisnigri       0.0191
+Nitrosomonas europaea   0.0382
+Pasteurella multocida   0.0637
+Polynucleobacter necessarius    0.0064
+Pseudomonas aeruginosa  0.0382
+Pseudomonas entomophila 0.0446
+Pseudomonas fluorescens 0.0764
+Pseudomonas putida      0.0064
+Rickettsiella grylli    0.0064
+Roseobacter denitrificans       0.0064
+Streptococcus pneumoniae        0.0064
+Streptomyces coelicolor 0.0446
+Streptomyces ghanaensis 0.0064
+Streptomyces griseoflavus       0.0064
+Streptomyces lividans   0.0064
+Streptomyces scabiei    0.0127
+Sulfolobus tokodaii     0.0382
+Xanthomonas oryzae      0.0064
+Yersinia pestis 0.0064
+unclassified    0.0191
 ```
 
-This profile estimates that Pseudomonas fluorescens make up 7.4% of the species abundance, and 1.9% of the species could not be classified.
+This profile estimates that `Pseudomonas fluorescens` make up 7.6% of the species abundance, and 1.9% of the fragments could not be classified even though they are classified at other levels.
 
 Step 4: Looking a reference dataset:
 ---
 
-Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the 16S_bacteria.refpkg directory (can be found in the tipp.zip archive)
+Let's take a look at the files within a reference dataset, starting with the taxonomy file.  Go to the `16S_bacteria.refpkg` directory (can be found in the `tipp.zip` archive)
 
 ```
-head all_taxon.taxonomy
-
+head -n2 all_taxon.taxonomy
 "tax_id","parent_id","rank","tax_name","root","below_root","below_below_root","superkingdom","below_superkingdom","below_below_superkingdom","below_below_below_superkingdom","superphylum","phylum","below_phylum","below_below_phylum","subphylum","class","below_class","below_below_class","below_below_below_class","subclass","order","below_order","below_below_order","suborder","below_suborder","family","below_family","below_below_family","below_below_below_family","subfamily","tribe","genus","below_genus","subgenus","species_group","species_subgroup","species"
 "1","1","root","root","1","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","","",""
-...
 ```
 
 This file represents a taxonomy as a comma delimited file.  The first line is the header that describes each column.  The important files are the unique id of each clade, the clade name, rank, and the parent of the clade.
@@ -296,7 +321,7 @@ S000539682,100
 
 Each sequence name is mapped to the unique id in the taxonomy file.
 
-Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` option.  
+Finally, in order to find the best placement, we need the model parameters of the taxonomic tree.  This can be generated by RAxML using the `-f e` or the `-g` option.  
 
 Thus, specialized marker datasets can be generated for any organisms, not just bacteria, by providing these files.
 
@@ -309,7 +334,7 @@ Finally, we have included a 16S reference marker gene that can be used to analyz
 run_tipp.py -R 16S_bacteria -f test/unittest/data/mock/16s_bacteria/human_gut_16S.fas -o 16s -A 1000 -P 1000
 ```
 
-As in the previous example, you can convert the classification results into a more easily digestible format using the run_tipp_tool.py script:
+As in the previous example, you can convert the classification results into a more easily digestible format using the `run_tipp_tool.py` script:
 
 ```
 run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classification.txt -t 0.95
@@ -318,6 +343,6 @@ run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classificati
 ---------
 Contact
 ===
-Post all questions, comments, requests to: https://groups.google.com/forum/#!forum/ensemble-of-hmms
+Post all questions, comments, requests to: <https://groups.google.com/forum/#!forum/ensemble-of-hmms>
 
 
