@@ -1,3 +1,5 @@
+* Verstion 4.0.1:
+     * Small bug fixes in UPP after transition to python3
 * Version 4.0.0
      * Several small bug fixes, including, the location of the config file for TIPP and UPP
      * Major change: TIPP should not include fragments that are fully unclassified in its profile. Fixed this
