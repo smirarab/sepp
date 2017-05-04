@@ -37,6 +37,8 @@ SEPP currently runs only on Linux and Mac. Those running a
 Windows need to either use cygwin (<http://www.cygwin.com/>), or a
 Ubuntu virtual machine image we have created.
 
+** No setup-up Greengrenes version:** on [this page](sepp-package/) you can find a version of SEPP that doesn't require installation and comes prepackaged ready to add taxa to the greenness dataset. 
+
 Installing on a Linux/MAC Machine
 -----------------------------
 
