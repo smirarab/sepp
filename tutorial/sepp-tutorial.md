@@ -439,19 +439,21 @@ testing.
     run_sepp.py -c config.run1
     ```
 
-    Commandline options can be specified in the configuration file under
-    the section. For specifying options under , you need to use their
-    long format name (as show in the SEPP help invoked by
+    -   Commandline options can be specified in the configuration file under
+    the section `command line`. For specifying options from command line, 
+    you need to use their long format name (as show in the SEPP help invoked by
     `-h`). For example, to set input to “rpsS”
-    dataset and the alignment size to 10 and number of cpus to 3 use:
+    dataset and the alignment size to 100 and number of cpus to 3 use:
 
     ```
-    alignmentSize = 10
-    tree= mock/rpsS/sate.tre
-    raxml = mock/rpsS/sate.tre.RAxML_info
-    alignment = mock/rpsS/sate.fasta
-    fragment = mock/rpsS/rpsS.even.fas
-    cpu = 3
+[commandline]
+alignmentSize = 100
+tree= mock/rpsS/sate.tre
+raxml = mock/rpsS/sate.tre.RAxML_info
+alignment = mock/rpsS/sate.fasta
+fragment = mock/rpsS/rpsS.even.fas
+cpu = 3
+output = config
     ```
 
     -   Some extra options not available in the commandline can be
@@ -496,11 +498,11 @@ testing.
     full-length sequences and a query set on the fragmentary sequences.
     From there, an alignment and tree can be estimated on the backbone
     set, and SEPP can be used to insert the query sequences back into
-    the backbone tree. Run `split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100`
+    the backbone tree. Run `split_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 150`
 
     This will split the sequences into two files, `split.full.fas` (all
-    sequences longer than 100 bps) and `split.frag.fas` (all sequences
-    shorter than or equal to 100 bps). From here, PASTA can be used to
+    sequences longer than 150 bps) and `split.frag.fas` (all sequences
+    shorter than or equal to 150 bps). From here, PASTA can be used to
     estimate the backbone alignment and RAxML can be used to estimate
     the backbone tree. The query sequences can be inserted into the
     tree.
