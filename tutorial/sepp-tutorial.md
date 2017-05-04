@@ -446,14 +446,14 @@ testing.
     dataset and the alignment size to 100 and number of cpus to 3 use:
 
     ```
-[commandline]
-alignmentSize = 100
-tree= mock/rpsS/sate.tre
-raxml = mock/rpsS/sate.tre.RAxML_info
-alignment = mock/rpsS/sate.fasta
-fragment = mock/rpsS/rpsS.even.fas
-cpu = 3
-output = config
+	[commandline]
+	alignmentSize = 100
+	tree= mock/rpsS/sate.tre
+	raxml = mock/rpsS/sate.tre.RAxML_info
+	alignment = mock/rpsS/sate.fasta
+	fragment = mock/rpsS/rpsS.even.fas
+	cpu = 3
+    output = config
     ```
 
     -   Some extra options not available in the commandline can be
