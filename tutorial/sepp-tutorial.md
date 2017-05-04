@@ -6,7 +6,7 @@ Placement and addresses the problem of phylogenetic placement for
 meta-genomic short reads. More precisely, SEPP addresses the
 following problem.
 
-* **Input**:  i) <span>*backbone*</span> tree `T` and backbone alignment `A` for a set of
+* **Input**:  i) *backbone* tree `T` and backbone alignment `A` for a set of
     full-length gene sequences and ii) the set `X` of fragmentary sequences from
     the same gene as the backbone
 * **Output**: the placement of each fragment in `X` onto the tree T and the alignment of
@@ -15,9 +15,8 @@ following problem.
 Phylogenetic placement puts unknown (short) fragments into a phylogenetic
 context and hence helps identifying species included in a metagenomic
 dataset. Phylogenetic placement involves two steps: alignment of short
-fragments to full length sequence alignment `A` (<span>*backbone*</span> alignment) and then placement of aligned short
-reads on the fixed tree `T` (<span>*backbone*</span>
-tree).
+fragments to full length sequence alignment `A` (*backbone* alignment) and then placement of aligned short
+reads on the fixed tree `T` (*backbone* tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
 from SATé [2] andSATé-II [3] to improve the alignment of
@@ -226,18 +225,18 @@ on the other hand, as explained below.
     memory footprint, and hence enables placement on larger trees given
     a fixed amount of memory available. This would be one of the main
     motivations to reduce placement subset size. Reducing the placement
-    subset <span>*can*</span> result in reduced running time as well,
+    subset *can* result in reduced running time as well,
     especially if your placement tree has thousands of taxa. For smaller
     trees, the effect of the placement size on the running time is not
     easily predicted, and is practically of less interest.
 
 By default, when alignment and placement subset sizes are not explicitly
-specified by user, SEPP uses what we call the \`\`10% rule"
+specified by user, SEPP uses what we call the “10% rule”
 to automatically set those parameters. 10% rule specifies that alignment
 and placement subset sizes should be both set to 10% of the number of
 full length sequences (i.e. number of leaves in the backbone tree). The
 10% rule is just a heuristic setting we have found empirically to give a
-reasonable tradeoff <span>*in general*</span> between accuracy and
+reasonable tradeoff *in general* between accuracy and
 computational requirements on the datasets we have tried. Users are
 encouraged to change subsets sizes based on their available
 computational resources, and the desired accuracy, according to the
@@ -261,9 +260,9 @@ respectively.
 -   Execute the following command to run SEPP with `-A=10`
     and `-P=65`:
 
-    `run_sepp.py -t mock/pyrg/sate.tre -r
-    mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f
-    mock/pyrg/pyrg.even.fas -A 10 -P 65 -o run2.A10P65`
+    ```
+    run_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas -A 10 -P 65 -o run2.A10P65
+    ```
 
     (SEPP should finish in less than a minute.)
 
@@ -296,11 +295,10 @@ sequences and 2101 fragments. We are going to start a
 SEPP run on this dataset. Run the following command:
 
 ```
-   run_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML_info -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default
+run_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML_info -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default
 ```
 
-This run is going to take about 4 minutes. While this is running, we are
-going to look at SEPP outputs.
+While this is running (30 seconds on my laptop), we are going to look at SEPP outputs.
 
 SEPP output 
 ========================
@@ -334,7 +332,7 @@ content, and then will use guppy to visualize results.
     Everything between “{” and “}” describes the placement of a
     single fragment. Each fragment can have multiple placements, with
     different likelihoods. Each line under the “p” attribute
-    indicates one placement of the fragment. The first value gives the
+    indicates one placement of the fragment.     The first value gives the
     edge label, the second value gives the log likelihood, the third
     value gives probability of that placement, and the final two values
     give the position on the edge where the fragment is placed, and the
@@ -355,7 +353,7 @@ tree that has fragments placed on the backbone tree based only on
 *the best placement* of each fragment.
 
 ```
-    ~/.sepp/bundled-v3.2/guppy tog –xml output_placement.json
+    ~/.sepp/bundled-v3.2/guppy tog --xml output_placement.json
 ```
 
 This command generates a new file called
