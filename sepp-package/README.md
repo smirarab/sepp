@@ -12,9 +12,7 @@ to configure the package.
 
 Anytime you move the package to a new directory, you need to run this again. 
 
-**Notes:** 
-
-* this is a self-contained package and does not require usual SEPP installation steps. 
+**Note:**  this is a self-contained package and does not require usual SEPP installation steps. 
 In fact, it will not use your installed SEPP even if you have it installed. 
 
 
