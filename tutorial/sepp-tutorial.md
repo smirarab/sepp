@@ -93,14 +93,14 @@ Using Virtual Machine
 ---------------------
 
 An Ubuntu VM image with SEPP installed on it is available
-for download at <http://www.cs.utexas.edu/~phylo/software/Phylolab.ova>.
+for download at <https://drive.google.com/file/d/0B0lcoFFOYQf8U2NZV2Z2RmRaRjQ/view?usp=sharing>.
 
 If you were unable to install SEPP on your machine, you can
 use this VM image. You first need to copy the VM image to your machine.
 Then, open the VM image in your favorite VM software (e.g. VirtualBox)
 and start the VM. Once your VM starts, you can run SEPP from
 a terminal. The username and password for the virtual machine are
-“ubuntu” and “reverse”.
+“osboxes” and “osboxes.org”.
 
 Running SEPP 
 =========================
