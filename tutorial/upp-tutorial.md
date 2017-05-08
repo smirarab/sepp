@@ -34,8 +34,13 @@ Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow.
 
 * Nguyen, Nam-phuong D., Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. 2015. “Ultra-Large Alignments Using Phylogeny-Aware Profiles.” Genome Biology 16 (1): 124. doi:[10.1186/s13059-015-0688-z](http://genomebiology.com/2015/16/1/124).
 
+### Note and Acknowledgment: 
+- UPP bundles the following two programs into its distribution:
+  2. hmmer: http://hmmer.janelia.org/
+- UPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
+- UPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
----
+
 Installation
 ===
 
@@ -44,7 +49,7 @@ You have two options for installing UPP.
  - **Windows:** If you have a Windows machine, currently using the Virtual Machine (VM) image we provide is your only option. 
  - **Linux:** and **MAC:**  If you have Linux (or other \*nix systems) or MAC, you can still use VM, but downloading the code from github and installing it is what we strongly recommend. 
  
-###  From Source Code
+###  1. From Source Code
 Current version of UPP has been developed and tested entirely on Linux and MAC. 
 Windows won't work currently (future versions may or may not support Windows). 
 
@@ -75,30 +80,25 @@ and decompress it into your desired directory.
     python setup.py config -c
     ```
    The first command puts all the config files under your home directory while the second version uses the current path. 
-
-4. Then run:
-
-```
- sudo python setup.py install
-```
- 
-If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable. 
+4. Then run: 
+   ```
+   sudo python setup.py install
+   ``` 
+   If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable.
 
 
-#### Step 2: Install of UPP
+#### Step 2: Install UPP
 
 1. install [PASTA](https://github.com/smirarab/PASTA/) and make sure the `run_pasta.py` executable is on the `PATH` variable.  
 
-2. Run the following command:
-
-```
-python setup.py upp
-```
-or 
-
-```
-python setup.py upp -c
-```
+2. Run the following command from the SEPP directory:
+   ```
+   python setup.py upp
+   ```
+   or 
+   ```
+   python setup.py upp -c
+   ```
 
 **Note:** It's important tat you use either use `-c` for both SEPP and UPP or don't use it for both. 
 
@@ -112,12 +112,15 @@ python setup.py upp -c
 3. SEPP is installed with `-c` but UPP is not.
 
 
-### From Virtual Machine (VM)
+### 2. From Virtual Machine (VM)
 
-VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
+VM Image (mostly for Windows users) is available for [download](https://drive.google.com/open?id=0B0lcoFFOYQf8U2NZV2Z2RmRaRjQ) (3 GB).
+Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option).
+After you install VirtualBox, you just need to use File/import to import the phylo.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP and UPP are already installed on the VM machine, so you can simply proceed by opening a terminal and running it.
 
 Note that we constantly update our software.  Before running the tutorial, it's best to grab
-the most updated version of the software onto the VM machine.  This can be done by opening a terminal in the VM and typing the following commands:
+the most updated version of the software onto the VM machine.  
+This can be done by opening a terminal in the VM and typing the following commands:
 
 
 ```
@@ -225,3 +228,4 @@ Contact
 ===
 
 Post all questions, comments, requests to: <https://groups.google.com/forum/#!forum/ensemble-of-hmms>
+

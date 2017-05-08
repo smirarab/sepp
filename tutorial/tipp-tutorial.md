@@ -47,7 +47,7 @@ You need to have:
 - Blast (version 2.2.2 or later)
 - Java (version > 1.5 or later)
 
-**Installation of SEPP**:
+#### Step 1: Install SEPP
 TIPP is a part of the SEPP distribution package.  First download and install SEPP:
 
 1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir ~/sepp-code`. Go to this directory. e.g. `cd ~/sepp-code`.
@@ -72,9 +72,7 @@ and decompress it into your desired directory.
    If you don't have root access, remove the `sudo` part and instead  use  `--user` option. Alternativley, you can `--prefix` to install in a different location, but that different location needs to be part of your `PYTHONPATH` environmental variable.
 
 
-**Installation of TIPP**:
-
-Once done, do the following. 
+#### Step 2: Install TIPP
 
 1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
 2. Unzip it to a directory
@@ -135,7 +133,20 @@ path=~/testdata/tipp/
 
 ### 2. From Virtual Machine (VM)
 
-VM Image (mostly for Windows users) is available for [download](http://www.cs.utexas.edu/~phylo/software/WARNOW_LAB.ova) (2.5 GB). Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option). After you install VirtualBox, you just need to use File/import to import the WARNOW_LAB.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP is installed on the VM machine, so you can simply proceed by opening a terminal and running it.
+VM Image (mostly for Windows users) is available for [download](https://drive.google.com/open?id=0B0lcoFFOYQf8U2NZV2Z2RmRaRjQ) (3 GB).
+Once the image is downloaded, you need to run it using a VM environment ([VirtualBox](https://www.virtualbox.org/) is a good option).
+After you install VirtualBox, you just need to use File/import to import the downloaded phylo.ova image that you have downloaded (If your machine has less than 3GB you might want to reduce the memory to something like 512MB). Once VM is imported, you can start it from the Virtualbox. If you are asked to login, the username and passwords are (username: phylolab, password: phylolab). TIPP is installed on the VM machine, so you can simply proceed by opening a terminal and running it.
+
+Note that we constantly update our software.  Before running the tutorial, it's best to grab
+the most updated version of the software onto the VM machine.  
+This can be done by opening a terminal in the VM and typing the following commands:
+
+
+```
+cd ~/tools/sepp
+git pull
+```
+
 
 ---------
 Using TIPP
@@ -344,5 +355,6 @@ run_tipp_tool.py -g 16_bacteria -a profile -o -p 16_bacteria -i 16s_classificati
 Contact
 ===
 Post all questions, comments, requests to: <https://groups.google.com/forum/#!forum/ensemble-of-hmms>
+
 
 
