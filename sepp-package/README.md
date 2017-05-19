@@ -2,9 +2,15 @@ This pacakge enables you to run SEPP on the [Greengenes](http://greengenes.lbl.g
 
 ### Download/install
 
-First, download [this package](https://drive.google.com/open?id=0B0lcoFFOYQf8SUhHNHpIcXNjY0E) and unzip it; then run:
-
+First, download [this package](https://raw.github.com/smirarab/sepp-refs/master/gg/sepp-package.tar.bz) and decompress it; 
 ```
+wget  "https://raw.github.com/smirarab/sepp-refs/master/gg/sepp-package.tar.bz"
+tar tvfj sepp-package.tar.bz
+```
+
+then run:
+
+``` bash
 cd sepp-package/sepp
 python setup.py config -c
 ```
@@ -18,7 +24,7 @@ In fact, it will not use your installed SEPP even if you have it installed.
 ### Running
 Once configured, you can run
 
-```
+``` bash
 ./sepp-package/run-sepp.sh [input file] [prefix of the output]
 ```
 
