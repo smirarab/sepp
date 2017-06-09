@@ -8,7 +8,7 @@ ref/reference-gg-raxml-bl-rooted-relabelled.tre
 ref/RAxML_info-reference-gg-raxml-bl.info
 ref/gg_13_5_ssu_align_99_pfiltered.fasta
 ```
-You have to get these from the google drive (too big for here)
+You have to get these from the [this repo](https://raw.github.com/smirarab/sepp-refs/master/gg/sepp-package.tar.bz) (too big for here)
 
 You also need:
 ```
