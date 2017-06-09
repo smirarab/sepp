@@ -8,13 +8,38 @@ if [ $# -lt 2 ]; then
    exit 1;
 fi
 
-# Should point to a (semi) permanent tmp for keeping the important parts of the results 
-tmp=/oasis/scratch/$USER/temp_project/sepp/$PBS_JOBID
-tmp=`mktemp -d -t sepp-temp-XXXX`
+tmpbase=`mktemp -d --tmpdir`
+if [ $? -ne 0 ]; 
+then
+	   echo "$0: Can't create temp directory, exiting..."
+	   exit 1
+fi
+export TMPDIR=$tmpbase
 
-# Should point to a fast (hopefully ssd) tmp location which may be removed after the run
-tmpssd=/scratch/$USER/$PBS_JOBID
-tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
+# Should point to a (semi) permanent tmp for keeping the important parts of the results 
+tmp=`mktemp -d -t sepp-temp-XXXX --tmpdir`
+
+if [ -z ${TMPDIRSSD+x} ];
+then
+    # if $TMPDIRSSD does not exist, just create under the main tmp
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXX --tmpdir`
+else
+	# Should point to a fast (hopefully ssd) tmp location which may be removed after the run
+    export TMPDIR=${TMPDIRSSD}
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXX --tmpdir`
+
+    # make sure the regular temp is reset so other consumers of the pipeline can use it
+    export TMPDIR=$tmpbase
+fi
+
+# from http://stackoverflow.com/a/2130323
+function cleanup {
+  echo "Removing $tmp"
+  rm -r $tmp
+  rm -r $tmpssd
+  unset TMPDIR
+}
+trap cleanup EXIT
 
 # Input sequence file
 f=$1
