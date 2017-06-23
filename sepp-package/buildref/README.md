@@ -1,5 +1,6 @@
-In the following, we assume you want to build a reference tree based on a new alignment and tree
-We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_otus.tree` for the tree
+In the following, we assume you want to build an ultra-large reference tree based on a new ultra-large alignment and tree.
+
+We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_otus.tree` for the tree.
 
 1. First, you need to create a nice clean version of the reference tree:
    ```
@@ -10,13 +11,13 @@ We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_o
    ```
    t=99_otus_nice.tree
    alg=gg_13_5_pasta_99_10masked.fasta
-   raxmlHPC-PTHREADS -s $alg -m GTRCAT -n score-$alg -g $t -T 16 -p $RANDOM 2>&1 > raxml-$alg-$t-log.txt
+   raxmlHPC-PTHREADS -s $alg -m GTRCAT -n score-$alg -g $t -T 16 -p $RANDOM
    ```
    note that here, `alg` is the alignment and `t` is the reference tree
 
 3. You need to run the following to reestimate branch lengths:
    ```
-   raxmlHPC-PTHREADS -s $alg -m GTRCAT -n score-bl-$alg -F -f e -t RAxML_result.score-$alg -T 16 -p $RANDOM 2>&1 > raxml-$alg-$t-log-bl.txt
+   raxmlHPC-PTHREADS -s $alg -m GTRCAT -n score-bl-$alg -F -f e -t RAxML_result.score-$alg -T 16 -p $RANDOM 
    ```
 
 4. Now, you need to reroot your reference tree
