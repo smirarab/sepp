@@ -289,7 +289,7 @@ class _JobPool:
                 job._finished(result)
                 '''Then run all the callback in order, passing result as parameter'''
                 for callback in callBackCopy:
-                    apply(callback, [result])
+                    callback(*[result])
                 self._lock.acquire()
                 jobJoins = copy.copy(self._joins.get(job,[]))
                 self._lock.release()                
@@ -314,7 +314,7 @@ class _JobPool:
 
     def _add_callback_for_job(self,job,callback):
         self._lock.acquire()
-        if not self._callBack_lists.has_key(job):
+        if job not in self._callBack_lists:
             self._callBack_lists[job] = []
         self._callBack_lists[job].append(callback)
         self._lock.release()
@@ -335,7 +335,7 @@ class _JobPool:
         '''
         more = True
         while more:
-            for (job,result) in self._async_restults.items():
+            for job,result in list(self._async_restults.items()):
                 try:
                     result.get()
                     if len(job.errors) != 0:
@@ -364,7 +364,7 @@ class _JobPool:
         return not self.get_asynch_result_object(job).ready()
     
     def is_job_queued(self, job):
-        return self._async_restults.has_key(job)
+        return job in self._async_restults
 
     def get_asynch_result_object(self, job):
         ''' returns an instance of multiprocessing.pool.AsyncResult class,
@@ -385,7 +385,7 @@ class _JobPool:
         finished with an exception raised)'''
         ret = []
         self._lock.acquire()
-        for job, res in self._async_restults.iteritems():
+        for job, res in self._async_restults.items():
             if self._is_job_failed(job, res):
                 ret.append(job)
         self._lock.release()
@@ -411,7 +411,7 @@ class _JobPool:
         ''' Returns a list of all exceptions raised in all jobs executed in this
         _pool. An empty list means no exceptions '''
         self._lock.acquire()
-        jobs = self._async_restults.keys()
+        jobs = set(self._async_restults.keys())
         self._lock.release()
         ret = [x for x in 
                [self.get_job_error(job) for job in jobs] 

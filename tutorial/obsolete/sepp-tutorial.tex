@@ -1,0 +1,375 @@
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+%\usepackage{url}
+\usepackage{xspace}
+\usepackage{hyperref}
+%%% END Article customizations
+
+%%% commands
+\newcommand{\sepp}{SEPP\xspace}
+\newcommand{\ins}[1]{{\tt #1}}
+\newcommand{\seppfile}{sepp.tar.gz\xspace}
+\newcommand{\file}[1]{{\sf #1}}
+\newcommand{\sate}{SAT\'{e}\xspace}
+\newcommand{\pplacer}{pplacer\xspace}
+\newcommand{\guppy}{guppy\xspace}
+\newcommand{\hmmer}{HMMER\xspace}
+\newcommand{\raxml}{RAxML\xspace}
+\newcommand{\arch}{Archaeopteryx\xspace}
+\newcommand{\sbun}{\textasciitilde/.sepp/bundled-v3.1}
+\newcommand{\sepphome} {\file{{\raise.17ex\hbox{$\scriptstyle\sim$}}/sepp}\xspace}
+
+
+%%% The "real" document content comes below...
+
+\title{A brief tutorial on \sepp }
+\author{Siavash Mirarab, Nam Nguyen, Tandy Warnow}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+\tableofcontents
+\section{Introduction to \sepp}
+\sepp stands for \sate-Enabled Phylogenetic Placement~\cite{sepp} and addresses the problem of phylogenetic placement for meta-genomic short reads. More precisely, \sepp addresses the following problem.
+
+\begin{description}
+\item [Input:] {\em backbone} tree T and alignment A for a set of full-length gene sequences, and set X of fragmentary sequences for the same gene
+
+\item [Output:] placement of each fragment in X into the tree T, and alignment of each fragment in X to the alignment A.
+
+\end{description}
+
+Phylogenetic placement puts unknown short fragments into a phylogenetic context, and hence helps identifying species included in a metagenomic dataset.  
+Phylogenetic placement involves two steps: alignment of short fragments to full length sequence alignment A (also called the {\em backbone} alignment), and then placement of aligned short reads on the fixed tree T (also called the {\em backbone} tree). 
+
+\sepp operates by using a divide-and-conquer strategy adopted from \sate \cite{liu09science,sate2} to improve the alignment of fragments to the
+backbone alignment (produced by running \hmmer \cite{hmmer}). 
+It then places each fragment into the user-provided tree using \pplacer \cite{pplacer}. 
+Our study shows that \sepp provides improved accuracy for quickly evolving genes as compared to other methods. For more information see \cite{sepp} (available at: \url{http://www.ncbi.nlm.nih.gov/pubmed/22174280}).
+
+\section{Installing \sepp}
+First you are going to setup \sepp on your machines. \sepp currently runs only on Linux and Mac. Those running a Windows need to either use cygwin (\url{http://www.cygwin.com/}), or a Ubuntu virtual machine image we have created. 
+ 
+\subsection{Installing on a Linux Machine}
+To download and install \sepp, follow these steps:
+
+\begin{enumerate}
+\item Download software from \url{https://github.com/smirarab/sepp/zipball/master}. 
+\item Copy the archive to your favorite location (we will use \sepphome in this tutorial), and unpack the zip file using your favorite software. 
+\item Open a terminal and change into the unpacked directory (\ins{cd \sepphome}). 
+
+\item Run the following command:\\
+
+\ins{python setup.py config}\\
+
+Note that this step needs to be run by each individual user. This step creates a \file{.sepp/main.config}
+file in your home directory and copies the bundled tool under the same directory. 
+This file contains defaults settings of sepp, and can be modified by users if needed.
+
+If you wish not to use the home directory, you can use 
+
+\ins{python setup.py config -c}\\
+
+instead. This will ensure that the main config file and binary files are written to your current
+directory instead of the home. 
+
+\item In the new directory, there should be a \file{setup.py} file. Run the following command:\\
+
+\ins{sudo python setup.py install}\\
+
+If you don't have root access, instead use the following command (or use \ins{--prefix} option, as described in the \file{README} file)\\
+
+\ins{python setup.py install --user}
+
+
+\end{enumerate}
+Refer to the README file for more information regarding the installation, and solutions to common installation problems. 
+
+\subsection{Using Virtual Machine}
+An Ubuntu VM image with \sepp installed on it is available for download at \url{http://www.cs.utexas.edu/~phylo/software/Phylolab.ova}.  
+
+If you were unable to install \sepp on your machine, you can use this VM image. You first need to copy the VM image to your machine. Then, open the VM image in your favorite VM software (e.g. VirtualBox) and start the VM. Once your VM starts, you can run \sepp from a terminal. The username and password for the virtual machine are ``ubuntu'' and ``reverse''.
+
+\section{Running \sepp}
+\sepp is currently available only as a command line tool, and
+so the tutorial is based on this command line usage.
+
+In this section we will run \sepp on a small sample dataset provided with the software. 
+The sample dataset consists of a \sate backbone alignment and tree on the ``pyrg'' marker gene with only 65 sequences
+(previously studied in \cite{metaphyler}). 
+The fragments are from a WGS sample of a mock community created by the NIH Human Microbiome Project (\url{http://www.hmpdacc.org/HMMC/}).
+The fragment file we provide includes only 106 fragments that we found to possibly belong to ``pyrg'' marker (based on hits to its HMMER profile).
+
+
+
+\subsection{Run \sepp with -h option to see the help }
+
+\begin{itemize}
+\item Make sure you have a terminal open.
+\item Make a directory where you will run \sepp and cd into it (e.g. \ins{mkdir seppRuns; cd seppRuns;} )
+\item run \sepp with -h option to see a help:\\
+
+\ins{run\_sepp.py -h}
+\end{itemize}
+
+
+\subsection{Sample Datasets - Default parameters}
+\begin{itemize}
+\item Copy test datasets into your directory. Test datasets are part of the distribution and can be found under \file{\sepphome/test/unittest/data} (use the directory where you unpacked \sepp instead of \sepphome).
+For example, on Unix run:\\ \ins{cp -R \sepphome/test/unittest/data/*  .}\\
+Note that on the VM, the files to copy are found in \textasciitilde/testdata/sepp/. 
+
+
+
+\item Execute the following command to run \sepp on a sample biological dataset.\\
+
+\ins{run\_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML\_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas} \\
+
+(\sepp should finish running in about 2 minutes.) 
+\end{itemize}
+
+This runs \sepp on the given example dataset. All the options provided to \sepp in this example run are mandatory. As you can see, there are few inputs required to run \sepp. The following describes the minimum input of \sepp:
+\begin {description}
+\item[Backbone tree:] this is the tree on which \sepp places short fragments. 
+This tree should be a binary maximum likelihood (ML) tree
+in newick format; we therefore recommend you estimate
+the ML tree  using \raxml~\cite{raxml} or phyml~\cite{phyml}\footnote{Note - we 
+haven't tested \sepp with phyml trees yet, and all our analyses are
+based on RAxML.}  on the backbone alignment (see below). The 
+input tree is given to \sepp using -t option.
+\item[Backbone Alignment:] this is a multiple sequence alignment 
+of full length sequences for some gene. These sequences need to
+be for the same gene as the fragmentary sequences, as phylogenetic
+placemeent only makes sense in this case.  The backbone 
+alignment needs to be highly accurate, since it determines the backbone
+tree, and the use of RAxML to estimate an ML tree on the
+backbone alignment may help with the accuracy.  If you obtain a
+backbone tree in some other way, you should ensure that the
+backbone tree and alignment  are on the same exact set of taxa.
+The backbone alignment is provided to \sepp using -a option, and should be in 
+the Fasta format. You can use  refseq, available  at 
+\url{http://www.ncbi.nlm.nih.gov/RefSeq/}, to convert  between different alignment formats). 
+\item[Stats or info file:] this is the info file generated by RAxML (or phyml) 
+when it computes the ML tree on the backbone alignment (i.e., the
+backbone tree). 
+This file is required by  pplacer (run internally by \sepp) 
+in order to avoid re-estimation of ML parameters. 
+To be able to use \sepp you need to make sure you keep your 
+info file when you are generating the backbone tree. 
+If you do not have the info file (or if you used 
+some other software programs, such as PASTA~\cite{pasta-jcb}, to produce the
+backbone tree), you can use RAxML's \ins{-f e} option to quickly 
+estimate the model parameters (including branch lengths) on your 
+backbone tree topology (see Section \ref{sec:backbone}). 
+The RAxML info file should be provided to \sepp using -r option. 
+\item[Fragments file:] this is a Fasta file containing the actual short fragments that are going to be placed. Fragments file should be given to \sepp using -f option. 
+\end{description}
+
+\subsubsection{10\% rule}
+Recall that \sepp operates by dividing the set of taxa
+in the backbone alignment and tree into alignment subsets and placement subsets. 
+In the above run, we did not explicitly set the maximum subset sizes for alignment and placement subsets. 
+The choice of these two parameters affects accuracy on the one hand, 
+and computational resources on the other hand, as explained below. 
+
+\begin{itemize} 
+\item Decreasing alignment sizes should increase (and have increased in our experience) the accuracy of \sepp. On the other hand, smaller subsets increase the running time. This is because \sepp needs to score each fragment against all subsets independently, and therefore increasing the number of subsets adds to the running time. Note that extremely small subsets (i.e. less than 5 taxa) have not been tested extensively and are not recommended. 
+\item Increasing placement sizes should result in better 
+accuracy in general (although there could be exceptions). 
+If your placement tree is very large (thousands or 
+tens of thousands of leaves), the memory requirement of \pplacer, 
+and hence of \sepp, increases dramatically. 
+Reducing the placement size reduces the memory footprint, and hence 
+enables placement on larger trees given a fixed amount of memory available. 
+This would be one of the main motivations to reduce placement subset size. 
+Reducing the placement subset {\em can} result in reduced running time 
+as well, especially if your placement tree has thousands of taxa. 
+For smaller trees, the effect of the placement size on 
+the running time is not easily predicted, and is 
+practically of less interest. 
+\end{itemize}
+
+By default, when alignment and placement subset sizes are 
+not explicitly specified by user, \sepp uses what we call the 
+``10\% rule" to automatically set those parameters. 10\% rule specifies that alignment and placement subset sizes should be both set to 10\% of the number of full length sequences (i.e. number of leaves in the backbone tree). The 10\% rule is just a heuristic setting we have found empirically to give a reasonable tradeoff {\em in general} between accuracy and computational requirements on the datasets we have tried. Users are encouraged to change subsets sizes based on their available computational resources, and the desired accuracy, according to the guidelines outlined above.  
+
+\subsubsection{Specifying subset sizes using -A and -P options}
+Imagine we cannot wait 2 minutes to get results on our test dataset. We are going to increase the alignment subset so that \sepp runs faster. The test dataset included 65 full length sequences, and hence the 10\% rule amounts to alignment and placement subsets of maximum size 7. Since our toy example of 65 sequences is very small, it makes sense to increase the alignment size to a larger number (e.g. 10), and placement size to the entire dataset (i.e. 65). The maximum alignment and placement subset sizes are controlled with -A and -P options, respectively. 
+
+\begin{itemize}
+\item Execute the following command to run \sepp with -A=10 and -P=65\\
+
+\ins{run\_sepp.py -t mock/pyrg/sate.tre -r mock/pyrg/sate.tre.RAxML\_info -a mock/pyrg/sate.fasta -f mock/pyrg/pyrg.even.fas -A 10 -P 65 -o run2.A10P65}. \\
+
+(\sepp should finish in less than a minute.)
+\end{itemize}
+
+In the above run note the -o option. This option controls the prefix of the output files generated by \sepp. We have not looked at \sepp output yet, and we will do so in a moment. For now, just be aware that \sepp generates a bunch of output files, and prefixes those with a given string, which defaults to ``output". These outputs are by default generated in the current directory, but that can be changed using the -d option. Had we not changed the output prefix, \sepp would have refused to run to avoid overwriting results of your previous run saved with ``output" prefix. Try this, and you would get the following error:\\
+
+\ins{ Output directory [a\_drecotry] already contains files with prefix [output]...
+Terminating to avoid loss of existing files.
+}
+
+%We are now ready to look the outputs of \sepp, but before we do that, let's start a \sepp run on a large dataset.
+
+\subsection{Running \sepp on a larger dataset}
+We are now going to run \sepp on a larger dataset. 
+Similar to the small ``pyrg'' dataset, our larger dataset is on fragments from a WGS sample of the HMMC mock community (\url{http://www.hmpdacc.org/HMMC/}), 
+but is based on a much larger marker gene called ``rpsS'' (obtained from \cite{metaphyler}).
+The backbone alignment and tree are again estimated using \sate. 
+This dataset is available under \file{mock/rpsS} folder and has 1,277 full length sequences and 2101 fragments. 
+We are going to start a \sepp run on this dataset. Run the following command:\\
+
+
+\ins{run\_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML\_info \\ -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -o rpsS.out.default}\\
+
+This run is going to take about 4 minutes. While this is running, we are going to look at \sepp outputs. 
+
+\section{\sepp output }
+\sepp has two outputs: an alignment of fragments to full length sequences (or subsets of the full length sequences), and placements of fragments on the given backbone tree. When \sepp finishes running, it generates two or more output files, all prefixed with a string given using -o option, and placed in a directory given using -d option. One of these output files is \file{[prefix]\_placement.json} file. This is the results of the placement algorithm, and is in a format devised by the \pplacer software. This .json file is a human-readable text file. However in most cases you want to look at those results in a visualization tool. \pplacer comes with a suit of software tools called \guppy. \guppy reads a \file{.json} file, and among other things, produced nice visualizations of the results. We are going to first manually look at the plain \file{.json} file to understand its content, and then will use \guppy to visualize results.   
+
+\begin{itemize}
+\item Open the file called \file{output\_placement.json} using a text editor. 
+\item Notice at the top of the file there is a newick tree with edges labeled with numbers inside brackets. 
+\item Following the tree, placement results 
+are given for each fragment.  Everything between ``\{"and ``\}" 
+describes the placement of a single fragment. Each fragment can have multiple placements, with different likelihoods. Each line under the ``p" attribute indicates one placement of the fragment. The first value gives the edge label, the second value gives the log likelihood, the third value gives probability of that placement, and the final two values give the position on the edge where the fragment is placed, and the 
+length (as estimated using the maximum likelihood
+calculation in pplacer)
+ of the pendant edge for the fragment.
+\end{itemize}
+
+Next we will use \guppy to turn this text file to a visualization of the results. Issue the following command to generate a tree that has fragments placed on the backbone tree based only on {\em the best placement} of each fragment.\\
+
+\ins{\sbun/guppy tog --xml output\_placement.json}\\
+
+This command generates a new file called \file{out\_placement.tog.xml}. This is an XML file in NexML format (\url{http://www.nexml.org/}) and can be opened with \arch software {available at \url{https://sites.google.com/site/cmzmasek/home/software/archaeopteryx}}. 
+%You can find \arch also on the USB drive provided to you by organizers of the workshop. 
+Run \arch and use \ins{File/Read Tree from File} to open \file{out\_placement.tog.xml}. Select ``colorize branch" checkbox on the right hand side panel (on newer versions of \arch, the option is ``visual styles/branch colors'' checkbox). The white branches represent the backbone tree, and branches in red correspond to the maximum likelihood placement of fragments on the backbone tree. 
+
+By now the run we started on the larger dataset (rpsS gene) should have finished as well (it takes about 5 minutes). Use \guppy to visualize the results of that run as well. 
+
+Please refer to \pplacer and \guppy documentation at \url{http://matsen.github.com/pplacer/generated_rst/pplacer.html} for more information about \file{.json} format and visualization options available in \guppy. 
+%Running SEPP using a configuration file
+
+In addition to the placement file, an extended alignment file is also generated. This extended alignment shows how fragments are aligned to the backbone alignment. The extended alignment is a simple Fasta file, and can be viewed in any alignment visualization tool (e.g. JalView available at \url{http://www.jalview.org/}). 
+
+%Running SEPP on other datasets
+
+\section{\sepp Obtaining Backbone Alignment and Trees}\label{sec:backbone}
+In all examples given above, backbone alignment and trees were already estimated.
+Our suggested way of obtaining backbone alignment and trees is through PASTA \cite{pasta-jcb},
+which simultaneously estimates both an alignment and a tree based on unaligned full length sequences.
+Please refer to \sate documentation for more information on running \sate. 
+
+In addition to an alignment and a tree (obtained from \sate or otherwise),
+we also need to have a RAxML info file. If your backbone tree is estimated using
+RAxML you already have the info file. Otherwise, you can optimize model parameters
+on your backbone tree by running the following:\\\\
+\ins{raxml -f e -t [backbone tree] -s [backbone alignment] -m GTRGAMMA -n [a name]}\\
+
+This will optimize GTRGAMMA model parameters on your input alignment/tree pair and will
+generate a info file (\file{RAxML\_info.a\_name}), that can be used with \sepp. 
+
+\section{\sepp Miscellaneous }
+The following are some other points that are worth mentioning and testing.
+\begin{itemize}
+\item By default, the input is assumed to be DNA. To analyze amino acid datasets use \ins{-m} option (i.e. \ins{-m amino} for amino acid and \ins{-m rna} for RNA).
+\item By default \sepp tries to use all available cores on your machine in each run. If you run multiple instances of \sepp simultaneously, or if you want it to use fewer cores, be sure
+to set the number of cpus used by \sepp using \ins{-x} option. For example the following runs \sepp on the large dataset but with only 3 cpus used:\\
+
+\ins{run\_sepp.py -t mock/rpsS/sate.tre -r mock/rpsS/sate.tre.RAxML\_info \\ -a mock/rpsS/sate.fasta -f mock/rpsS/rpsS.even.fas -x 3}\\
+\item In addition to commandline, \sepp can be 
+controlled through a configuration file, passed to \sepp using \ins{-c} option. For example, to run \sepp using \file{config.run1} configuration file, use:\\
+
+\ins{run\_sepp.py -c config.run1}\\
+
+Commandline options can be specified in the configuration file under the \ins{[commandline]} section.
+For specifying options under \ins{[commandline]}, you need to use their long format name (as show in the \sepp help invoked by \ins{-h}).
+For example, to set input to ``rpsS'' dataset and the alignment size to 10 and number of cpus to 3 use:
+
+\ins{
+[commandline]\\
+alignmentSize = 10 \\
+tree= mock/rpsS/sate.tre \\
+raxml = mock/rpsS/sate.tre.RAxML\_info \\ 
+alignment = mock/rpsS/sate.fasta \\
+fragment = mock/rpsS/rpsS.even.fas \\
+cpu =  3}\\
+ 
+Some extra information (not available in commandline) can also be configured in other sections of the configuration file. For example, \\
+
+\ins{[pplacer]\\
+path = /some/path\\
+}
+
+tells \sepp that \pplacer binaries can be found under \file{/some/path}.
+
+An example config file is available as part of the distribution under the test directory (\file{test/unittest/data/simulated/sample.config}). 
+A main configuration file under \file{\{home\}/.sepp/main.config} is used
+to store some basic configurations such as the location of extra programs, etc.
+When conflicting options are given, precedence is with those provided through commandline, then those specified in config file provided using \ins{-c} option and finally those specified in the main config file.  To test running from the config file, \ins{cd simulated} directory and run\\
+\ins{run\_sepp.py -c test.config}
+
+\item Currently \sepp has a built-in checkpointing functionality.
+By default, this functionality is turned off, but can be turned on using \ins{-cp [checkpoint file name]}, 
+and the time interval between two consecutive checkpoints can be adjusted using \ins{-cpi [checkpoint frequency in seconds]}.
+Please note that checkpointing options have been tested only lightly and might have unknown issues. 
+
+\item For datasets containing both fragmentary and full-legnth sequences, the sequences much be separated out into a backbone set on the full-length sequences and a query set on the fragmentary sequences.  From there, an alignment and tree can be estimated on the backbone set, and SEPP can be used to insert the query sequences back into the backbone tree.  Run 
+\ins{split\_sequences.py -i mock/pyrg/data/mixed.fas -o split -t 100}\\
+
+This will split the sequences into two files, split.full.fas (all sequences longer than 100 bps) and split.frag.fas *(all sequences shorter than or equal to 100 bps).  From here, PASTA can be used to estimate the backbone alignment and RAxML can be used to estimate the backbone tree.  The query sequences can be inserted into the tree.
+\end{itemize}
+
+
+\bibliographystyle{plain}
+\bibliography{sepp}
+
+
+\end{document}
+

@@ -44,17 +44,19 @@ Requirements:
 -------------------
 Before installing the software you need to make sure the following programs are installed on your machine.  
 
-1. Python: Version > 2.7. 
+1. Python: Version > 2.7 (including python 3). 
 2. SEPP: Version > 3.0. 
 3. PASTA: Version > 1.0. 
 
 Installation Steps:
 -------------------
-UPP is a part of the SEPP distribution package.  First install SEPP (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  Next install [PASTA] (https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.  Once done, do the following. 
+UPP is a part of the SEPP distribution package.  
 
-1. Configure: run `sudo python setup.py upp`. 
+1. Install SEPP (see [SEPP readme](https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  
+2. Install [PASTA](https://github.com/smirarab/PASTA/) and make sure the run_pasta.py executable is on the PATH variable.
+4. Configure: run `python setup.py upp` or `python setup.py upp -c` (you should use `-c` if you used `-c` when you installed SEPP). 
 
-The last step creates a ~/.sepp/upp.config config file. Since this is specific to a user, each user that runs UPP needs to execute the last step. 
+The last step creates an `upp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
 
 Common Problems:
 -------------------
@@ -78,7 +80,7 @@ The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <p
 
 The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named _insertion_columns.txt).
 
-Sample configuration files and input files can be found under test/unittest/data/upp/. Change to that directory to run UPP on the sample files.  To run UPP(Fast) on a small test example with 1,000 sequences, run the following command from the test/unittest/data/upp/ directory:
+Sample configuration files and input files can be found under `test/unittest/data/upp/`. Change to that directory to run UPP on the sample files.  To run UPP(Fast) on a small test example with 1,000 sequences, run the following command from the `test/unittest/data/upp/` directory:
 
 `python <bin>/run_upp.py -s initial.fas -B 100`
 

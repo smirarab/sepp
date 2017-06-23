@@ -43,7 +43,7 @@ HIPPI is a part of the SEPP distribution package.  By installing SEPP, HIPPI is 
 
 Common Problems:
 -------------------
-1.  HIPPI requires SEPP to be installed.  If UPP is not running, first check to see if SEPP was installed correctly.
+1.  HIPPI requires SEPP to be installed.  If HIPPI is not running, first check to see if SEPP was installed correctly.
 
 ---------------------------------------------
 Running HIPPI
@@ -52,7 +52,7 @@ To run HIPPI, invoke the `run_ensembles.py` script from the `bin` sub-directory 
 
 `python <bin>/run_ensembles.py -h`
 
-The general command for running UPP is:
+The general command for running HIPPI is:
 
 `run_ensembles.py -a input_alignment -t input_tree -f input_query_sequences -A decomp_size - m amino -D 0.60`
 

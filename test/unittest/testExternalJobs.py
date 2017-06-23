@@ -30,7 +30,7 @@ class TestExternalJob(ExternalSeppJob):
 
         
         '''always call parent constructor'''
-        ExternalSeppJob.__init__(self, "test_find_job", **kwargs)
+        ExternalSeppJob.__init__(self, "test_find_job", path='dummy', **kwargs)
 
         '''inputs that need to be set before running this job'''
         self.pattern = None
@@ -50,7 +50,7 @@ class Test(unittest.TestCase):
     def testSuccess(self):            
         find_job = TestExternalJob()
         find_job.pattern = "."
-        find_job.options = "-name *.py"
+        find_job.options = "-name test*.py"
         JobPool().enqueue_job(find_job)
         
         JobPool().wait_for_all_jobs()                

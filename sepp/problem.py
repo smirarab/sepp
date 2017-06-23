@@ -3,7 +3,7 @@ Created on Sep 12, 2012
 
 @author: smirarab
 '''
-from scheduler import Job
+from .scheduler import Job
 from sepp.alignment import ReadonlySubalignment, ExtendedAlignment
 from sepp import get_logger
 
@@ -68,12 +68,12 @@ class Problem(object):
     def iter_nodes_at_level(self, level):
         '''
         a generator function, returning all Problems under the current problem,
-        with a label tag equal to the given __level.
+        with a label tag equal to the given level.
         
-        Note that this is NOT returning nodes that are '__level' levels below 
+        Note that this is NOT returning nodes that are 'level' levels below 
         self. 
         '''
-        if self.__level == level:
+        if self.level == level:
             yield self
         else:
             for c in self.__children:
@@ -215,7 +215,7 @@ class SeppProblem(Problem):
         
         _LOG.debug("Reading %s %s and relabeling it based on %d orig column labels." %(orig_path, extension_path, len(remaining_cols)))
         
-        ap_alg = ExtendedAlignment(self.fragments.keys())
+        ap_alg = ExtendedAlignment(list(self.fragments.keys()))
         ap_alg.build_extended_alignment(orig_path, extension_path, convert_to_string)
         ap_alg.relabel_original_columns(remaining_cols)
         return ap_alg

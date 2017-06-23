@@ -9,9 +9,10 @@ from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
 from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
-from dendropy.dataobject.tree import Tree
+from dendropy.datamodel.treemodel import Tree
 import dendropy,pickle,pdb
 from sepp import get_logger
+from functools import reduce 
 
 _LOG = get_logger(__name__)
 
@@ -33,9 +34,9 @@ class TIPPJoinSearchJobs(Join):
     def figureout_fragment_subset(self):
         ''' Figure out which fragment should go to which subproblem'''
         # We need to keep and check the following flag because of checkpoining scenarios (join already done before!)
-        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+        if "fragments.distribution.done" in self.root_problem.annotations:
             return
-        bitscores = dict([(name, []) for name in self.root_problem.fragments.keys()])
+        bitscores = dict([(name, []) for name in list(self.root_problem.fragments.keys())])
         for fragment_chunk_problem in self.root_problem.iter_leaves():
             align_problem = fragment_chunk_problem.get_parent()
             assert isinstance(align_problem, SeppProblem)
@@ -44,21 +45,23 @@ class TIPPJoinSearchJobs(Join):
             if align_problem.fragments is None:
                 align_problem.fragments = MutableAlignment()
             search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
-            for key in search_res.keys():
+            for key in list(search_res.keys()):
                 ''' keep a list of all hits, and their bit scores'''
                 bitscores[key].append( (search_res[key][1], align_problem) )
                 
-        for frag, tuplelist in bitscores.iteritems():
+        for frag, tuplelist in bitscores.items():
             ''' TODO: what to do with those that are not? For now, only output warning message'''
             #TODO:  Need to double check and fix the math
+            _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
             if len(tuplelist) == 0:
                 _LOG.warning("Fragment %s is not scored against any subset" %str(frag))
                 continue
             ''' convert bit scores to probabilities '''            
             denum = sum(math.pow(2, min(x[0],1022)) for x in tuplelist)
+            #_LOG.warning("Tuples: %s" %str(tuplelist))
             tuplelist = [((math.pow(2,min(x[0],1022))/denum*1000000),x[1]) for x in tuplelist]
             ''' Sort subsets by their probability'''
-            tuplelist.sort(reverse=True)
+            tuplelist.sort(reverse=True, key = lambda x: x[0])
             ''' Find enough subsets to reach the threshold '''
             selected = tuplelist[ 0 : max(1,
                 reduce(lambda x, y: (x[0],None) if x[1] is None else
@@ -313,19 +316,17 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         jsj.setup_with_root_problem(self.root_problem)
         
     def merge_results(self):
-        ''' TODO: implement this
-        '''
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'r')
+        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'rb')
         fullExtendedAlignment = pickle.load(align_input)
         align_input.close()
         #fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_file")
         for pp in self.root_problem.get_children()[1:]:
             #Removed this because it can cause unexpected lockups
             #extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
-            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'r')
+            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'rb')
             extended_alignment = pickle.load(align_input)
             align_input.close()
             
@@ -430,14 +431,16 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             raise ValueError("Alignment decomposition tree can be different from placement tree only if placement subset size is set to the number of taxa (i.e. entire tree)")
         else:
             _LOG.info("Reading alignment decomposition input tree: %s" %(self.options.alignment_decomposition_tree))        
-            d_tree = PhylogeneticTree( dendropy.Tree(stream=self.options.alignment_decomposition_tree, 
+            d_tree = PhylogeneticTree( dendropy.Tree.get_from_stream(self.options.alignment_decomposition_tree, 
                                                schema="newick", 
                                                preserve_underscores=True,
                                                taxon_set=self.root_problem.subtree.get_tree().taxon_set))               
             return d_tree
             
 def augment_parser():
-    sepp.config.set_main_config_path(os.path.expanduser("~/.sepp/tipp.config"))
+    root_p = open(os.path.join(os.path.split(os.path.split(__file__)[0])[0],"home.path")).readlines()[0].strip()
+    tipp_config_path = os.path.join(root_p, "tipp.config")
+    sepp.config.set_main_config_path(tipp_config_path)
     #default_settings['DEF_P'] = (100 , "Number of taxa (i.e. no decomposition)")
     parser = sepp.config.get_parser()
     tippGroup = parser.add_argument_group("TIPP Options".upper(), 

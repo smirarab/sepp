@@ -37,7 +37,7 @@ class EnsembleJoinSearchJobs(Join):
         '''
         A dummy join that waits for all the search results to complete     
         '''
-        print ""
+        print("")
                 
                 
     def __str__(self):
@@ -75,7 +75,7 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
         
     def merge_results(self):
         ''' merges search results'''
-        if self.root_problem.annotations.has_key("fragments.distribution.done"):
+        if "fragments.distribution.done" in self.root_problem.annotations:
             return
         sequence_scores = dict([(name, []) for name in self.root_problem.fragments.keys()])        
         for fragment_chunk_problem in self.root_problem.iter_leaves():
@@ -86,14 +86,14 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
             if align_problem.fragments is None: 
                 align_problem.fragments = self.root_problem.fragments.get_soft_sub_alignment([])
             search_res = fragment_chunk_problem.get_job_result_by_name("hmmsearch")
-            for key in search_res.keys():
-                 sequence_scores[key].append([search_res[key][1],search_res[key][0]])
+            for key, val in search_res.items():
+                 sequence_scores[key].append([val[1],val[0]])
 
                     
         # TODO: is the following efficient enough? Do we need to make lists
         # and then turn them to sets?
         notScored = []
-        for key,v in sequence_scores.iteritems():
+        for key,v in sequence_scores.items():
             if len(v) == 0:
                 notScored.append(key)
                     

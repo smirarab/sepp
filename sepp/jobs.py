@@ -16,6 +16,12 @@ from sepp.tree import PhylogeneticTree
 import sepp.config
 import traceback,pdb
 
+import io
+try:
+    filetypes = (io.IOBase, file)
+except NameError:
+    filetypes = io.IOBase
+
 _LOG = get_logger(__name__)
     
 class ExternalSeppJob(Job):
@@ -24,9 +30,8 @@ class ExternalSeppJob(Job):
     should extend this abstract class.
     This class handles executing external jobs, error handling, and more.     
     '''
-    __metaclass__ = ABCMeta
     
-    def __init__(self, jobtype, **kwargs):        
+    def __init__(self, jobtype, path = None, **kwargs):        
         Job.__init__(self)
         self.job_type = jobtype
         self._id = None #_process id for this job
@@ -43,7 +48,10 @@ class ExternalSeppJob(Job):
         self.ignore_error = False # setting this variable tell JobPoll that errors in this job can be ignored when waiting for reults of all jobs to finish
         self.fake_run = False
         self.attributes=dict()
-        self.path = sepp.config.options().__getattribute__(self.job_type).path         
+        if path:
+            self.path  = path
+        else:
+            self.path = sepp.config.options().__getattribute__(self.job_type).path         
     
     def get_id(self):
         return self._id
@@ -63,7 +71,7 @@ class ExternalSeppJob(Job):
         if self.fake_run:
             return self.read_results()        
         try:
-            _LOG.info("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
+            _LOG.debug("Starting %s Job with input: %s" %(self.job_type, self.characterize_input()))        
             
             assert self.result_set is False, "Job is already run."
             
@@ -71,13 +79,13 @@ class ExternalSeppJob(Job):
             if 'stdout' not in self._kwargs:      
                 self._kwargs['stdout'] = subprocess.PIPE
             elif isinstance(self._kwargs['stdout'],str):
-                self._kwargs['stdout'] = file(self._kwargs['stdout'], 'w')
+                self._kwargs['stdout'] = open(self._kwargs['stdout'], 'w')
     
             if 'stderr' not in self._kwargs:            
                 self._kwargs['stderr'] = subprocess.PIPE
-                #k['stderr'] = file(os.devnull, 'w')    
+                #k['stderr'] = open(os.devnull, 'w')    
             elif isinstance(self._kwargs['stderr'],str):
-                self._kwargs['stderr'] = file(self._kwargs['stderr'], 'w')
+                self._kwargs['stderr'] = open(self._kwargs['stderr'], 'w')
             
             if self.stdindata is not None:
                 self._kwargs['stdin'] = subprocess.PIPE        
@@ -85,8 +93,8 @@ class ExternalSeppJob(Job):
             assert (self.get_invocation()[0].count("/") == 0 
                     or os.path.exists(self.get_invocation()[0])), ("path for %s "
                             " does not exist (%s)" %(self.job_type, self.get_invocation()[0]))
-            _LOG.debug("Invocation of %s", " ".join(self.get_invocation()));
-            self._process = Popen(self.get_invocation(), **self._kwargs)        
+            _LOG.debug("Invocation of %s", " ".join((str(x) if x is not None else "?NoneType?" for x in self.get_invocation())));
+            self._process = Popen(self.get_invocation(),  universal_newlines=True, **self._kwargs)        
             self._id = self._process.pid
 
             if self.stdindata is not None:            
@@ -105,13 +113,15 @@ class ExternalSeppJob(Job):
                       
                
             if self.process.returncode == 0:
-                _LOG.info("Finished %s Job with input: %s with:\n"
+                _LOG.info("Finished %s Job with input: %s" %(self.job_type, self.characterize_input()))
+                _LOG.debug("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s" 
                       %(self.job_type, self.characterize_input(),
-                        self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], len(self.stdoutdata)) if len(self.stdoutdata) > 100 else self.stdoutdata))
+                        self.process.returncode, "%s ... (continued: %d ) ..." %(self.stdoutdata[0:100], 
+                                                                                 len(self.stdoutdata)) if self.stdoutdata and len(self.stdoutdata) > 100 else self.stdoutdata))
     
             else:         
-                _LOG.info("Finished %s Job with input: %s with:\n"
+                _LOG.debug("Finished %s Job with input: %s with:\n"
                       " return code: %s\n output: %s\n error:%s" 
                       %(self.job_type, self.characterize_input(),
                         self.process.returncode, self.stdoutdata, self.read_stderr()))              
@@ -131,7 +141,7 @@ class ExternalSeppJob(Job):
         '''    
         if self.stderrdata is not None:
             return self.stderrdata
-        elif self._kwargs.has_key("stderr") and isinstance(self._kwargs["stderr"],file):
+        elif "stderr" in self._kwargs and isinstance(self._kwargs["stderr"],filetypes):
             return open(self._kwargs["stderr"].name,'r').read()
         else:
             return None
@@ -302,7 +312,7 @@ class HMMAlignJob(ExternalSeppJob):
             invoc.extend(["--trim"])
         #if self.base_alignment:
         #    invoc.extend["--mapali" , self.base_alignment]
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())        
         invoc.extend([self.hmmmodel, self.fragments])
         return invoc
@@ -373,7 +383,7 @@ class HMMSearchJob(ExternalSeppJob):
             invoc.extend(["-E", str(self.elim)])
         if not self.filters:
             invoc.extend(["--max"])
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())        
         invoc.extend([self.hmmmodel, self.fragments])      
         return invoc
@@ -466,7 +476,7 @@ class PplacerJob(ExternalSeppJob):
         self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
                              self.extended_alignment_file.replace("fasta","jplace"))                       
         assert isinstance(subproblem.subtree, PhylogeneticTree)
-        subproblem.subtree.write_newick_to_path(self.tree_file)
+        subproblem.subtree.write_newick_to_path(self.tree_file,)
              
         self.info_file = info_file.name if hasattr(info_file,"name") else info_file
         self._kwargs = kwargs      
@@ -476,7 +486,7 @@ class PplacerJob(ExternalSeppJob):
     def get_invocation(self):
         invoc = [self.path, 
                  "--out-dir", os.path.dirname(self.out_file)]   
-        if self._kwargs.has_key("user_options"):
+        if "user_options" in self._kwargs:
             invoc.extend(self._kwargs["user_options"].split())
         
         if self.setup_setting == "File:TrInEx":
@@ -673,8 +683,7 @@ class PastaAlignJob(ExternalSeppJob):
         return
         
     def get_invocation(self):
-        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment, "--datatype=%s" % self.molecule,'--temporaries=%s/pastatmp/' % sepp.filemgr.get_root_temp_dir(),'-j', 'pastajob','--output-directory=%s/pastaout/' % sepp.filemgr.get_root_temp_dir()]
-        print ' '.join(invoc) 
+        invoc = [self.path,'--num-cpus=%d' % self.threads,'-i',self.alignment, "--datatype=%s" % self.molecule,'--temporaries=%s/pastaout/' % sepp.filemgr.get_root_temp_dir(),'-j', 'pastajob','--output-directory=%s/pastaout/' % sepp.filemgr.get_root_temp_dir()]        
         return invoc
 
     def characterize_input(self):

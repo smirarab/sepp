@@ -1,6 +1,0 @@
-Version 1.1:
- - Added -d option for directories
- - Bundled all requied software
- - Changed installation so that dependencies are automatically installed
- - Moved to latest pplacer
- - Misc. bug fixes

@@ -28,8 +28,6 @@ class AbstractAlgorithm(object):
     New algorithms should be implemented by extending AbastractAlgorithm and 
     implementing its abstract methods.    
     '''
-
-    __metaclass__ = ABCMeta
     
     def __init__(self):
         '''
@@ -38,8 +36,7 @@ class AbstractAlgorithm(object):
         self.root_problem = None
         self.results = None
         self.options = options() # for ease of access
-        pass
-    
+
     
     def check_options(self, supply=[]):
         '''
@@ -47,7 +44,7 @@ class AbstractAlgorithm(object):
         sure every necessary argument is provided, and that the provided values
         are all fine. 
         
-        In the event of recognizing invalid or missing input, a an Exception
+        In the event of recognizing invalid or missing input, an Exception
         (maybe an ArgumentError) should be raised. 
         
         By default expects tree_file, raxml_file, and fragment_file. Overwrite if required. 
@@ -60,12 +57,8 @@ class AbstractAlgorithm(object):
             supply = supply + ["fragment file"]
         if (len(supply) != 0):
             raise ValueError ("Failed to supply: %s\nRun with -h option to see a list of options." % " , ".join(supply))
-        if (options().info_file is None):
-            supply = supply + ["raxml file"];
-
         self.check_outputprefix()
-        pass
-        
+
     
     @abstractmethod
     def build_subproblems(self):
@@ -233,7 +226,7 @@ class AbstractAlgorithm(object):
         #fragments = MutableAlignment()
         #fragments.read_file_object(self.options.fragment_file);   
         _LOG.info("Reading input tree: %s" %(self.options.tree_file))        
-        tree = PhylogeneticTree( dendropy.Tree(stream=self.options.tree_file, 
+        tree = PhylogeneticTree( dendropy.Tree.get_from_stream(self.options.tree_file, 
                                                schema="newick", 
                                                preserve_underscores=True))        
         
@@ -243,11 +236,11 @@ class AbstractAlgorithm(object):
         _LOG.debug("start reading fragment files and breaking to chunks: %d" %chunks)
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
-        for (k,v) in extra_frags.iteritems():
+        for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks)        
         ret = []
-        for i in xrange(0,chunks):
+        for i in range(0,chunks):
             temp_file = None
             if alg_chunks[i]:
                 temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")

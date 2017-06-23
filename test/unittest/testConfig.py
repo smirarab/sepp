@@ -9,6 +9,11 @@ import sys
 from sepp.config import options  
 from sepp import config
 import os
+import io
+try:
+    filetypes = (io.IOBase, file)
+except NameError:
+    filetypes = io.IOBase
 
 
 class Test(unittest.TestCase):
@@ -22,7 +27,7 @@ class Test(unittest.TestCase):
           
         assert options().alignment_size == 2, "Commandline option -A not read properly"
         
-        assert isinstance(options().config_file, file) and options().config_file.name == "data/configs/test.config", "Commandline option -c not read properly"
+        assert isinstance(options().config_file, filetypes) and options().config_file.name == "data/configs/test.config", "Commandline option -c not read properly"
 
         assert (options().pplacer is not None 
                 and options().pplacer.path == "pplacer"), "config file options not read properly"
@@ -33,7 +38,7 @@ class Test(unittest.TestCase):
         
         assert options().tempdir is not None, "Default value not properly set for tempfile attribute"
         
-        print options()
+        print(options())
         
         config.main_config_path = back
 
@@ -44,13 +49,13 @@ class Test(unittest.TestCase):
         config.main_config_path = os.path.expanduser("~/.sepp/main.config.notexistentfile") # Diasable main config path for this test
          
         sys.argv = [sys.argv[0], "-c" ,"data/configs/test2.config", "-f", "data/simulated/test.fas"]
-        assert isinstance(options().config_file, file) and options().config_file.name == "data/configs/test2.config", "Commandline option -c not read properly"
+        assert isinstance(options().config_file, filetypes) and options().config_file.name == "data/configs/test2.config", "Commandline option -c not read properly"
 
-        assert isinstance(options().alignment_file, file) and options().alignment_file.name == "data/simulated/test.small.fas", "Config file option alignment not read properly"
+        assert isinstance(options().alignment_file, filetypes) and options().alignment_file.name == "data/simulated/test.small.fas", "Config file option alignment not read properly"
 
-        assert isinstance(options().fragment_file, file) and options().fragment_file.name == "data/simulated/test.fas", "Command-line option -f alignment not read properly"
+        assert isinstance(options().fragment_file, filetypes) and options().fragment_file.name == "data/simulated/test.fas", "Command-line option -f alignment not read properly"
         
-        print options()       
+        print(options())       
         
         config.main_config_path = back             
 
@@ -76,7 +81,7 @@ class Test(unittest.TestCase):
                 "options not read properly, or nonexistent binaries: hmmsearch = %s" 
                 %options().pplacer.path)
                                 
-        print options()                            
+        print(options())                            
         
     def testCpuCount(self):
         config._options_singelton = None # Just to make different test cases independent of each other.
@@ -86,7 +91,7 @@ class Test(unittest.TestCase):
           
         assert options().cpu == 7, "Commandline option -x not read properly"
         
-        print options()
+        print(options())
         
         config.main_config_path = back        
 if __name__ == "__main__":

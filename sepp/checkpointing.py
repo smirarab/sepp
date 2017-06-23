@@ -4,7 +4,7 @@ Created on Nov 26, 2012
 @author: smirarab
 '''
 import os
-import cPickle
+import pickle
 import sys
 import threading
 from sepp import get_logger
@@ -52,7 +52,7 @@ def save_checkpoint(checkpoint_manager):
         currenlimit = sys.getrecursionlimit()
         sys.setrecursionlimit(100000)
         picklefile = gzip.GzipFile(newTmpDest, 'wb')
-        cPickle.dump(checkpoint_manager.checkpoint_state, picklefile, 2)    
+        pickle.dump(checkpoint_manager.checkpoint_state, picklefile, 2)    
         picklefile.close()  
         sys.setrecursionlimit(currenlimit)
 
@@ -97,7 +97,7 @@ class CheckPointManager:
         assert os.path.exists(self.checkpoint_path)
         lastPath = open(self.checkpoint_path).readlines()[-1].split(",")[0]
         picklefile = gzip.GzipFile(lastPath, 'rb')
-        self.checkpoint_state = cPickle.load(picklefile)
+        self.checkpoint_state = pickle.load(picklefile)
         picklefile.close()
         set_root_temp_dir(self.checkpoint_state.temp_root)
         _LOG.info("Checkpoint restore finished: %s" %lastPath)
