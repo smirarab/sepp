@@ -30,14 +30,14 @@ We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_o
    python reformat-info.py RAxML_info.score-bl-$alg > RAxML_info.$alg
    ```
 
-6. Optional: you can add taxonomic labels back to your reference tree if your original tree ($t) had those
+6. Optional: you can add taxonomic labels back to your reference tree if your original tree (`$t`) had those
    ```
    python relabel.py 99_otus.tree reference-$alg-rooted.tre reference-$alg-rooted-relabelled.tre
    ```
    You can perhaps also just use tax2tree directly on the final output
 
 
-At the end, your reference files are 
-    * your original alignment, 
-    * your final tree (`reference-$alg-rooted.tre` or `reference-$alg-rooted-relabelled.tre` if you included the last step)
-    * your final info file (`RAxML_info.$alg`)
+At the end, your reference files are: 
+* your original alignment, 
+* your final tree (`reference-$alg-rooted.tre` or `reference-$alg-rooted-relabelled.tre` if you included the last step)
+* your final info file (`RAxML_info.$alg`)
