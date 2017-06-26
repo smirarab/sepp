@@ -238,9 +238,11 @@ class ReadOnlyAlignment(Mapping, object):
     def __str__(self):
         return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])
     
-    def divide_to_equal_chunks(self,chunks):
+    def divide_to_equal_chunks(self,chunks, max_chunk_size = None):
         names = self.get_sequence_names()        
         ret = []
+        if max_chunk_size and len(names)/chunks > max_chunk_size:
+            chunks = len(names)//max_chunk_size
         for i in range(0,chunks):
             subset = names[i:len(names):chunks]
             if subset:

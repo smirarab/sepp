@@ -1,5 +1,9 @@
+* Version 4.2.2:
+     * Add max chunk size
+     * Fix logging messages
+     * Fix a bug for the `-D` option after python 3 transition
 * Version 4.2.1:
-     * Fixed a bug with run_tipp_tools.py path
+     * Fixed a bug with `run_tipp_tools.py` path
 * Version 4.2.0:
      * Major change (trying again): TIPP should not include fragments that are fully unclassified in its profile. Fixed this
 * Version 4.1.0:

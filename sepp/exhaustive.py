@@ -197,8 +197,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.distances = dict()
 
     def compute_distances(self, sequences):
-        for seq1, val1 in sequences.keys():
-            for seq2, val2 in sequences.keys():
+        for seq1, val1 in sequences.items():
+            for seq2, val2 in sequences.items():
                 if ("".join([seq1,seq2]) not in self.distances):
                     self.distances["".join([seq1,seq2])] = hamming_distance(val1,val2)
                     self.distances["".join([seq2,seq1])] = self.distances["".join([seq1,seq2])]
@@ -316,6 +316,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 alignment_problem.subtree = a_tree
                 alignment_problem.label = "A_%s_%s" %(str(p_key),str(a_key))                                                       
         
+        _LOG.info("Breaking into %d alignment subsets." %(len(list(self.root_problem.iter_leaves()))))    
+
         ''' Divide fragments into chunks, to help achieve better parallelism'''
         fragment_chunk_files = self.create_fragment_files()                
         for alignment_problem in self.root_problem.iter_leaves():       
@@ -326,7 +328,6 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 frag_chunk_problem.label = alignment_problem.label.replace("A_", "FC_") + "_" +str(afc)
                 frag_chunk_problem.fragments = fragment_chunk_files[afc]
                     
-        _LOG.info("Breaking into %d alignment subsets." %(len(list(self.root_problem.iter_leaves()))))    
         _LOG.info("Breaking each alignment subset into %d fragment chunks." %len(fragment_chunk_files))
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
@@ -334,7 +335,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def create_fragment_files(self):
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
         frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
-        return self.read_and_divide_fragments(frag_chunk_count)
+        return self.read_and_divide_fragments(frag_chunk_count,self.options.max_chunk_size)
          
     def _get_new_Join_Align_Job(self):
         return JoinAlignJobs()
