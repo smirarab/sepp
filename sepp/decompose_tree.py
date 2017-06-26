@@ -1,3 +1,8 @@
+# uym2 added
+# June 2017
+# utils for tree decomposition
+
+
 from dendropy import Tree, Node
 try:
     from queue import Queue # python 3
