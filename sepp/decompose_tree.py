@@ -11,7 +11,7 @@ except:
 #from tree import PhylogeneticTree
 
 
-def decompose_by_diameter(a_tree,max_diam=None,nsubtree=1024):
+def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
     def __ini_record__():
         for node in a_tree.postorder_node_iter():
                __updateNode__(node)
@@ -113,21 +113,25 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=1024):
     tqueue = Queue()
     __ini_record__()
     max_diam = max_diam if max_diam is not None else a_tree.seed_node.diameter/nsubtree
-    if a_tree.seed_node.diameter < max_diam:
-        return {0:a_tree}
+    if a_tree.seed_node.diameter <= max_diam:
+        return [a_tree]
         
     treeMap = [] 
     tqueue.put(a_tree)
     while not tqueue.empty():
         t = tqueue.get()
+        print(t.seed_node.diameter)
         t1,t2 = __bisect__(t)
-        if t1.seed_node.diameter < max_diam:
+        print(t1.seed_node.diameter)
+        print(t2.seed_node.diameter)
+        print("\n")
+        if t1.seed_node.diameter <= max_diam:
              __clean_up__(t1)            
              #treeMap[i] = PhylogeneticTree(t1)
              treeMap.append(t1)
         else:
             tqueue.put(t1)
-        if t2.seed_node.diameter < max_diam:
+        if t2.seed_node.diameter <= max_diam:
              __clean_up__(t2)
              #treeMap[i] = PhylogeneticTree(t2)
              treeMap.append(t2)
