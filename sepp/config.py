@@ -140,7 +140,7 @@ def _init_parser():
                       dest = "max_chunk_size", metavar = "N",
                       default = 5000, 
                       help = "maximum fragment chunk size of N. Helps controlling memory.  "
-                             "[default: 1000]")
+                             "[default: 5000]")
     decompGroup.add_argument("-D", "--distance", type = float, 
                       dest = "distance", metavar = "DISTANCE",
                       default = 1, 
