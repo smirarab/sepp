@@ -390,7 +390,7 @@ class _AlignmentLookupHelper(object):
 class ExtendedAlignment(MutableAlignment):
     '''
     This is used to keep an extended alignment. An extended alignment 
-    has a bunch of sequences that are labeles as fragments. More importantly,
+    has a bunch of sequences that are labeled as fragments. More importantly,
     columns of extended alignments are labeled with numbers and also it is 
     known whether a column is an "insertion" column or a normal column. 
     1) these can be read from .sto files. 
@@ -411,6 +411,11 @@ class ExtendedAlignment(MutableAlignment):
         self._reset_col_names()
         return ret
 
+    def remove_missing_fragments(self):
+        for frag in list(self.get_fragment_names()):
+            if frag not in self:
+                self.fragments.remove(frag)
+            
     def add_column(self, pos, char='-', new_label=None):
         '''
         A new column is added to the alignment. The new label can be value, 

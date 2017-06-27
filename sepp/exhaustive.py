@@ -17,6 +17,9 @@ from sepp.math_utils import lcm
 import pdb
 _LOG = get_logger(__name__)
 
+def get_placement_job_name(chunk_number):
+    return "pplacer_%d" %chunk_number
+
 class JoinSearchJobs(Join):
     '''
     After all search jobs have finished on tips, we need to figure out which 
@@ -117,7 +120,8 @@ class JoinAlignJobs(Join):
         Join.__init__(self)
         
     def setup_with_placement_problem(self, placement_problem):
-        self.placement_problem = placement_problem            
+        self.placement_problem = placement_problem    
+        self.root_problem =  placement_problem.parent  
         for p in placement_problem.iter_leaves():
             self.add_job(p.jobs["hmmalign"])         
     
@@ -128,52 +132,65 @@ class JoinAlignJobs(Join):
         '''     
         pp = self.placement_problem
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
-        ''' First assign fragments to the placement problem'''
+        ''' First find fragments assigned to this placement problem'''
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
         frags = []      
         for ap in pp.get_children():
             frags.extend(ap.fragments)        
-        pp.fragments.seq_names.update(frags)                                 
-        ''' Then Build an extended alignment by merging all hmmalign results''' 
-        extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
+        pp.fragments.seq_names.update(frags)   
+                                      
+        ''' Then, gather a list of all allignments relevant to this placement subset''' 
+        fragfilesperap = dict()
+        fcl = 0
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
             ''' Get all fragment chunk alignments for this alignment subset'''
             aligned_files = [fp.get_job_result_by_name('hmmalign') for 
                                 fp in ap.children if 
                                 fp.get_job_result_by_name('hmmalign') is not None]
-            _LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
-            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-                        (ap.jobs["hmmbuild"].infile , aligned_files)
-            _LOG.debug("Merging alignment subset into placement subset: %s." %(ap.label))
-            extendedAlignment.merge_in(ap_alg,convert_to_string=False)
-            del ap_alg
+            fragfilesperap[ap] = aligned_files
+            fcl = max(fcl,len(aligned_files))
         
-        extendedAlignment.from_bytearray_to_string()
-        return extendedAlignment
+        ''' Now, build an extended alignment *per each fragment chunk*.
+                Simply merge all hmmalign results for fragment chunk numbered i'''    
+        extendedAlignments = []
+        for i in range(0,fcl):
+            extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
+            for ap in pp.children:
+                #_LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
+                ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                            (ap.jobs["hmmbuild"].infile , [aligned_files[i]])
+                _LOG.debug("Merging alignment subset into placement subset for chunk %d: %s." %(i, ap.label))
+                extendedAlignment.merge_in(ap_alg,convert_to_string=False)
+            '''Extended alignmnts have all fragments. remove the ones that don't belong to thsi chunk'''
+            extendedAlignment.remove_missing_fragments()
+            extendedAlignment.from_bytearray_to_string()
+            extendedAlignments.append(extendedAlignment)
+            #del ap_alg
+        return extendedAlignments
     
     def perform(self):            
         pp = self.placement_problem
+        fullExtendedAlignments = self.merge_subalignments()
 
-        fullExtendedAlignment = self.merge_subalignments()
+        for i in range(0,self.root_problem.fragment_chunks):   
+            fullExtendedAlignment = fullExtendedAlignments[i]
+            #Split the backbone alignment and query sequences into separate files        
+            queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
+            baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+            pj = pp.jobs[get_placement_job_name(i)]
+            assert isinstance(pj,PplacerJob)
+            if (queryExtendedAlignment.is_empty()):
+              pj.fake_run = True
         
-        #Split the backbone alignment and query sequences into separate files        
-        queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
-        baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+            #Write out the extended alignments, split into query and full-length for pplacer
+            queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
+            baseAlignment.write_to_path(pj.backbone_alignment_file)
+        
+             #But keep the extended alignment on everything 
+            pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
 
-        pj = pp.jobs["pplacer"]
-        assert isinstance(pj,PplacerJob)
-        if (queryExtendedAlignment.is_empty()):
-          pj.fake_run = True
-        
-        #Write out the extended alignments, split into query and full-length for pplacer
-        queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
-        baseAlignment.write_to_path(pj.backbone_alignment_file)
-        
-        #But keep the extended alignment on everything 
-        pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
-
-        JobPool().enqueue_job(pj)
+            JobPool().enqueue_job(pj)
 
     def __str__(self):
         return "join align jobs for tips of ", self.placement_problem
@@ -207,10 +224,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        fullExtendedAlignment = self.root_problem.get_children()[0].jobs["pplacer"].get_attribute("full_extended_alignment_object")
+        fullExtendedAlignment = self.root_problem.get_children()[0].jobs[get_placement_job_name(0)].get_attribute("full_extended_alignment_object")
         for pp in self.root_problem.get_children()[1:]:
-            extended_alignment = pp.jobs["pplacer"].get_attribute("full_extended_alignment_object")
-            fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
+            for i in range(0,self.root_problem.fragment_chunks):
+                extended_alignment = pp.jobs[get_placement_job_name(i)].get_attribute("full_extended_alignment_object")
+                fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
         self.results = fullExtendedAlignment
         
         mergeinput = []
@@ -219,11 +237,12 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         jsons = []
         for pp in self.root_problem.get_children():
             assert isinstance(pp,SeppProblem)
-            if (pp.get_job_result_by_name("pplacer") is None):
-              continue
-            '''Append subset trees and json locations to merge input'''
-            mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
-                              pp.get_job_result_by_name("pplacer")))
+            for i in range(0,self.root_problem.fragment_chunks):
+                if (pp.get_job_result_by_name(get_placement_job_name(i)) is None):
+                  continue
+                '''Append subset trees and json locations to merge input'''
+                mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
+                                  pp.get_job_result_by_name(get_placement_job_name(i))))
         mergeinput.append("")
         mergeinput.append("")
         meregeinputstring = "\n".join(mergeinput)
@@ -319,16 +338,17 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         _LOG.info("Breaking into %d alignment subsets." %(len(list(self.root_problem.iter_leaves()))))    
 
         ''' Divide fragments into chunks, to help achieve better parallelism'''
-        fragment_chunk_files = self.create_fragment_files()                
+        fragment_chunk_files = self.create_fragment_files()    
+        self.root_problem.fragment_chunks = len(fragment_chunk_files)            
         for alignment_problem in self.root_problem.iter_leaves():       
-            for afc in range(0,len(fragment_chunk_files)):
+            for afc in range(0,self.root_problem.fragment_chunks):
                 frag_chunk_problem  = SeppProblem(alignment_problem.taxa, 
                                               alignment_problem)
                 frag_chunk_problem.subtree = alignment_problem.subtree
                 frag_chunk_problem.label = alignment_problem.label.replace("A_", "FC_") + "_" +str(afc)
                 frag_chunk_problem.fragments = fragment_chunk_files[afc]
                     
-        _LOG.info("Breaking each alignment subset into %d fragment chunks." %len(fragment_chunk_files))
+        _LOG.info("Breaking each alignment subset into %d fragment chunks." %self.root_problem.fragment_chunks)
         _LOG.info("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
     
@@ -344,9 +364,10 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         assert isinstance(self.root_problem, SeppProblem)
         for placement_problem in self.root_problem.get_children():
             ''' Create pplacer jobs'''
-            pj = PplacerJob()
-            placement_problem.add_job(pj.job_type,pj)
-            pj.partial_setup_for_subproblem(placement_problem, self.options.info_file)
+            for i in range(0,self.root_problem.fragment_chunks):
+                pj = PplacerJob()
+                placement_problem.add_job(get_placement_job_name(i),pj)
+                pj.partial_setup_for_subproblem(placement_problem, self.options.info_file, i)
             
             '''For each alignment subproblem, ...'''
             for alg_problem in placement_problem.children:
