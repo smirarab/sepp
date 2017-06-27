@@ -224,8 +224,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         assert isinstance(self.root_problem,SeppProblem)
         
         '''Generate single extended alignment'''
-        fullExtendedAlignment = self.root_problem.get_children()[0].jobs[get_placement_job_name(0)].get_attribute("full_extended_alignment_object")
-        for pp in self.root_problem.get_children()[1:]:
+        fullExtendedAlignment = ExtendedAlignment(self.root_problem.fragments.keys())
+        #self.root_problem.get_children()[0].jobs[get_placement_job_name(0)].get_attribute("full_extended_alignment_object")
+        for pp in self.root_problem.get_children():
             for i in range(0,self.root_problem.fragment_chunks):
                 extended_alignment = pp.jobs[get_placement_job_name(i)].get_attribute("full_extended_alignment_object")
                 fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
