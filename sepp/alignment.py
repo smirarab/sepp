@@ -242,7 +242,7 @@ class ReadOnlyAlignment(Mapping, object):
         names = self.get_sequence_names()        
         ret = []
         if max_chunk_size and len(names)/chunks > max_chunk_size:
-            chunks = len(names)//max_chunk_size
+            chunks = len(names)//max_chunk_size + 1
         for i in range(0,chunks):
             subset = names[i:len(names):chunks]
             if subset:
