@@ -238,9 +238,11 @@ class ReadOnlyAlignment(Mapping, object):
     def __str__(self):
         return '\n'.join([">%s\n%s" %(k, self[k]) for k in sorted(self.keys())])
     
-    def divide_to_equal_chunks(self,chunks):
+    def divide_to_equal_chunks(self,chunks, max_chunk_size = None):
         names = self.get_sequence_names()        
         ret = []
+        if max_chunk_size and len(names)/chunks > max_chunk_size:
+            chunks = len(names)//max_chunk_size + 1
         for i in range(0,chunks):
             subset = names[i:len(names):chunks]
             if subset:
@@ -388,7 +390,7 @@ class _AlignmentLookupHelper(object):
 class ExtendedAlignment(MutableAlignment):
     '''
     This is used to keep an extended alignment. An extended alignment 
-    has a bunch of sequences that are labeles as fragments. More importantly,
+    has a bunch of sequences that are labeled as fragments. More importantly,
     columns of extended alignments are labeled with numbers and also it is 
     known whether a column is an "insertion" column or a normal column. 
     1) these can be read from .sto files. 
@@ -409,6 +411,11 @@ class ExtendedAlignment(MutableAlignment):
         self._reset_col_names()
         return ret
 
+    def remove_missing_fragments(self):
+        for frag in list(self.get_fragment_names()):
+            if frag not in self:
+                self.fragments.remove(frag)
+            
     def add_column(self, pos, char='-', new_label=None):
         '''
         A new column is added to the alignment. The new label can be value, 
@@ -565,7 +572,7 @@ class ExtendedAlignment(MutableAlignment):
     def relabel_original_columns(self, original_labels):
         '''
         This methods relabels non-insertion columns in self based on the 
-        input lables. Insertion column labels will not be affected.  
+        input labels. Insertion column labels will not be affected.  
         '''
         j = 0
         _LOG.debug("Relabeling %d (%d) with %d labels." %(self.get_length(),len(self._col_labels),len(original_labels)))

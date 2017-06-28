@@ -135,14 +135,17 @@ def _init_parser():
                       dest = "placement_size", metavar = "N",
                       default = None, 
                       help = "max placement subset size of N "
-                             "[default: 10%% of the total number of taxa]")
-
+                             "[default: 10%% of the total number of taxa or the alignment length (whichever bigger)]")
+    decompGroup.add_argument("-F", "--fragmentChunkSize", type = int, 
+                      dest = "max_chunk_size", metavar = "N",
+                      default = 5000, 
+                      help = "maximum fragment chunk size of N. Helps controlling memory.  "
+                             "[default: 5000]")
     decompGroup.add_argument("-D", "--distance", type = float, 
                       dest = "distance", metavar = "DISTANCE",
                       default = 1, 
                       help = "minimum p-distance before stopping the decomposition"
                              "[default: 1]")                              
-                             
     decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
                       dest = "decomp_strategy", metavar = "DECOMP",
                       default = "normal", 

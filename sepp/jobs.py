@@ -455,7 +455,7 @@ class PplacerJob(ExternalSeppJob):
         self._kwargs = kwargs      
         self.setup_setting = "File:TrInEx"                  
 
-    def partial_setup_for_subproblem(self, subproblem, info_file, **kwargs):
+    def partial_setup_for_subproblem(self, subproblem, info_file, i, **kwargs):
         ''' Automatically sets up a job given a subproblem object. 
         Note that extended alignment and the backbone_alignment_file are just file names, referring to empty
         files at this point. These files needs to be created before the job is queued. 
@@ -468,10 +468,10 @@ class PplacerJob(ExternalSeppJob):
         self.tree_file = sepp.filemgr.tempfile_for_subproblem("pplacer.tree.", 
                                                        subproblem, ".tre")
         self.extended_alignment_file = \
-                         sepp.filemgr.tempfile_for_subproblem("pplacer.extended.", 
+                         sepp.filemgr.tempfile_for_subproblem("pplacer.extended.%d."%i, 
                                                        subproblem, ".fasta")
         self.full_extended_alignment_file = \
-                         sepp.filemgr.tempfile_for_subproblem("pplacer.full.extended.", 
+                         sepp.filemgr.tempfile_for_subproblem("pplacer.full.extended.%d."%i, 
                                                        subproblem, ".fasta")                                                       
         self.out_file = os.path.join(sepp.filemgr.tempdir_for_subproblem(subproblem),
                              self.extended_alignment_file.replace("fasta","jplace"))                       
@@ -494,6 +494,7 @@ class PplacerJob(ExternalSeppJob):
                           "-r", self.backbone_alignment_file, 
                          "-s", self.info_file, 
                          "-t", self.tree_file,
+                         "--groups", "10",
                          self.extended_alignment_file])
         return invoc
 
