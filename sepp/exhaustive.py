@@ -134,10 +134,9 @@ class JoinAlignJobs(Join):
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
         ''' First find fragments assigned to this placement problem'''
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
-        frags = []      
         for ap in pp.get_children():
-            frags.extend(ap.fragments)        
-        pp.fragments.seq_names.update(frags)   
+            pp.fragments.seq_names |= set(ap.fragments)
+
                                       
         ''' Then, gather a list of all allignments relevant to this placement subset''' 
         fragfilesperap = dict()
@@ -146,8 +145,7 @@ class JoinAlignJobs(Join):
             assert isinstance(ap, SeppProblem)
             ''' Get all fragment chunk alignments for this alignment subset'''
             aligned_files = [fp.get_job_result_by_name('hmmalign') for 
-                                fp in ap.children if 
-                                fp.get_job_result_by_name('hmmalign') is not None]
+                                fp in ap.children]
             fragfilesperap[ap] = aligned_files
             fcl = max(fcl,len(aligned_files))
         
@@ -158,15 +156,15 @@ class JoinAlignJobs(Join):
             extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
             for ap in pp.children:
                 #_LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
-                ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-                            (ap.jobs["hmmbuild"].infile , [aligned_files[i]])
-                _LOG.debug("Merging alignment subset into placement subset for chunk %d: %s." %(i, ap.label))
-                extendedAlignment.merge_in(ap_alg,convert_to_string=False)
+                if fragfilesperap[ap][i]:
+                    ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                            (ap.jobs["hmmbuild"].infile , [fragfilesperap[ap][i]])
+                    _LOG.debug("Merging alignment subset into placement subset for chunk %d: %s." %(i, ap.label))
+                    extendedAlignment.merge_in(ap_alg,convert_to_string=False)
             '''Extended alignmnts have all fragments. remove the ones that don't belong to thsi chunk'''
             extendedAlignment.remove_missing_fragments()
             extendedAlignment.from_bytearray_to_string()
             extendedAlignments.append(extendedAlignment)
-            #del ap_alg
         return extendedAlignments
     
     def perform(self):            
@@ -364,18 +362,17 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def build_jobs(self):        
         assert isinstance(self.root_problem, SeppProblem)
         for placement_problem in self.root_problem.get_children():
-            ''' Create pplacer jobs'''
+            ''' Create placer jobs'''
             for i in range(0,self.root_problem.fragment_chunks):
                 pj = PplacerJob()
-                placement_problem.add_job(get_placement_job_name(i),pj)
                 pj.partial_setup_for_subproblem(placement_problem, self.options.info_file, i)
+                placement_problem.add_job(get_placement_job_name(i),pj)
             
             '''For each alignment subproblem, ...'''
             for alg_problem in placement_problem.children:
                 assert isinstance(alg_problem, SeppProblem)                
                 ''' create the build model job'''
                 bj = HMMBuildJob()
-                #pdb.set_trace()
                 bj.setup_for_subproblem(alg_problem,symfrac=self.symfrac, molecule=self.molecule,**vars(self.options.hmmbuild))
                 alg_problem.add_job(bj.job_type, bj)                
                 ''' create the search jobs'''
