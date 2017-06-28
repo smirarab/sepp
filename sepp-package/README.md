@@ -65,7 +65,7 @@ version, the final newick output is already decorated.
 
 ### Notes on the reference alignment/tree
 
-* To build the reference tree, see [this page][buildref/README.md].
+* To build the reference tree, see [this page](buildref/README.md).
     * we started from [this file](ftp://greengenes.microbio.me/greengenes_release/gg_13_8_otus/trees/99_otus.tree) from the public Greengenes dataset. 
     * Taxonomic labels are removed (for the next few steps)
     * The reference alignment is called `gg_13_5_ssu_align_99_pfiltered.fasta` and is included within the package
