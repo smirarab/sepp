@@ -1,7 +1,10 @@
+* Version 4.2.3:
+     * Added a hard-coded --groups 10 to the pplacer runs to help with memory
 * Version 4.2.2:
      * Add max chunk size
      * Fix logging messages
      * Fix a bug for the `-D` option after python 3 transition
+     * Changed the pplacer step so that each run is on one fragment chunk (not all fragments), as specified using -F
 * Version 4.2.1:
      * Fixed a bug with `run_tipp_tools.py` path
 * Version 4.2.0:

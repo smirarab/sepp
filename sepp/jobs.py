@@ -494,6 +494,7 @@ class PplacerJob(ExternalSeppJob):
                           "-r", self.backbone_alignment_file, 
                          "-s", self.info_file, 
                          "-t", self.tree_file,
+                         "--groups", "10",
                          self.extended_alignment_file])
         return invoc
 
