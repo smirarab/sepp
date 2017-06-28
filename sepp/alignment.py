@@ -572,7 +572,7 @@ class ExtendedAlignment(MutableAlignment):
     def relabel_original_columns(self, original_labels):
         '''
         This methods relabels non-insertion columns in self based on the 
-        input lables. Insertion column labels will not be affected.  
+        input labels. Insertion column labels will not be affected.  
         '''
         j = 0
         _LOG.debug("Relabeling %d (%d) with %d labels." %(self.get_length(),len(self._col_labels),len(original_labels)))

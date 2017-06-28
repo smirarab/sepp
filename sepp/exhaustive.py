@@ -140,27 +140,28 @@ class JoinAlignJobs(Join):
                                       
         ''' Then, gather a list of all allignments relevant to this placement subset''' 
         fragfilesperap = dict()
-        fcl = 0
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
             ''' Get all fragment chunk alignments for this alignment subset'''
             aligned_files = [fp.get_job_result_by_name('hmmalign') for 
                                 fp in ap.children]
             fragfilesperap[ap] = aligned_files
-            fcl = max(fcl,len(aligned_files))
         
         ''' Now, build an extended alignment *per each fragment chunk*.
                 Simply merge all hmmalign results for fragment chunk numbered i'''    
         extendedAlignments = []
-        for i in range(0,fcl):
+        for i in range(0,self.root_problem.fragment_chunks):
             extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
             for ap in pp.children:
                 #_LOG.debug("Merging fragment chunks for subalignment : %s." %(ap.label))
                 if fragfilesperap[ap][i]:
                     ap_alg = ap.read_extendend_alignment_and_relabel_columns\
                             (ap.jobs["hmmbuild"].infile , [fragfilesperap[ap][i]])
-                    _LOG.debug("Merging alignment subset into placement subset for chunk %d: %s." %(i, ap.label))
-                    extendedAlignment.merge_in(ap_alg,convert_to_string=False)
+                else:
+                    ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+                            (ap.jobs["hmmbuild"].infile , [])
+                _LOG.debug("Merging alignment subset into placement subset for chunk %d: %s." %(i, ap.label))
+                extendedAlignment.merge_in(ap_alg,convert_to_string=False)
             '''Extended alignmnts have all fragments. remove the ones that don't belong to thsi chunk'''
             extendedAlignment.remove_missing_fragments()
             extendedAlignment.from_bytearray_to_string()
@@ -179,7 +180,7 @@ class JoinAlignJobs(Join):
             pj = pp.jobs[get_placement_job_name(i)]
             assert isinstance(pj,PplacerJob)
             if (queryExtendedAlignment.is_empty()):
-              pj.fake_run = True
+                pj.fake_run = True
         
             #Write out the extended alignments, split into query and full-length for pplacer
             queryExtendedAlignment.write_to_path(pj.extended_alignment_file)          
