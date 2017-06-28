@@ -284,7 +284,8 @@ Output directory [a_drecotry] already contains files with prefix [output]... Ter
 `
 
 Finally, you can use the `-F` option to control the size of the fragment chunks used internally in SEPP. 
-This helps control the amount of memory used by SEPP. Lower chunk sizes tend to require less memory. 
+This option helps control the amount of memory used by SEPP. 
+Lowering the chunk sizes can reduce the memory requirements. 
 
 Running SEPP on a larger dataset
 --------------------------------------------
