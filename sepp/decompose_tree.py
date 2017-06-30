@@ -132,9 +132,6 @@ def decompose_by_diameter(a_tree,max_size,min_size=None,max_diam=None):
     min_size = min_size if min_size else 0
     max_diam = max_diam if max_diam else a_tree.seed_node.diameter
 
-    print(min_size)
-    print(a_tree.seed_node.diameter)
-
     e = __get_breaking_edge__(a_tree)
     if e is None:
 #    if __check_stop__(a_tree):
