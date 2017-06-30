@@ -15,12 +15,34 @@ def decompose_by_diameter(a_tree,max_size,min_size=None,max_diam=None):
     def __ini_record__():
         for node in a_tree.postorder_node_iter():
                __updateNode__(node)
+    '''
     def __find_centroid_edge__(t):
         h = 1
         u = t.seed_node.bestLCA.anchor
         while (h < t.seed_node.topo_diam//2):
             h += 1
             u = u.parent_node
+        return u.edge
+    '''
+    def __find_centroid_edge__(t):
+        u = t.seed_node
+        product = 0
+        acc_nleaf = 0
+
+        while not u.is_leaf():
+            max_child = None
+            max_child_nleaf = 0
+            for ch in u.child_node_iter():
+                if ch.nleaf > max_child_nleaf:
+                    max_child_nleaf = ch.nleaf
+                    max_child = ch
+            acc_nleaf += (u.nleaf-max_child.nleaf)
+            new_product = max_child.nleaf * acc_nleaf
+            if new_product <= product:
+                break
+            product = new_product
+            u = max_child
+
         return u.edge
 
     def __bisect__(t,e):
@@ -55,64 +77,64 @@ def decompose_by_diameter(a_tree,max_size,min_size=None,max_diam=None):
     def __clean_up__(t):
         for node in t.postorder_node_iter():
             delattr(node,"nleaf")
-            delattr(node,"anchor")
-            delattr(node,"maxheight")
+#            delattr(node,"anchor")
+#            delattr(node,"maxheight")
             delattr(node,"maxdepth")
             delattr(node,"diameter")
-            delattr(node,"topo_diam")
-            delattr(node,"bestLCA")
+#            delattr(node,"topo_diam")
+#            delattr(node,"bestLCA")
 
     def __updateNode__(node):
         if node.is_leaf():
-            node.anchor = node
-            node.maxheight = 0
+#            node.anchor = node
+#            node.maxheight = 0
             node.maxdepth = 0
             node.diameter = 0
-            node.topo_diam = 0
-            node.bestLCA = node
+#            node.topo_diam = 0
+#            node.bestLCA = node
             node.nleaf = 1
             return
 
-        n1 = -1
-        n2 = -1
+#        n1 = -1
+#        n2 = -1
         d1 = -1
         d2 = -1
-        anchor1 = None
-        anchor2 = None
+#        anchor1 = None
+#        anchor2 = None
         node.diameter = 0
-        node.topo_diam = 0
-        node.bestLCA = None
+#        node.topo_diam = 0
+#        node.bestLCA = None
         node.nleaf = 0
 
         for ch in node.child_node_iter():
                node.nleaf += ch.nleaf
-               n = ch.maxheight + 1
+#               n = ch.maxheight + 1
                d = ch.maxdepth + ch.edge_length
-               if n > n1:
-                   n2 = n1
-                   n1 = n
-                   anchor2 = anchor1
-                   anchor1 = ch.anchor
-               elif n > n2:
-                   n2 = n
-                   anchor2 = ch.anchor
+#               if n > n1:
+#                   n2 = n1
+#                   n1 = n
+#                   anchor2 = anchor1
+#                   anchor1 = ch.anchor
+#               elif n > n2:
+#                   n2 = n
+#                   anchor2 = ch.anchor
                if d > d1:
                    d2 = d1
                    d1 = d
                elif d > d2:
                    d2 = d
-               if ch.topo_diam > node.topo_diam:
-                   node.top_diam = ch.topo_diam
-                   node.bestLCA = ch.bestLCA
+#               if ch.topo_diam > node.topo_diam:
+#                   node.top_diam = ch.topo_diam
+#                   node.bestLCA = ch.bestLCA
                node.diameter = max(ch.diameter,node.diameter)
 
         node.diameter = max(d1+d2, node.diameter)
         node.maxdepth = d1
-        node.maxheight = n1
-        node.anchor = anchor1
-        if n1+n2 > node.topo_diam:
-            node.topo_diam = n1+n2
-            node.bestLCA = node
+#        node.maxheight = n1
+#        node.anchor = anchor1
+#        if n1+n2 > node.topo_diam:
+#            node.topo_diam = n1+n2
+#            node.bestLCA = node
 
     def __get_breaking_edge__(t):
         if t.seed_node.nleaf <= max_size and t.seed_node.diameter <= max_diam:
