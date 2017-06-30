@@ -11,7 +11,7 @@ except:
 #from tree import PhylogeneticTree
 
 
-def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
+def decompose_by_diameter(a_tree,max_size,min_size=None,max_diam=None):
     def __ini_record__():
         for node in a_tree.postorder_node_iter():
                __updateNode__(node)
@@ -23,8 +23,8 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
             u = u.parent_node
         return u.edge
 
-    def __bisect__(t):
-        e = __find_centroid_edge__(t)
+    def __bisect__(t,e):
+#        e = __find_centroid_edge__(t)
         
         u = e.tail_node
         v = e.head_node
@@ -54,6 +54,7 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
 
     def __clean_up__(t):
         for node in t.postorder_node_iter():
+            delattr(node,"nleaf")
             delattr(node,"anchor")
             delattr(node,"maxheight")
             delattr(node,"maxdepth")
@@ -69,6 +70,7 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
             node.diameter = 0
             node.topo_diam = 0
             node.bestLCA = node
+            node.nleaf = 1
             return
 
         n1 = -1
@@ -80,8 +82,10 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
         node.diameter = 0
         node.topo_diam = 0
         node.bestLCA = None
+        node.nleaf = 0
 
         for ch in node.child_node_iter():
+               node.nleaf += ch.nleaf
                n = ch.maxheight + 1
                d = ch.maxdepth + ch.edge_length
                if n > n1:
@@ -110,32 +114,51 @@ def decompose_by_diameter(a_tree,max_diam=None,nsubtree=50):
             node.topo_diam = n1+n2
             node.bestLCA = node
 
+    def __get_breaking_edge__(t):
+        if t.seed_node.nleaf <= max_size and t.seed_node.diameter <= max_diam:
+            return None
+        e = __find_centroid_edge__(t)
+        n = e.head_node.nleaf
+        if (n < min_size) or (t.seed_node.nleaf - n) < min_size:
+            return None
+        return e
+
+    def __check_stop__(t):
+        return ( (t.seed_node.nleaf <= max_size and t.seed_node.diameter <= max_diam) or
+                 (t.seed_node.nleaf//2 < min_size) )     
+
     tqueue = Queue()
     __ini_record__()
-    max_diam = max_diam if max_diam is not None else a_tree.seed_node.diameter/nsubtree
-    if a_tree.seed_node.diameter <= max_diam:
+    min_size = min_size if min_size else 0
+    max_diam = max_diam if max_diam else a_tree.seed_node.diameter
+
+    print(min_size)
+    print(a_tree.seed_node.diameter)
+
+    e = __get_breaking_edge__(a_tree)
+    if e is None:
+#    if __check_stop__(a_tree):
+        __clean_up__(a_tree)
         return [a_tree]
         
     treeMap = [] 
-    tqueue.put(a_tree)
+    tqueue.put((a_tree,e))
     while not tqueue.empty():
-        t = tqueue.get()
-        print(t.seed_node.diameter)
-        t1,t2 = __bisect__(t)
-        print(t1.seed_node.diameter)
-        print(t2.seed_node.diameter)
-        print("\n")
-        if t1.seed_node.diameter <= max_diam:
+        t,e = tqueue.get()
+        t1,t2 = __bisect__(t,e)
+        e1 = __get_breaking_edge__(t1)
+        if e1 is None:
+#        if __check_stop__(t1):
              __clean_up__(t1)            
-             #treeMap[i] = PhylogeneticTree(t1)
              treeMap.append(t1)
         else:
-            tqueue.put(t1)
-        if t2.seed_node.diameter <= max_diam:
+            tqueue.put((t1,e1))
+        e2 = __get_breaking_edge__(t2)
+        if e2 is None:
+#        if __check_stop__(t2):
              __clean_up__(t2)
-             #treeMap[i] = PhylogeneticTree(t2)
              treeMap.append(t2)
         else:
-            tqueue.put(t2)
+            tqueue.put((t2,e2))
 
     return treeMap

@@ -327,7 +327,7 @@ for l in sys.stdin.readlines():
         return tree1, tree2, e
 
 #    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None):
-    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None,max_diam=None,nsubtree=50):
+    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None,maxDiam=None):
         """
         This function decomposes the tree until all subtrees are smaller than 
         the max size, but does not decompose below min size.  
@@ -337,8 +337,8 @@ for l in sys.stdin.readlines():
         SIDE EFFECT: deroots the tree (TODO: necessary?)
         """          
         # uym2 added #
-        if (strategy == "diameter"):
-            T = decompose_by_diameter(self._tree,max_diam=max_diam,nsubtree=nsubtree)
+        if (decomp_strategy == "brlen"):
+            T = decompose_by_diameter(self._tree,maxSize,max_diam=maxDiam,min_size=minSize)
             i=0
             for t in T:
                 tree_map[i] = PhylogeneticTree(t)
