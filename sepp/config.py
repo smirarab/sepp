@@ -90,7 +90,7 @@ def valid_molecule(molecule):
 def valid_decomp_strategy(strategy):
     ret = strategy in ['hierarchical','normal','brlen']
     if ret == False:
-        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical'." % strategy)
+        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical', or 'brlen'." % strategy)
     return strategy
     
 
@@ -148,7 +148,7 @@ def _init_parser():
                       dest = "maxDiam", metavar = "DIAMETER",
                       default = None, 
                       help = "maximum tree diameter before stopping the decomposition"
-                             "[default: 1]")                              
+                             "[default: None]")                              
     
     decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
                       dest = "decomp_strategy", metavar = "DECOMP",
