@@ -195,7 +195,7 @@ class AbstractAlgorithm(object):
         #If sizes are not set, then use 10% rule
         options = self.options
         if (options.maxDiam is not None) and ( options.decomp_strategy not in ["midpoint", "centroid"]):
-            raise Exception("The max diameter option can be used only with the midpoint decomposition specified using -S")
+            raise Exception("The max diameter option can be used only with the midpoint or the centroid decomposition specified using -S")
         if (options.alignment_size is None):
             if options.placement_size is None:
                 options.alignment_size = int(total*.10)

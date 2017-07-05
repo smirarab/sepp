@@ -9,7 +9,9 @@ try:
 except:
     from Queue import Queue # python 2
 #from tree import PhylogeneticTree
+from sepp import get_logger
 
+_LOG = get_logger(__name__)
 
 def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=None):
     def __ini_record__():
@@ -147,7 +149,7 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
         elif edge_type == 'centroid':
             e = __find_centroid_edge__(t)
         else:
-            print("Invalid decomposition type! Please use either 'midpoint' or 'centroid'")
+            _LOG.warning("Invalid decomposition type! Please use either 'midpoint' or 'centroid'")
             return None
 
         n = e.head_node.nleaf
@@ -169,14 +171,14 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
         return e
 
     def __break(t):
-        if strategy == "ceontroid":
+        if strategy == "centroid":
             return __get_breaking_edge__(t,'centroid')
         elif strategy == "midpoint":
             return __break_by_MP_centroid__(t)
         else:
             raise Exception("strategy not valid: %s" %strategy)
 
-    print("Starting brlen decomposition ...")
+    _LOG.debug("Starting brlen decomposition ...")
     tqueue = Queue()
     __ini_record__()
     min_size = min_size if min_size else 0

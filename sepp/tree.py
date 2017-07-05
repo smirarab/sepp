@@ -24,7 +24,7 @@ from dendropy import DataSet as Dataset
 from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
-from decompose_tree import decompose_by_diameter
+from sepp.decompose_tree import decompose_by_diameter
 
 
 try:

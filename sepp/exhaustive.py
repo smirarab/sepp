@@ -207,7 +207,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.filters = False
         self.symfrac = True
         self.strategy = options().exhaustive.strategy
-        self.decomp_strategy = options().exhaustive.decomp_strategy
+        self.decomp_strategy = options().decomp_strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
         self.molecule = self.options.molecule
