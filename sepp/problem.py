@@ -189,7 +189,7 @@ class SeppProblem(Problem):
         Writes out the subalignment associated with this subproblem to a file,
         removing all gap columns, but also keeping track of what was removed and
         what was kept. This method keeps track of column names that were actually
-        written to file, so that later on column names could be set to the original
+        written to file, so that later on, column names could be set to the original
         value. This is crucial for a correct merge. 
         (see read_extendend_alignment_and_relabel_columns) 
         '''

@@ -197,7 +197,7 @@ class AbstractAlgorithm(object):
         if (options.alignment_size is None):
             options.alignment_size = int(total*.10)
         if (options.placement_size is None):
-            options.placement_size = options.alignment_size
+            options.placement_size = max(int(total*.10),options.alignment_size)
         if options.placement_size is not None and options.placement_size < options.alignment_size:
             _LOG.warning("alignment_size (%d) cannot be larger than placement_size (%d).   Setting alignment_size to be placement_size" %(options.alignment_size,options.placement_size))   
             options.alignment_size = options.placement_size                 
@@ -232,15 +232,15 @@ class AbstractAlgorithm(object):
         
         return (alignment, tree)
 
-    def read_and_divide_fragments(self, chunks, extra_frags = {}):
-        _LOG.debug("start reading fragment files and breaking to chunks: %d" %chunks)
+    def read_and_divide_fragments(self, chunks, max_chunk_size = None, extra_frags = {}):
+        _LOG.debug("start reading fragment files and breaking to at least %d chunks but at  most %d sequences " %(chunks,max_chunk_size))
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
         for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
-        alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks)        
+        alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks, max_chunk_size)        
         ret = []
-        for i in range(0,chunks):
+        for i in range(0,len(alg_chunks)):
             temp_file = None
             if alg_chunks[i]:
                 temp_file = get_temp_file("fragment_chunk_%d" %i, "fragment_chunks", ".fasta")
