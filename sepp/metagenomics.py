@@ -92,7 +92,8 @@ def build_profile(input,output_directory):
     extra = ''
     if options().dist == True:
       extra = '-D'
-      
+    if options().max_chunk_size is not None:
+      extra = extra + '-F %d' %options().max_chunk_size
     if options().cutoff != 0:
       extra = extra+" -C %f" % options().cutoff
     print('Cmd:\nrun_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d %s %s' % (options().config_file.name, cpus, options().molecule, temp_dir+"/%s.frags.fas.fixed" % gene,os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.tree'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.fasta'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/%s.taxonomy.RAxML_info'%(gene,gene_name)),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/all_taxon.taxonomy'%gene),os.path.join(options().__getattribute__('reference').path, 'refpkg/%s.refpkg/species.mapping'%gene),options().alignment_threshold,0,decomp_size,total_taxa,temp_dir+"/temp_file","tipp_%s" % gene,output_directory+"/markers/", extra))

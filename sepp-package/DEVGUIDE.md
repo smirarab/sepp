@@ -23,5 +23,5 @@ Then zip them all up
 
 ```
 cd ..
-rm sepp-package.zip; zip -r sepp-package.zip sepp-package/ --exclude \*.pyc
+COPYFILE_DISABLE=1 tar cvfjh sepp-package.tar.bz  --exclude "*pyc" sepp-package/
 ```

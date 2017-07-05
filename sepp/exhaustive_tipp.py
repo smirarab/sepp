@@ -1,4 +1,4 @@
-from sepp.exhaustive import ExhaustiveAlgorithm
+from sepp.exhaustive import ExhaustiveAlgorithm, JoinAlignJobs, get_placement_job_name
 import sepp,os,stat,math
 from sepp.config import options
 import argparse,json
@@ -112,17 +112,17 @@ class TIPPJoinSearchJobs(Join):
                 aj.hmmmodel = alg_problem.get_job_result_by_name('hmmbuild')
                 aj.base_alignment = alg_problem.jobs["hmmbuild"].infile
 
-                if fragment_chunk_problem.fragments is not None and not fragment_chunk_problem.fragments.is_empty():
-                    fragment_chunk_problem.fragments.write_to_path(aj.fragments)
+                if fragment_chunk_problem.fragments is None or fragment_chunk_problem.fragments.is_empty():
+                    aj.fake_run = True       
                 else:
-                    aj.fake_run = True
+                    fragment_chunk_problem.fragments.write_to_path(aj.fragments)
                 ''' Now the align job can be put on the queue '''
                 JobPool().enqueue_job(aj)
                 
     def __str__(self):
         return "join search jobs for all tips of ", self.root_problem
 
-class TIPPJoinAlignJobs(Join):
+class TIPPJoinAlignJobs(JoinAlignJobs):
     '''
     After all alignments jobs for a placement subset have finished,
     we need to build those extended alignments and start placing fragments.
@@ -131,77 +131,44 @@ class TIPPJoinAlignJobs(Join):
     def __init__(self, placer):
         Join.__init__(self)
         self.placer = placer
-        
-    def setup_with_placement_problem(self, placement_problem):
-        self.placement_problem = placement_problem
-        for p in placement_problem.iter_leaves():
-            self.add_job(p.jobs["hmmalign"])
-    
-    def merge_subalignments(self):
-        '''
-        Merge alignment subset extended alignments to get one extended alignment
-        for current placement subset.
-        '''
-        pp = self.placement_problem
-        _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
-        ''' First assign fragments to the placement problem'''
-        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
-        for ap in pp.get_children():
-            pp.fragments.seq_names |= set(ap.fragments)
-        ''' Then Build an extended alignment by merging all hmmalign results'''
-        extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
-        for ap in pp.children:
-            assert isinstance(ap, SeppProblem)
-            ''' Get all fragment chunk alignments for this alignment subset'''
-            aligned_files = [fp.get_job_result_by_name('hmmalign') for
-                                fp in ap.children if
-                                fp.get_job_result_by_name('hmmalign') is not None]
-            _LOG.info("Merging fragment chunks for subalignment : %s." %(ap.label))
-            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-                        (ap.jobs["hmmbuild"].infile , aligned_files)
-            _LOG.info("Merging alignment subset into placement subset: %s." %(ap.label))
-            
-            extendedAlignment.merge_in(ap_alg,convert_to_string=False)
-            del ap_alg
-        extendedAlignment.from_bytearray_to_string()
-        return extendedAlignment
     
     def perform(self):
         pp = self.placement_problem
-        fullExtendedAlignment = self.merge_subalignments()
-        pj = pp.jobs["placer"]
+        fullExtendedAlignments = self.merge_subalignments()
 
-        #Split the backbone alignment and query sequences into separate files        
-        queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
-        baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
-    
-        # Check for empty fragment files
-        if (queryExtendedAlignment.is_empty()):
-            pj.fake_run = True
+        for i in range(0,self.root_problem.fragment_chunks):   
+            fullExtendedAlignment = fullExtendedAlignments[i]
+            #Split the backbone alignment and query sequences into separate files        
+            queryExtendedAlignment = fullExtendedAlignment.get_fragments_readonly_alignment()
+            baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+            pj = pp.jobs[get_placement_job_name(i)]
+
+            if (queryExtendedAlignment.is_empty()):
+                pj.fake_run = True
                     
-        elif self.placer == "pplacer":
-            assert isinstance(pj,PplacerJob)
+            if self.placer == "pplacer":
+                assert isinstance(pj,PplacerJob)
             
-            #Write out the extended alignments, split into query and full-length for pplacer
-            queryExtendedAlignment.write_to_path(pj.extended_alignment_file)
-            baseAlignment.write_to_path(pj.backbone_alignment_file)
+                #Write out the extended alignments, split into query and full-length for pplacer
+                queryExtendedAlignment.write_to_path(pj.extended_alignment_file)
+                baseAlignment.write_to_path(pj.backbone_alignment_file)
             
-        elif self.placer == "epa":
-            assert isinstance(pj,EPAJob)
+            elif self.placer == "epa":
+                assert isinstance(pj,EPAJob)
                         
-            #Write out the extended alignments in phylip for EPA
-            fullExtendedAlignment.write_to_path(pj.extended_alignment_file, schema="PHYLIP")
+                #Write out the extended alignments in phylip for EPA
+                fullExtendedAlignment.write_to_path(pj.extended_alignment_file, schema="PHYLIP")
                         
-        #keep the extended alignment on everything
-        #pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
+            #keep the extended alignment on everything
+            #pj.set_attribute("full_extended_alignment_object", fullExtendedAlignment)
         
-        #TODO:  Removed this, as it can cause unexpected lockups
-        output = open(pj.full_extended_alignment_file, 'wb')
-        pickle.dump(fullExtendedAlignment, output)
-        output.close()                    
+            #TODO:  Removed this, as it can cause unexpected lockups
+            output = open(pj.full_extended_alignment_file, 'wb')
+            pickle.dump(fullExtendedAlignment, output)
+            output.close()                    
         
-        # Enqueue the placement job        
-        JobPool().enqueue_job(pj)
+            # Enqueue the placement job        
+            JobPool().enqueue_job(pj)
         
     def __str__(self):
         return "join align jobs for tips of ", self.placement_problem
@@ -223,7 +190,6 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         self.strategy = options().exhaustive.strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         self.alignment_threshold = float(options().alignment_threshold)
-        #Temp fix for now,
         self.molecule = options().molecule
         self.placer = options().exhaustive.__dict__['placer'].lower()
         self.cutoff = 0;
@@ -288,9 +254,81 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         self.placer = self.options.exhaustive.placer.lower()
         self.push_down = True if self.options.push_down == True else False
         _LOG.info("Will push fragments %s from their placement edge." %("down" if self.push_down else "up"))                               
-    def _get_new_Join_Align_Job(self):
-        return TIPPJoinAlignJobs(self.placer)
+        
+    def merge_results(self):
+        assert isinstance(self.root_problem,SeppProblem)
+        
+        '''Generate single extended alignment'''
+        fullExtendedAlignment = ExtendedAlignment(self.root_problem.fragments.keys())
+        #self.root_problem.get_children()[0].jobs[get_placement_job_name(0)].get_attribute("full_extended_alignment_object")
+        for pp in self.root_problem.get_children():
+            for i in range(0,self.root_problem.fragment_chunks):
+                align_input = open(pp.jobs[get_placement_job_name(i)].full_extended_alignment_file,'rb')
+                extended_alignment = pickle.load(align_input)
+                align_input.close()  
+                fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
+        self.results = fullExtendedAlignment
+        
+        mergeinput = []
+        '''Append main tree to merge input'''
+        mergeinput.append("%s;" %(self.root_problem.subtree.compose_newick(labels = True)))
+        jsons = []
+        for pp in self.root_problem.get_children():
+            assert isinstance(pp,SeppProblem)
+            for i in range(0,self.root_problem.fragment_chunks):
+                if (pp.get_job_result_by_name(get_placement_job_name(i)) is None):
+                   continue
+                '''Append subset trees and json locations to merge input'''
+                mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
+                                  pp.get_job_result_by_name(get_placement_job_name(i))))
+        mergeinput.append("")
+        mergeinput.append("")
+        meregeinputstring = "\n".join(mergeinput)
+        mergeJsonJob = self.get_merge_job(meregeinputstring)
+        mergeJsonJob.run()
 
+    def check_options(self, supply=[]):
+        if (options().reference_pkg is not None):
+            self.load_reference(os.path.join(options().reference.path, 'refpkg/%s.refpkg/' % options().reference_pkg))                  
+        if (options().taxonomy_file is None):
+            supply = supply + ["taxonomy file"]
+        if (options().taxonomy_name_mapping_file is None):
+            supply = supply + ["taxonomy name mapping file"]
+        ExhaustiveAlgorithm.check_options(self, supply)
+                        
+    def _get_new_Join_Align_Job(self):
+        return TIPPJoinAlignJobs(self.placer)    
+        
+    def build_jobs(self):
+        assert isinstance(self.root_problem, SeppProblem)
+        for placement_problem in self.root_problem.get_children():
+            ''' Create placer jobs'''
+            for i in range(0,self.root_problem.fragment_chunks):
+                if self.placer == "pplacer":
+                    pj = PplacerJob()
+                    pj.partial_setup_for_subproblem(placement_problem, self.options.info_file, i)
+                elif self.placer == "epa":
+                    pj = EPAJob()
+                    pj.partial_setup_for_subproblem(placement_problem, self.molecule, i)
+                
+                placement_problem.add_job(get_placement_job_name(i),pj)
+            
+            '''For each alignment subproblem, ...'''
+            for alg_problem in placement_problem.children:
+                assert isinstance(alg_problem, SeppProblem)
+                ''' create the build model job'''
+                bj = HMMBuildJob()
+                bj.setup_for_subproblem(alg_problem,molecule=self.molecule)
+                alg_problem.add_job(bj.job_type, bj)
+                ''' create the search jobs'''
+                for fc_problem in alg_problem.get_children():
+                    sj = HMMSearchJob()
+                    sj.partial_setup_for_subproblem(fc_problem.fragments, fc_problem, self.elim, self.filters)
+                    fc_problem.add_job(sj.job_type, sj)
+                    ''' create the align job'''
+                    aj = HMMAlignJob()
+                    fc_problem.add_job(aj.job_type, aj)
+                    aj.partial_setup_for_subproblem(fc_problem, molecule=self.molecule)
     def connect_jobs(self):
         ''' a callback function called after hmmbuild jobs are finished'''
         def enq_job_searchfragment(result, search_job):
@@ -315,82 +353,6 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         jsj = TIPPJoinSearchJobs(self.alignment_threshold)
         jsj.setup_with_root_problem(self.root_problem)
         
-    def merge_results(self):
-        assert isinstance(self.root_problem,SeppProblem)
-        
-        '''Generate single extended alignment'''
-        align_input = open(self.root_problem.get_children()[0].jobs["placer"].full_extended_alignment_file,'rb')
-        fullExtendedAlignment = pickle.load(align_input)
-        align_input.close()
-        #fullExtendedAlignment = self.root_problem.get_children()[0].jobs["placer"].get_attribute("full_extended_alignment_file")
-        for pp in self.root_problem.get_children()[1:]:
-            #Removed this because it can cause unexpected lockups
-            #extended_alignment = pp.jobs["placer"].get_attribute("full_extended_alignment_object")
-            align_input = open(pp.jobs["placer"].full_extended_alignment_file,'rb')
-            extended_alignment = pickle.load(align_input)
-            align_input.close()
-            
-            #fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
-            fullExtendedAlignment.merge_in(extended_alignment,convert_to_string=True)
-        self.results = fullExtendedAlignment
-        
-        mergeinput = []
-        '''Append main tree to merge input'''
-        mergeinput.append("%s;" %(self.root_problem.subtree.compose_newick(labels = True)))
-        jsons = []
-        for pp in self.root_problem.get_children():
-            assert isinstance(pp,SeppProblem)
-            if (pp.get_job_result_by_name("placer") is None):
-              continue
-            '''Append subset trees and json locations to merge input'''
-            mergeinput.append("%s;\n%s" %(pp.subtree.compose_newick(labels = True),
-                              pp.get_job_result_by_name("placer")))
-        mergeinput.append("")
-        mergeinput.append("")
-        meregeinputstring = "\n".join(mergeinput)
-        mergeJsonJob = self.get_merge_job(meregeinputstring)
-        mergeJsonJob.run()        
-        
-    def build_jobs(self):
-        assert isinstance(self.root_problem, SeppProblem)
-        for placement_problem in self.root_problem.get_children():
-            ''' Create placer jobs'''
-            if self.placer == "pplacer":
-                pj = PplacerJob()
-                pj.partial_setup_for_subproblem(placement_problem, self.options.info_file)
-            elif self.placer == "epa":
-                pj = EPAJob()
-                pj.partial_setup_for_subproblem(placement_problem, self.molecule)
-                
-            placement_problem.add_job("placer",pj)
-            
-            '''For each alignment subproblem, ...'''
-            for alg_problem in placement_problem.children:
-                assert isinstance(alg_problem, SeppProblem)
-                ''' create the build model job'''
-                bj = HMMBuildJob()
-                bj.setup_for_subproblem(alg_problem,molecule=self.molecule)
-                alg_problem.add_job(bj.job_type, bj)
-                ''' create the search jobs'''
-                for fc_problem in alg_problem.get_children():
-                    sj = HMMSearchJob()
-                    sj.partial_setup_for_subproblem(fc_problem.fragments, fc_problem, self.elim, self.filters)
-                    fc_problem.add_job(sj.job_type, sj)
-                    ''' create the align job'''
-                    aj = HMMAlignJob()
-                    fc_problem.add_job(aj.job_type, aj)
-                    aj.partial_setup_for_subproblem(fc_problem, molecule=self.molecule)
-
-        
-
-    def check_options(self, supply=[]):
-        if (options().reference_pkg is not None):
-            self.load_reference(os.path.join(options().reference.path, 'refpkg/%s.refpkg/' % options().reference_pkg))                  
-        if (options().taxonomy_file is None):
-            supply = supply + ["taxonomy file"]
-        if (options().taxonomy_name_mapping_file is None):
-            supply = supply + ["taxonomy name mapping file"]
-        ExhaustiveAlgorithm.check_options(self, supply)
         
     def load_reference(self, reference_pkg):
         file = open(reference_pkg + 'CONTENTS.json')
@@ -504,5 +466,3 @@ def main():
 
 if __name__ == '__main__':   
     main()
-    
-    

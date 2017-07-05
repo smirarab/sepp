@@ -65,15 +65,16 @@ version, the final newick output is already decorated.
 
 ### Notes on the reference alignment/tree
 
-* To build the reference tree, we started from [this file](ftp://greengenes.microbio.me/greengenes_release/gg_13_8_otus/trees/99_otus.tree) from the public Greengenes dataset. 
-* Taxonomic labels are removed (for the next few steps)
-* The reference alignment is called `gg_13_5_ssu_align_99_pfiltered.fasta` (note: we should provide the public link) and is included within the package
-* The reference tree is resolved and branch lengths are re-estimated using RAxML:
+* To build the reference tree, see [this page](buildref/README.md).
+    * we started from [this file](ftp://greengenes.microbio.me/greengenes_release/gg_13_8_otus/trees/99_otus.tree) from the public Greengenes dataset. 
+    * Taxonomic labels are removed (for the next few steps)
+    * The reference alignment is called `gg_13_5_ssu_align_99_pfiltered.fasta` and is included within the package
+    * The reference tree is resolved and branch lengths are re-estimated using RAxML:
     ```
     raxmlHPC-PTHREADS -s gg_13_5_ssu_align_99_pfiltered.fasta -m GTRCAT -n score-f -F -g 99_otus_nice.tree -T 16 -p 32323
     ```
     the use of `GTRCAT` and `-F` are not ideal, but are necessary because of the dataset size
-* The tree is rerooted and taxonomic branch labels are put back on the tree using [this script](relabel.py)
+    * The tree is rerooted and taxonomic branch labels are put back on the tree using [this script](buildref/relabel.py)
 
 
 #### Acknowledgments 

@@ -247,7 +247,7 @@ for the Greengenes dataset, we are using placement sizes that
  are closer to 2% and alignment subset sizes close to 0.5% to allow scaling to reference 
  datasets with many hundreds of thousands of tips. 
 
-### Specifying subset sizes using `-A` and `-P` options
+### Specifying subset sizes using `-F`, `-A` and `-P` options
 
 Imagine we cannot wait 2 minutes to get results on our test dataset. We
 are going to increase the alignment subset so that SEPP runs
@@ -282,6 +282,10 @@ and you would get the following error:
 `
 Output directory [a_drecotry] already contains files with prefix [output]... Terminating to avoid loss of existing files.
 `
+
+Finally, you can use the `-F` option to control the size of the fragment chunks used internally in SEPP. 
+This option helps control the amount of memory used by SEPP. 
+Lowering the chunk sizes can reduce the memory requirements. 
 
 Running SEPP on a larger dataset
 --------------------------------------------
