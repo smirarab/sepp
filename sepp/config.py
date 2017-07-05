@@ -88,9 +88,9 @@ def valid_molecule(molecule):
     return molecule
     
 def valid_decomp_strategy(strategy):
-    ret = strategy in ['hierarchical','normal','brlen']
+    ret = strategy in ['hierarchical','normal','midpoint','centroid']
     if ret == False:
-        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical', or 'brlen'." % strategy)
+        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical', 'centroid', or 'midpoint'." % strategy)
     return strategy
     
 
@@ -130,7 +130,7 @@ def _init_parser():
                       dest = "alignment_size", metavar = "N", 
                       default = None,
                       help = "max alignment subset size of N "
-                             "[default: 10%% of the total number of taxa]")    
+                             "[default: 10%% of the total number of taxa or the placement subset size if given]")    
     decompGroup.add_argument("-P", "--placementSize", type = int, 
                       dest = "placement_size", metavar = "N",
                       default = None, 
@@ -155,8 +155,8 @@ def _init_parser():
     
     decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
                       dest = "decomp_strategy", metavar = "DECOMP",
-#                      default = "normal",                       
-                      default = "brlen",
+                      default = "normal",                       
+#                      default = "midpoint",
                       help = "decomposition strategy "
                              "[default: using tree branch length]")
 #                             "[default: only include smallest subsets]")                             

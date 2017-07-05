@@ -194,8 +194,13 @@ class AbstractAlgorithm(object):
     def check_and_set_sizes(self, total):
         #If sizes are not set, then use 10% rule
         options = self.options
+        if (options.maxDiam is not None) and ( options.decomp_strategy not in ["midpoint", "centroid"]):
+            raise Exception("The max diameter option can be used only with the midpoint decomposition specified using -S")
         if (options.alignment_size is None):
-            options.alignment_size = int(total*.10)
+            if options.placement_size is None:
+                options.alignment_size = int(total*.10)
+            else:
+                options.alignment_size = options.placement_size
         if (options.placement_size is None):
             options.placement_size = max(int(total*.10),options.alignment_size)
         if options.placement_size is not None and options.placement_size < options.alignment_size:

@@ -11,7 +11,7 @@ except:
 #from tree import PhylogeneticTree
 
 
-def decompose_by_diameter(a_tree,max_size=None,min_size=None,max_diam=None):
+def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=None):
     def __ini_record__():
         for node in a_tree.postorder_node_iter():
                __updateNode__(node)
@@ -168,6 +168,14 @@ def decompose_by_diameter(a_tree,max_size=None,min_size=None,max_diam=None):
 #            print("Successfully splitted by midpoint")
         return e
 
+    def __break(t):
+        if strategy == "ceontroid":
+            return __get_breaking_edge__(t,'centroid')
+        elif strategy == "midpoint":
+            return __break_by_MP_centroid__(t)
+        else:
+            raise Exception("strategy not valid: %s" %strategy)
+
     print("Starting brlen decomposition ...")
     tqueue = Queue()
     __ini_record__()
@@ -176,7 +184,7 @@ def decompose_by_diameter(a_tree,max_size=None,min_size=None,max_diam=None):
     max_diam = max_diam if max_diam else a_tree.seed_node.diameter
 
     # try using midpoint
-    e = __break_by_MP_centroid__(a_tree)
+    e = __break(a_tree)
 
     if e is None:
         __clean_up__(a_tree)
@@ -187,13 +195,13 @@ def decompose_by_diameter(a_tree,max_size=None,min_size=None,max_diam=None):
     while not tqueue.empty():
         t,e = tqueue.get()
         t1,t2 = __bisect__(t,e)
-        e1 = __break_by_MP_centroid__(t1)
+        e1 = __break(t1)
         if e1 is None:
              __clean_up__(t1)            
              treeMap.append(t1)
         else:
             tqueue.put((t1,e1))
-        e2 = __break_by_MP_centroid__(t2)
+        e2 = __break(t2)
         if e2 is None:
              __clean_up__(t2)
              treeMap.append(t2)
