@@ -250,7 +250,7 @@ for the Greengenes dataset, we are using placement sizes that
  are closer to 2% and alignment subset sizes close to 0.5% to allow scaling to reference 
  datasets with many hundreds of thousands of tips. 
 
-### Specifying subset sizes using `-F`, `-A`, `-M`, and `-F` options
+### Specifying subset sizes using `-P`, `-A`, `-M`, and `-F` options
 
 Imagine we cannot wait 2 minutes to get results on our test dataset. We
 are going to increase the alignment subset so that SEPP runs
@@ -286,14 +286,34 @@ and you would get the following error:
 Output directory [a_drecotry] already contains files with prefix [output]... Terminating to avoid loss of existing files.
 `
 
-In addition, you can use the `-M` option to specify a maximum diameter for alignment subset sizes.
-It makes sense to set the alignment subset size `-A` to be equal to `-P` when you specify `-M`. 
-Currently, when using this option, you need to also use `-S` with either `centroid` or `midpoint` as options. 
-
 
 Finally, you can use the `-F` option to control the size of the fragment chunks used internally in SEPP. 
 This option helps control the amount of memory used by SEPP. 
 Lowering the chunk sizes can reduce the memory requirements. 
+
+#### Diameter-based decomposition
+Instead of dividing until you get to a subset size, you can use the `-M` option to specify a maximum diameter for *alignment* subsets. Thus, for example, `-M 0.5` will tell SEPP to decompose until it reaches to alignment subsets with a diameter of no more than 0.5. The diameter of a subset is the total branch length on the path between the two most distant taxa in that subset. 
+
+Several points should be emphasized. 
+
+* When you specify `-M`, it makes sense to set the alignment subset size `-A` to be equal to `-P` so that alignment subset sizes do not impact the stopping criteria. Otherwise, if both `-M` and `-A` are in effect, SEPP tries to honor both and may wind up honoring neither (when impossible). 
+* Note that `-M` only impacts alignment subsets and not placement subsets. 
+* In addition to these `-A` and `-M` options, there is another value that can impact the alignment subset decomposition: minimum subset size. 
+  SEPP imposes a minimum subset size of 2 sequences by default. 
+  This minimum subset size, which is always honored, can be changed by editing the main config file (see above) and editing the
+  ```[exhaustive]
+  minsubsetsize = 2```
+  line. For larger trees, increasing this minimum to something like 20 makes sense. 
+* Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using `midpoint` instructs SEPP to also take into account branch lengths when dividing the tree. Thus, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in alignment subsets that are smaller than the minimum alignment subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
+* Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
+  This, however, is expressed in terms of the fraction of the maximum placement subset (i.e., `-P`). 
+  By default, this value is set to 1/4 of the maximum placement subset size, but the value can be adjusted in the config file by editing
+  ```
+[exhaustive]
+placementminsubsetsizefacotr = 4
+   ```
+
+
 
 Running SEPP on a larger dataset
 --------------------------------------------
