@@ -207,6 +207,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.filters = False
         self.symfrac = True
         self.strategy = options().exhaustive.strategy
+        self.decomp_strategy = options().decomp_strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
         self.molecule = self.options.molecule
@@ -302,7 +303,10 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {},pdistance = 1,distances = self.distances)
+                                        tree_map = {}, pdistance = 1,
+                                        decomp_strategy = self.decomp_strategy, 
+                                        distances = self.distances,
+                                        maxDiam = None)
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
@@ -320,7 +324,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy, pdistance = options().distance,distances = self.distances)
+                                        tree_map = {}, 
+                                        decomp_strategy = self.options.decomp_strategy,
+                                        pdistance = options().distance,
+                                        distances = self.distances,
+                                        maxDiam = self.options.maxDiam)
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))

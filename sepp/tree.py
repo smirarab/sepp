@@ -24,6 +24,8 @@ from dendropy import DataSet as Dataset
 from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as convert_node_to_root_polytomy
 from sepp import get_logger, sortByValue
 from sepp.alignment import get_pdistance
+from sepp.decompose_tree import decompose_by_diameter
+
 
 try:
     from StringIO import StringIO
@@ -324,7 +326,8 @@ for l in sys.stdin.readlines():
         assert snl == tree1.n_leaves + tree2.n_leaves
         return tree1, tree2, e
 
-    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None):
+#    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None):
+    def decompose_tree(self, maxSize, strategy, minSize = None, tree_map={}, decomp_strategy = 'normal', pdistance = 1, distances = None, maxDiam=None):
         """
         This function decomposes the tree until all subtrees are smaller than 
         the max size, but does not decompose below min size.  
@@ -333,6 +336,14 @@ for l in sys.stdin.readlines():
         
         SIDE EFFECT: deroots the tree (TODO: necessary?)
         """          
+        # uym2 added #
+        if (decomp_strategy in ["midpoint","centroid" ]):
+            T = decompose_by_diameter(self._tree, strategy = decomp_strategy, max_size = maxSize,max_diam=maxDiam,min_size=minSize)
+            for i, t in enumerate(T):
+                tree_map[i] = PhylogeneticTree(t)
+            return tree_map
+        ##############
+        
         #Don't deroot if doing clade-based decomposition
         if (strategy != 'clade'):
             self._tree.deroot()
@@ -340,6 +351,8 @@ for l in sys.stdin.readlines():
             #If doing clade-based decomp and it's not rooted, root it!
             if self._tree.is_rooted == False:
                 self._tree.reroot_at_midpoint()
+
+
         if (decomp_strategy == 'hierarchical' and self.count_leaves() > maxSize):
             tree_map[len(tree_map)] = copy.deepcopy(self)
         if (self.count_leaves() > maxSize or (pdistance != 1 and get_pdistance(distances, self.leaf_node_names()) > pdistance)):
