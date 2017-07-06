@@ -301,16 +301,18 @@ Several points should be emphasized.
 * In addition to these `-A` and `-M` options, there is another value that can impact the alignment subset decomposition: minimum subset size. 
   SEPP imposes a minimum subset size of 2 sequences by default. 
   This minimum subset size, which is always honored, can be changed by editing the main config file (see above) and editing the
-  ```[exhaustive]
+  ```
+  [exhaustive]
   minsubsetsize = 2```
   line. For larger trees, increasing this minimum to something like 20 makes sense. 
 * Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using `midpoint` instructs SEPP to also take into account branch lengths when dividing the tree. Thus, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in alignment subsets that are smaller than the minimum alignment subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
 * Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
   This, however, is expressed in terms of the fraction of the maximum placement subset (i.e., `-P`). 
   By default, this value is set to 1/4 of the maximum placement subset size, but the value can be adjusted in the config file by editing
+
   ```
-[exhaustive]
-placementminsubsetsizefacotr = 4
+  [exhaustive]
+  placementminsubsetsizefacotr = 4
    ```
 
 
