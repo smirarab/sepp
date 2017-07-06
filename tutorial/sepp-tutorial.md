@@ -6,28 +6,31 @@ Placement and addresses the problem of phylogenetic placement for
 meta-genomic short reads. More precisely, SEPP addresses the
 following problem.
 
-* **Input**:  i) *backbone* tree `T` and backbone alignment `A` for a set of
-    full-length gene sequences and ii) the set `X` of fragmentary sequences from
+* **Input**:  
+    i) *backbone* tree `T` and backbone alignment `A` for a set of
+    full-length gene sequences
+    ii) the set `X` of fragmentary sequences from
     the same gene as the backbone
 * **Output**: the placement of each fragment in `X` onto the tree T and the alignment of
     all fragment in `X` to the alignment `A`.
 
-Phylogenetic placement puts unknown (short) fragments into a phylogenetic
-context and hence helps identifying species included in a metagenomic
+Phylogenetic placement adds unknown (short) fragments into a phylogenetic
+tree and hence helps identifying species included in a metagenomic
 dataset. Phylogenetic placement involves two steps: alignment of short
 fragments to full length sequence alignment `A` (*backbone* alignment) and then placement of aligned short
 reads on the fixed tree `T` (*backbone* tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
-from SATé [2] andSATé-II [3] to improve the alignment of
+from SATé [2] and SATé-II [3] to improve the alignment of
 fragments to the backbone alignment (produced by running
 HMMER [4]). It then places each fragment into the
 user-provided tree using pplacer [5]. 
 
 Our studies shows
 that SEPP provides improved accuracy for quickly evolving
-genes as compared to other methods. For more information see the paper
-(available at: <http://www.ncbi.nlm.nih.gov/pubmed/22174280>).
+genes as compared to other methods. For more information see the [paper](http://www.ncbi.nlm.nih.gov/pubmed/22174280). 
+
+
 
 Installing SEPP 
 ============================
