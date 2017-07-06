@@ -308,16 +308,15 @@ Several points should be emphasized.
   minsubsetsize = 2
   ```
   For larger trees, increasing this minimum to something like 20 makes sense. 
-* Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using the `midpoint` option instructs SEPP to also take into account branch lengths when dividing the tree. With `midpoint`, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in alignment subsets that are smaller than the minimum alignment subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
-* Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
+ * Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
   This, however, is expressed in terms of the fraction of the maximum placement subset (i.e., `-P`). 
   By default, this value is set to 1/4 of the maximum placement subset size, but the value can be adjusted in the config file by editing
-
   ```
   [exhaustive]
   placementminsubsetsizefacotr = 4
    ```
-
+* **Important:** Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using the `midpoint` option instructs SEPP to also take into account branch lengths when dividing the tree. With `midpoint`, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in subsets that are smaller than the minimum subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
+ Note that specifying `-S` option changes the decomposition strategy both for alignment and placement subsets. Also note that `-S` does not have to be used with `-M` and can be used with `-A`. 
 
 
 Running SEPP on a larger dataset
