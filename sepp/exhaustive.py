@@ -302,7 +302,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
-                                        minSize = self.minsubsetsize,
+                                        minSize = self.options.placement_size/int(self.options.exhaustive.placementminsubsetsizefacotr),
                                         tree_map = {}, pdistance = 1,
                                         decomp_strategy = self.decomp_strategy, 
                                         distances = self.distances,

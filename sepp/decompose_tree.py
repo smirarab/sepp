@@ -20,10 +20,12 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
     
     def __find_midpoint_edge__(t):
         u = t.seed_node.bestLCA.anchor
+        uel = u.edge_length if u.edge_length else 0
         d = 0
-        while (d+u.edge_length < t.seed_node.diameter/2):
-            d += u.edge_length
+        while (d+uel < t.seed_node.diameter/2):
+            d += uel
             u = u.parent_node
+            uel = u.edge_length if u.edge_length else 0
         return u.edge
     
     def __find_centroid_edge__(t):
@@ -59,12 +61,12 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
         if u.num_child_nodes() == 1:
             p = u.parent_node
             v = u.child_nodes()[0]
-            l_v = v.edge_length
+            l_v = v.edge_length if v.edge_length else 0
             u.remove_child(v)
             if p is None: # u is the seed_node; this means the tree runs out of all but one side
                 t.seed_node = v
                 return t,t1
-            l_u = u.edge_length
+            l_u = u.edge_length if u.edge_length else 0
             p.remove_child(u)
             p.add_child(v)
             v.edge_length = l_u+l_v
@@ -111,7 +113,7 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
         for ch in node.child_node_iter():
                node.nleaf += ch.nleaf
 #               n = ch.maxheight + 1
-               d = ch.maxdepth + ch.edge_length
+               d = ch.maxdepth + ch.edge_length if ch.edge_length else 0 
 #               if n > n1:
 #                   n2 = n1
 #                   n1 = n
@@ -178,13 +180,15 @@ def decompose_by_diameter(a_tree,strategy,max_size=None,min_size=None,max_diam=N
         else:
             raise Exception("strategy not valid: %s" %strategy)
 
-    _LOG.debug("Starting brlen decomposition ...")
     tqueue = Queue()
+    
+    _LOG.debug("Starting brlen decomposition ...")
     __ini_record__()
     min_size = min_size if min_size else 0
     max_size = max_size if max_size else a_tree.seed_node.nleaf
     max_diam = max_diam if max_diam else a_tree.seed_node.diameter
-
+    
+    _LOG.debug("Now breaking by %s with min %d and max %d sizes and diameter %f ..." %(strategy, min_size, max_size, max_diam))
     # try using midpoint
     e = __break(a_tree)
 

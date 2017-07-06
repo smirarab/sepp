@@ -1,3 +1,5 @@
+* Version 4.3.0:
+     * Added (Uyen Mai) an option -M and -S midpoint to break by midpoint and to stop by diameter
 * Version 4.2.3:
      * Added a hard-coded --groups 10 to the pplacer runs to help with memory
 * Version 4.2.2:

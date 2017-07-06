@@ -263,6 +263,7 @@ def _parse_options ():
     opts = Namespace()
     
     ''' First read the main configuration file '''
+    _LOG.debug("Main configuration file at %s" %main_config_path)
     if not os.path.exists(main_config_path):
         _LOG.warn("Main configuration file was not found at: %s\n" %main_config_path + 
                   "Proceeding without the main configuration..." )
