@@ -287,9 +287,10 @@ Output directory [a_drecotry] already contains files with prefix [output]... Ter
 `
 
 
-Finally, you can use the `-F` option to control the size of the fragment chunks used internally in SEPP. 
-This option helps control the amount of memory used by SEPP. 
-Lowering the chunk sizes can reduce the memory requirements. 
+In addition to these options, you can also use the `-F` option to 
+control the size of the fragment chunks used internally in SEPP. 
+Lowering the size of the fragment chunks
+helps control the amount of memory used by SEPP. 
 
 #### Diameter-based decomposition
 Instead of dividing until you get to a subset size, you can use the `-M` option to specify a maximum diameter for *alignment* subsets. Thus, for example, `-M 0.5` will tell SEPP to decompose until it reaches to alignment subsets with a diameter of no more than 0.5. The diameter of a subset is the total branch length on the path between the two most distant taxa in that subset. 
@@ -300,11 +301,11 @@ Several points should be emphasized.
 * Note that `-M` only impacts alignment subsets and not placement subsets. 
 * In addition to these `-A` and `-M` options, there is another value that can impact the alignment subset decomposition: minimum subset size. 
   SEPP imposes a minimum subset size of 2 sequences by default. 
-  This minimum subset size, which is always honored, can be changed by editing the main config file (see above) and editing the
+  This minimum subset size, which is always honored, can be changed by editing the main or a custom config file (both described below) and editing the following line:
   ```
   [exhaustive]
   minsubsetsize = 2```
-  line. For larger trees, increasing this minimum to something like 20 makes sense. 
+  For larger trees, increasing this minimum to something like 20 makes sense. 
 * Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using `midpoint` instructs SEPP to also take into account branch lengths when dividing the tree. Thus, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in alignment subsets that are smaller than the minimum alignment subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
 * Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
   This, however, is expressed in terms of the fraction of the maximum placement subset (i.e., `-P`). 
