@@ -53,7 +53,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     is performed, and that there is always only one placement subset (currently).
     '''
     def __init__(self):
-        ExhaustiveAlgorithm.__init__(self)     
+        ExhaustiveAlgorithm.__init__(self)
+        self.pasta_only = False     
                
     def generate_backbone(self):
         _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
@@ -92,18 +93,25 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         moleculeType = options().molecule
         if (options().molecule == 'amino'):
             moleculeType =  'protein'
-        pastaalignJob.setup(backbone,options().backbone_size,self.options.outdir,moleculeType,options().cpu)
+        pastaalignJob.setup(backbone,options().backbone_size,moleculeType,options().cpu)
         pastaalignJob.run()
-        pastaalignJob.read_results()
+        (a_file, t_file) = pastaalignJob.read_results()
+        
+        shutil.copyfile(t_file, self.get_output_filename("pasta.fasttree"))
+        shutil.copyfile(a_file, self.get_output_filename("pasta.fasta" ))
         
         options().placement_size = self.options.backbone_size
-        options().alignment_file = open(self.options.outdir + "/pasta.fasta")
-        options().tree_file = open(self.options.outdir + "/pasta.fasttree")
+        options().alignment_file = open(self.get_output_filename("pasta.fasttree"))
+        options().tree_file = open(self.get_output_filename("pasta.fasta" ))
         _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
         sequences.set_alignment(fragments)        
         if (len(sequences) == 0):
-          _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))   
-          shutil.copyfile(self.options.outdir + "/pasta.fasta", self.get_output_filename("alignment.fasta"))
+          sequences = MutableAlignment()
+          sequences.read_file_object(open(self.options.alignment_file.name))      
+          self.results = ExtendedAlignment(fragment_names=[])  
+          self.results.set_alignment(sequences)    
+          _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))  
+          self.output_results() 
           sys.exit(0)
         else:
           query = get_temp_file("query", "backbone", ".fas")
@@ -111,6 +119,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           _write_fasta(sequences, query)               
 
     def check_options(self):
+        self.check_outputprefix()
         options().info_file = "A_dummy_value"
 
         #Check to see if tree/alignment/fragment file provided, if not, generate it

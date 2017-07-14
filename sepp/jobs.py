@@ -663,14 +663,13 @@ class PastaAlignJob(ExternalSeppJob):
         self.config = None
         self.threads = None
         
-    def setup(self, alignment, size, output, molecule,threads,**kwargs):
+    def setup(self, alignment, size, molecule,threads,**kwargs):
         '''
         Use this to setup the job if you already have input file written to a file.
         Use setup_for_subproblem when possible. 
         '''
         self.alignment = alignment
         self.size = size
-        self.output = output
         self.molecule = molecule
         if (molecule == 'aa'):
             self.molecule == 'protein'
@@ -693,7 +692,7 @@ class PastaAlignJob(ExternalSeppJob):
 
     def read_results(self):
         '''
-        Read the Sate log file and get the alignment and tree from file, copy to output directory
+        Read the PASTA log file and get the alignment and tree from file
         '''
         assert os.path.exists('%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir())
         assert os.stat('%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir())[stat.ST_SIZE] != 0        
@@ -710,8 +709,6 @@ class PastaAlignJob(ExternalSeppJob):
             result = tree_pattern.findall(line)
             if (len(result) != 0):
                 tree_file = result[0]
-        shutil.copyfile(tree_file, "%s/pasta.fasttree" % self.output)
-        shutil.copyfile(alignment_file, "%s/pasta.fasta" % self.output)
         return (tree_file,alignment_file)
         
         
