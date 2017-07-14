@@ -1,3 +1,6 @@
+* Version 4.3.1: fixes to UPP
+     * In the absence of fragments, outputs are generated in a consistent fashion 
+     * PASTA alignment and trees are given a name prefixed by the output prefix naem
 * Version 4.3.0:
      * Added (Uyen Mai) an option -M and -S midpoint to break by midpoint and to stop by diameter
 * Version 4.2.3:
