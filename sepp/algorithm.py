@@ -239,7 +239,7 @@ class AbstractAlgorithm(object):
 
     def read_and_divide_fragments(self, chunks, extra_frags = {}):
         max_chunk_size = self.options.max_chunk_size
-        _LOG.debug("start reading fragment files and breaking to at least %d chunks but at  most %d sequences " %(chunks,str(max_chunk_size)))
+        _LOG.debug("start reading fragment files and breaking to at least %d chunks but at  most %d sequences " %(chunks,max_chunk_size))
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
         for (k,v) in extra_frags.items():
