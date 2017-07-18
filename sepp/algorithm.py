@@ -35,7 +35,8 @@ class AbstractAlgorithm(object):
         '''
         self.root_problem = None
         self.results = None
-        self.options = options() # for ease of access
+        self.options = options() 
+        self.outchecked = False # for ease of access
 
     
     def check_options(self, supply=[]):
@@ -217,6 +218,9 @@ class AbstractAlgorithm(object):
         _LOG.info("Decomposition Sizes are set to alignment: %d placement: %d" %(options.alignment_size, options.placement_size)) 
 
     def check_outputprefix(self):
+        if self.outchecked:
+            return
+        self.outchecked = True
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
             raise ValueError("Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (self.options.outdir,self.options.output))
 
@@ -239,7 +243,7 @@ class AbstractAlgorithm(object):
 
     def read_and_divide_fragments(self, chunks, extra_frags = {}):
         max_chunk_size = self.options.max_chunk_size
-        _LOG.debug("start reading fragment files and breaking to at least %d chunks but at  most %d sequences " %(chunks,str(max_chunk_size)))
+        _LOG.debug("start reading fragment files and breaking to at least %s chunks but at  most %s sequences " %(str(chunks),str(max_chunk_size)))
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
         for (k,v) in extra_frags.items():
