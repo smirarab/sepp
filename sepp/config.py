@@ -42,6 +42,7 @@ import argparse
 import os, os.path
 from multiprocessing import cpu_count
 from sepp import scheduler
+import random
 
 _LOG = get_logger(__name__)
 
@@ -240,7 +241,12 @@ def _init_parser():
                       dest = "checkpoint_interval", metavar = "N", 
                       default = 3600,
                       help = "Interval (in seconds) between checkpoint writes. Has effect only with -cp provided."
-                             "[default: 3600]")  
+                             "[default: 3600]") 
+    otherGroup.add_argument("-seed", "--randomseed", type = int, 
+                      dest = "seed", metavar = "N", 
+                      default = 297834,
+                      help = "random seed number."
+                             "[default: 297834]")      
     #inputGroup.add_argument("-p", "--package", 
     #                  dest = "package", metavar = "PKG", 
     #                  help = "package directory"
@@ -293,7 +299,8 @@ def _parse_options ():
         
         ''' Read commandline options again to overwrite config file values'''    
         opts = parser.parse_args(input_args, namespace = opts )    
-
+    random.seed(opts.seed)
+    _LOG.info("Seed number: %d" %opts.seed)
     return opts
 
 _options_singelton = None        

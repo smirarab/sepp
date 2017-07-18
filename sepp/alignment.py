@@ -332,6 +332,13 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             
         _LOG.debug("Alignment length reduced to %d" %len(subset))
         return subset
+    
+    def degap(self):
+        '''
+        remove all 
+        '''
+        for name, seq in self.items():
+            self[name] = self[name].replace("-","")
 
     def get_hard_sub_alignment(self, sub_keys):
         "Creates a new alignment with a subset of the taxa."
@@ -579,7 +586,7 @@ class ExtendedAlignment(MutableAlignment):
         for i in range(0,self.get_length()):
             if not self._is_insertion_label(self.col_labels[i]):
                 assert j < len(original_labels), ("Not enough labels"
-                           " %d %d.\n %s" %(j,len(original_labels),str(self._col_labels)))
+                           " %d %d %d.\n %s" %(i, j,len(original_labels),str(self._col_labels)))
                 self.col_labels[i] = original_labels[j]
                 j += 1
         assert j == len(original_labels), ("Some of original labels are unused."

@@ -709,7 +709,7 @@ class PastaAlignJob(ExternalSeppJob):
             result = tree_pattern.findall(line)
             if (len(result) != 0):
                 tree_file = result[0]
-        return (tree_file,alignment_file)
+        return (alignment_file,tree_file)
         
         
 class SateAlignJob(ExternalSeppJob):

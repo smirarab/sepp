@@ -1,3 +1,8 @@
+* Version 4.3.2: more fixes to UPP
+     * added a  seed number
+     * Fixed PASTA alignment and tree file names
+     * degap input files when already aligned
+     * avoid checking file names twice
 * Version 4.3.1: fixes to UPP
      * In the absence of fragments, outputs are generated in a consistent fashion 
      * PASTA alignment and trees are given a name prefixed by the output prefix naem

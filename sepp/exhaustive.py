@@ -138,7 +138,7 @@ class JoinAlignJobs(Join):
             pp.fragments.seq_names |= set(ap.fragments)
 
                                       
-        ''' Then, gather a list of all allignments relevant to this placement subset''' 
+        ''' Then, gather a list of all alignments relevant to this placement subset''' 
         fragfilesperap = dict()
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
