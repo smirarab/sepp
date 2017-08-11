@@ -5,7 +5,7 @@ This pacakge enables you to run SEPP on the [Greengenes](http://greengenes.lbl.g
 First, download [this package](https://raw.github.com/smirarab/sepp-refs/master/gg/sepp-package.tar.bz) and decompress it; 
 ```
 wget  "https://raw.github.com/smirarab/sepp-refs/master/gg/sepp-package.tar.bz"
-tar tvfj sepp-package.tar.bz
+tar xvfj sepp-package.tar.bz
 ```
 
 then run:
