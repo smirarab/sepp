@@ -53,12 +53,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     is performed, and that there is always only one placement subset (currently).
     '''
     def __init__(self):
-        ExhaustiveAlgorithm.__init__(self)     
+        ExhaustiveAlgorithm.__init__(self)
+        self.pasta_only = False     
                
     def generate_backbone(self):
         _LOG.info("Reading input sequences: %s" %(self.options.sequence_file))
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
+        sequences.degap()
         fragments = MutableAlignment()
         if (options().median_full_length is not None):
           if (options().median_full_length == -1):
@@ -73,15 +75,19 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           (min_length,max_length) = (int(options().median_full_length*(1-options().backbone_threshold)),int(options().median_full_length*(1+options().backbone_threshold)))
           frag_names = [name for name in sequences if len(sequences[name]) > max_length or len(sequences[name]) < min_length]
           if (len(frag_names) > 0):
-              fragments = sequences.get_hard_sub_alignment(frag_names)        
+              _LOG.info("Detected %d fragmentary sequences" % len(frag_names))
+              fragments = sequences.get_hard_sub_alignment(frag_names)    
               [sequences.pop(i) for i in list(fragments.keys())]        
         if (options().backbone_size is None):            
             options().backbone_size = min(1000,int(sequences.get_num_taxa()))
             _LOG.info("Backbone size set to: %d" %(options().backbone_size))
         if (options().backbone_size > len(list(sequences.keys()))):
           options().backbone_size = len(list(sequences.keys()))
-        backbone_sequences = sequences.get_hard_sub_alignment(random.sample(list(sequences.keys()), options().backbone_size))        
+        sample = sorted(random.sample(sorted(list(sequences.keys())), options().backbone_size))
+        backbone_sequences = sequences.get_hard_sub_alignment(sample)      
+        _LOG.debug("Backbone: %s" %(sorted(list(backbone_sequences.keys())))) 
         [sequences.pop(i) for i in list(backbone_sequences.keys())]
+        
                 
         _LOG.info("Writing backbone set. ")
         backbone = get_temp_file("backbone", "backbone", ".fas")
@@ -92,18 +98,25 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         moleculeType = options().molecule
         if (options().molecule == 'amino'):
             moleculeType =  'protein'
-        pastaalignJob.setup(backbone,options().backbone_size,self.options.outdir,moleculeType,options().cpu)
+        pastaalignJob.setup(backbone,options().backbone_size,moleculeType,options().cpu)
         pastaalignJob.run()
-        pastaalignJob.read_results()
+        (a_file, t_file) = pastaalignJob.read_results()
+        
+        shutil.copyfile(t_file, self.get_output_filename("pasta.fasttree"))
+        shutil.copyfile(a_file, self.get_output_filename("pasta.fasta" ))
         
         options().placement_size = self.options.backbone_size
-        options().alignment_file = open(self.options.outdir + "/pasta.fasta")
-        options().tree_file = open(self.options.outdir + "/pasta.fasttree")
+        options().alignment_file = open(self.get_output_filename("pasta.fasta"))
+        options().tree_file = open(self.get_output_filename("pasta.fasttree"))
         _LOG.info("Backbone alignment written to %s.\nBackbone tree written to %s" % (options().alignment_file, options().tree_file))
         sequences.set_alignment(fragments)        
         if (len(sequences) == 0):
-          _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))   
-          shutil.copyfile(self.options.outdir + "/pasta.fasta", self.get_output_filename("alignment.fasta"))
+          sequences = MutableAlignment()
+          sequences.read_file_object(open(self.options.alignment_file.name))      
+          self.results = ExtendedAlignment(fragment_names=[])  
+          self.results.set_alignment(sequences)    
+          _LOG.info("No query sequences to align.  Final alignment saved as %s" % self.get_output_filename("alignment.fasta"))  
+          self.output_results() 
           sys.exit(0)
         else:
           query = get_temp_file("query", "backbone", ".fas")
@@ -111,6 +124,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
           _write_fasta(sequences, query)               
 
     def check_options(self):
+        self.check_outputprefix()
         options().info_file = "A_dummy_value"
 
         #Check to see if tree/alignment/fragment file provided, if not, generate it
@@ -143,11 +157,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         _LOG.info("Merging sub-alignments for placement problem : %s." %(pp.label))
         ''' First assign fragments to the placement problem'''
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
-        frags = []      
         for ap in pp.get_children():
-            frags.extend(ap.fragments)        
-        pp.fragments.seq_names.update(frags)   
+            pp.fragments.seq_names |= set(ap.fragments)
+             
         ''' Then Build an extended alignment by merging all hmmalign results''' 
+        _LOG.debug("fragments are %d:\n %s" %(len(pp.fragments.seq_names),pp.fragments.seq_names))
         extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)

@@ -138,7 +138,7 @@ class JoinAlignJobs(Join):
             pp.fragments.seq_names |= set(ap.fragments)
 
                                       
-        ''' Then, gather a list of all allignments relevant to this placement subset''' 
+        ''' Then, gather a list of all alignments relevant to this placement subset''' 
         fragfilesperap = dict()
         for ap in pp.children:
             assert isinstance(ap, SeppProblem)
@@ -207,6 +207,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         self.filters = False
         self.symfrac = True
         self.strategy = options().exhaustive.strategy
+        self.decomp_strategy = options().decomp_strategy
         self.minsubsetsize = int(options().exhaustive.minsubsetsize)
         #Temp fix for now, 
         self.molecule = self.options.molecule
@@ -301,8 +302,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         placement_tree_map = PhylogeneticTree(Tree(tree.den_tree)).decompose_tree(
                                         self.options.placement_size, 
                                         strategy=self.strategy, 
-                                        minSize = self.minsubsetsize,
-                                        tree_map = {},pdistance = 1,distances = self.distances)
+                                        minSize = self.options.placement_size/int(self.options.exhaustive.placementminsubsetsizefacotr),
+                                        tree_map = {}, pdistance = 1,
+                                        decomp_strategy = self.decomp_strategy, 
+                                        distances = self.distances,
+                                        maxDiam = None)
         assert len(placement_tree_map) > 0, ("Tree could not be decomposed"
                 " given the following settings; strategy:%s minsubsetsize:%s placement_size:%s" 
                 %(self.strategy, self.minsubsetsize, self.options.placement_size))                    
@@ -320,7 +324,11 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                                         self.options.alignment_size, 
                                         strategy=self.strategy, 
                                         minSize = self.minsubsetsize,
-                                        tree_map = {}, decomp_strategy = self.options.decomp_strategy, pdistance = options().distance,distances = self.distances)
+                                        tree_map = {}, 
+                                        decomp_strategy = self.options.decomp_strategy,
+                                        pdistance = options().distance,
+                                        distances = self.distances,
+                                        maxDiam = self.options.maxDiam)
             assert len(alignment_tree_map) > 0, ("Tree could not be decomposed"
             " given the following settings; strategy:%s minsubsetsize:%s alignmet_size:%s" 
             %(self.strategy, self.minsubsetsize, self.options.alignment_size))
@@ -355,7 +363,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def create_fragment_files(self):
         alg_subset_count = len(list(self.root_problem.iter_leaves()))
         frag_chunk_count = lcm(alg_subset_count,self.options.cpu)//alg_subset_count
-        return self.read_and_divide_fragments(frag_chunk_count,self.options.max_chunk_size)
+        return self.read_and_divide_fragments(frag_chunk_count)
          
     def _get_new_Join_Align_Job(self):
         return JoinAlignJobs()

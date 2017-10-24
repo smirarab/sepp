@@ -46,7 +46,7 @@ Installation Steps:
 -------------------
 TIPP is a part of the SEPP distribution package.  First install SEPP.  Once done, do the following. 
 
-1. Download the reference dataset available at www.cs.utexas.edu/~phylo/software/sepp/tipp.zip
+1. Download the reference dataset available at https://github.com/tandyw/tipp-reference/releases/download/v2.0.0/tipp.zip
 2. Unzip it to a directory
 3. Set the environmental variables that will be used to create the configuration file.  The environmental variable can be set using the following command (shell-dependent)
     `export VARIABLE_NAME=/path/to/file`  (bash shell)

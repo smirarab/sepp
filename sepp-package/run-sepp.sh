@@ -8,25 +8,25 @@ if [ $# -lt 2 ]; then
    exit 1;
 fi
 
-tmpbase=`mktemp -d --tmpdir`
+tmpbase=`mktemp -d -t 'tmp.XXXXXXXXXX'`
 if [ $? -ne 0 ]; 
 then
-	   echo "$0: Can't create temp directory, exiting..."
-	   exit 1
+	echo "$0: Can't create temp directory, exiting..."
+	exit 1
 fi
 export TMPDIR=$tmpbase
 
 # Should point to a (semi) permanent tmp for keeping the important parts of the results 
-tmp=`mktemp -d -t sepp-temp-XXXX --tmpdir`
+tmp=`mktemp -d -t 'sepp-tmp-XXXXX'`
 
 if [ -z ${TMPDIRSSD+x} ];
 then
     # if $TMPDIRSSD does not exist, just create under the main tmp
-	tmpssd=`mktemp -d -t sepp-tempssd-XXXX --tmpdir`
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
 else
 	# Should point to a fast (hopefully ssd) tmp location which may be removed after the run
     export TMPDIR=${TMPDIRSSD}
-	tmpssd=`mktemp -d -t sepp-tempssd-XXXX --tmpdir`
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
 
     # make sure the regular temp is reset so other consumers of the pipeline can use it
     export TMPDIR=$tmpbase
@@ -97,11 +97,13 @@ cp -r $tmpssd $tmp;
 cp $tmp/${name}_placement.json .
 cp $tmp/${name}_rename-json.py .
 
-$DIR/sepp/.sepp/bundled-v3.2/guppy tog ${name}_placement.json
+gbin=$( dirname `grep -A1 "pplacer" $DIR/sepp/.sepp/main.config |grep path|sed -e "s/^path=//g"` )
+
+$gbin/guppy tog ${name}_placement.json
 
 cat ${name}_placement.tog.tre | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.tre
 
-$DIR/sepp/.sepp/bundled-v3.2/guppy tog --xml ${name}_placement.json
+$gbin/guppy tog --xml ${name}_placement.json
 
 cat ${name}_placement.tog.xml | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
 

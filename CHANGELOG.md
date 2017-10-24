@@ -1,3 +1,13 @@
+* Version 4.3.2: more fixes to UPP
+     * added a  seed number
+     * Fixed PASTA alignment and tree file names
+     * degap input files when already aligned
+     * avoid checking file names twice
+* Version 4.3.1: fixes to UPP
+     * In the absence of fragments, outputs are generated in a consistent fashion 
+     * PASTA alignment and trees are given a name prefixed by the output prefix naem
+* Version 4.3.0:
+     * Added (Uyen Mai) an option -M and -S midpoint to break by midpoint and to stop by diameter
 * Version 4.2.3:
      * Added a hard-coded --groups 10 to the pplacer runs to help with memory
 * Version 4.2.2:

@@ -6,28 +6,31 @@ Placement and addresses the problem of phylogenetic placement for
 meta-genomic short reads. More precisely, SEPP addresses the
 following problem.
 
-* **Input**:  i) *backbone* tree `T` and backbone alignment `A` for a set of
-    full-length gene sequences and ii) the set `X` of fragmentary sequences from
+* **Input**:  
+    i) *backbone* tree `T` and backbone alignment `A` for a set of
+    full-length gene sequences
+    ii) the set `X` of fragmentary sequences from
     the same gene as the backbone
 * **Output**: the placement of each fragment in `X` onto the tree T and the alignment of
     all fragment in `X` to the alignment `A`.
 
-Phylogenetic placement puts unknown (short) fragments into a phylogenetic
-context and hence helps identifying species included in a metagenomic
+Phylogenetic placement adds unknown (short) fragments into a phylogenetic
+tree and hence helps identifying species included in a metagenomic
 dataset. Phylogenetic placement involves two steps: alignment of short
 fragments to full length sequence alignment `A` (*backbone* alignment) and then placement of aligned short
 reads on the fixed tree `T` (*backbone* tree).
 
 SEPP operates by using a divide-and-conquer strategy adopted
-from SATé [2] andSATé-II [3] to improve the alignment of
+from SATé [2] and SATé-II [3] to improve the alignment of
 fragments to the backbone alignment (produced by running
 HMMER [4]). It then places each fragment into the
 user-provided tree using pplacer [5]. 
 
 Our studies shows
 that SEPP provides improved accuracy for quickly evolving
-genes as compared to other methods. For more information see the paper
-(available at: <http://www.ncbi.nlm.nih.gov/pubmed/22174280>).
+genes as compared to other methods. For more information see the [paper](http://www.ncbi.nlm.nih.gov/pubmed/22174280). 
+
+
 
 Installing SEPP 
 ============================
@@ -247,7 +250,7 @@ for the Greengenes dataset, we are using placement sizes that
  are closer to 2% and alignment subset sizes close to 0.5% to allow scaling to reference 
  datasets with many hundreds of thousands of tips. 
 
-### Specifying subset sizes using `-F`, `-A` and `-P` options
+### Specifying subset sizes using `-P`, `-A`, `-M`, and `-F` options
 
 Imagine we cannot wait 2 minutes to get results on our test dataset. We
 are going to increase the alignment subset so that SEPP runs
@@ -283,9 +286,38 @@ and you would get the following error:
 Output directory [a_drecotry] already contains files with prefix [output]... Terminating to avoid loss of existing files.
 `
 
-Finally, you can use the `-F` option to control the size of the fragment chunks used internally in SEPP. 
-This option helps control the amount of memory used by SEPP. 
-Lowering the chunk sizes can reduce the memory requirements. 
+
+In addition to these options, you can also use the `-F` option to 
+control the size of the fragment chunks used internally in SEPP. 
+Lowering the size of the fragment chunks
+helps control the amount of memory used by SEPP. 
+
+#### Diameter-based decomposition
+Instead of dividing until you get to a subset size, you can use the `-M` option to specify a maximum diameter for *alignment* subsets. Thus, for example, `-M 0.5` will tell SEPP to decompose until it reaches alignment subsets with a diameter of no more than 0.5. 
+The diameter of a subset is the maximum total branch length on the path between any two taxa in that subset. 
+
+Several points should be emphasized. 
+
+* When you specify `-M`, it makes sense to set the alignment subset size `-A` to be equal to `-P` so that alignment subset sizes do not impact the stopping criteria. Otherwise, if both `-M` and `-A` are in effect, SEPP tries to honor both and may wind up honoring neither (when impossible to honor both). 
+* Note that `-M` only impacts alignment subsets and not placement subsets. 
+* In addition to these `-A` and `-M` options, there is another value that can impact the alignment subset decomposition: minimum subset size. 
+  SEPP imposes a minimum subset size of 2 sequences by default. 
+  This minimum subset size, which is always honored, can be changed by editing the main or a custom config file (both described below) and editing the following line:
+  ```
+  [exhaustive]
+  minsubsetsize = 2
+  ```
+  For larger trees, increasing this minimum to something like 20 makes sense. 
+ * Similar to the minimum alignment subset size, there is a minimum placement subset size as well. 
+  This, however, is expressed in terms of the fraction of the maximum placement subset (i.e., `-P`). 
+  By default, this value is set to 1/4 of the maximum placement subset size, but the value can be adjusted in the config file by editing
+  ```
+  [exhaustive]
+  placementminsubsetsizefacotr = 4
+   ```
+* **Important:** Currently, when using the `-M` option, you need to also use `-S` followed by either `centroid` or `midpoint`. Using `centroid` would result in the normal SEPP decomposition. Using the `midpoint` option instructs SEPP to also take into account branch lengths when dividing the tree. With `midpoint`, each time the tree is being decomposed, SEPP will find the midpoint branch instead of the centroid branch. However, if the midpoint branch results in subsets that are smaller than the minimum subset size, then SEPP will revert back to using the centroid edge decomposition for that step (but continues trying the midpoint for all other decompositions).  
+ Note that specifying `-S` option changes the decomposition strategy both for alignment and placement subsets. Also note that `-S` does not have to be used with `-M` and can be used with `-A`. 
+
 
 Running SEPP on a larger dataset
 --------------------------------------------

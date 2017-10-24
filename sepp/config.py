@@ -42,6 +42,7 @@ import argparse
 import os, os.path
 from multiprocessing import cpu_count
 from sepp import scheduler
+import random
 
 _LOG = get_logger(__name__)
 
@@ -88,9 +89,9 @@ def valid_molecule(molecule):
     return molecule
     
 def valid_decomp_strategy(strategy):
-    ret = strategy in ['hierarchical','normal']
+    ret = strategy in ['hierarchical','normal','midpoint','centroid']
     if ret == False:
-        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical'." % strategy)
+        raise argparse.ArgumentTypeError("%s is not a valid strategy.  Must be 'normal', 'hierarchical', 'centroid', or 'midpoint'." % strategy)
     return strategy
     
 
@@ -130,7 +131,7 @@ def _init_parser():
                       dest = "alignment_size", metavar = "N", 
                       default = None,
                       help = "max alignment subset size of N "
-                             "[default: 10%% of the total number of taxa]")    
+                             "[default: 10%% of the total number of taxa or the placement subset size if given]")    
     decompGroup.add_argument("-P", "--placementSize", type = int, 
                       dest = "placement_size", metavar = "N",
                       default = None, 
@@ -146,11 +147,20 @@ def _init_parser():
                       default = 1, 
                       help = "minimum p-distance before stopping the decomposition"
                              "[default: 1]")                              
+# uym2 added #                             
+    decompGroup.add_argument("-M", "--diameter", type = float, 
+                      dest = "maxDiam", metavar = "DIAMETER",
+                      default = None, 
+                      help = "maximum tree diameter before stopping the decomposition"
+                             "[default: None]")                              
+    
     decompGroup.add_argument("-S", "--decomp_strategy", type = valid_decomp_strategy, 
                       dest = "decomp_strategy", metavar = "DECOMP",
-                      default = "normal", 
+                      default = "normal",                       
+#                      default = "midpoint",
                       help = "decomposition strategy "
-                             "[default: only include smallest subsets]")                             
+                             "[default: using tree branch length]")
+#                             "[default: only include smallest subsets]")                             
         
     outputGroup = _parser.add_argument_group( "Output Options".upper(), 
                          "These options control output.") 
@@ -231,7 +241,12 @@ def _init_parser():
                       dest = "checkpoint_interval", metavar = "N", 
                       default = 3600,
                       help = "Interval (in seconds) between checkpoint writes. Has effect only with -cp provided."
-                             "[default: 3600]")  
+                             "[default: 3600]") 
+    otherGroup.add_argument("-seed", "--randomseed", type = int, 
+                      dest = "seed", metavar = "N", 
+                      default = 297834,
+                      help = "random seed number."
+                             "[default: 297834]")      
     #inputGroup.add_argument("-p", "--package", 
     #                  dest = "package", metavar = "PKG", 
     #                  help = "package directory"
@@ -254,6 +269,7 @@ def _parse_options ():
     opts = Namespace()
     
     ''' First read the main configuration file '''
+    _LOG.debug("Main configuration file at %s" %main_config_path)
     if not os.path.exists(main_config_path):
         _LOG.warn("Main configuration file was not found at: %s\n" %main_config_path + 
                   "Proceeding without the main configuration..." )
@@ -283,7 +299,8 @@ def _parse_options ():
         
         ''' Read commandline options again to overwrite config file values'''    
         opts = parser.parse_args(input_args, namespace = opts )    
-
+    random.seed(opts.seed)
+    _LOG.info("Seed number: %d" %opts.seed)
     return opts
 
 _options_singelton = None        

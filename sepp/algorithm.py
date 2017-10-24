@@ -35,7 +35,8 @@ class AbstractAlgorithm(object):
         '''
         self.root_problem = None
         self.results = None
-        self.options = options() # for ease of access
+        self.options = options() 
+        self.outchecked = False # for ease of access
 
     
     def check_options(self, supply=[]):
@@ -194,8 +195,13 @@ class AbstractAlgorithm(object):
     def check_and_set_sizes(self, total):
         #If sizes are not set, then use 10% rule
         options = self.options
+        if (options.maxDiam is not None) and ( options.decomp_strategy not in ["midpoint", "centroid"]):
+            raise Exception("The max diameter option can be used only with the midpoint or the centroid decomposition specified using -S")
         if (options.alignment_size is None):
-            options.alignment_size = int(total*.10)
+            if options.placement_size is None:
+                options.alignment_size = int(total*.10)
+            else:
+                options.alignment_size = options.placement_size
         if (options.placement_size is None):
             options.placement_size = max(int(total*.10),options.alignment_size)
         if options.placement_size is not None and options.placement_size < options.alignment_size:
@@ -212,6 +218,9 @@ class AbstractAlgorithm(object):
         _LOG.info("Decomposition Sizes are set to alignment: %d placement: %d" %(options.alignment_size, options.placement_size)) 
 
     def check_outputprefix(self):
+        if self.outchecked:
+            return
+        self.outchecked = True
         if directory_has_files_with_prefix(self.options.outdir,self.options.output):
             raise ValueError("Output directory [%s] already contains files with prefix [%s]...\nTerminating to avoid loss of existing files." % (self.options.outdir,self.options.output))
 
@@ -232,8 +241,9 @@ class AbstractAlgorithm(object):
         
         return (alignment, tree)
 
-    def read_and_divide_fragments(self, chunks, max_chunk_size = None, extra_frags = {}):
-        _LOG.debug("start reading fragment files and breaking to at least %d chunks but at  most %d sequences " %(chunks,max_chunk_size))
+    def read_and_divide_fragments(self, chunks, extra_frags = {}):
+        max_chunk_size = self.options.max_chunk_size
+        _LOG.debug("start reading fragment files and breaking to at least %s chunks but at most %s sequences " %(str(chunks),str(max_chunk_size)))
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
         for (k,v) in extra_frags.items():
