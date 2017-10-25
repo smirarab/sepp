@@ -409,12 +409,16 @@ class HMMSearchJob(ExternalSeppJob):
             assert os.path.exists(self.outfile)
             assert os.stat(self.outfile)[stat.ST_SIZE] != 0  
             if self.results_on_temp:
+                with open(self.outfile, 'r') as outfile:
+                    res = self.read_results_from_temp(outfile)
+                with open(self.outfile, 'w') as target:
+                     target.write(str(res));
                 return self.outfile
             else:
-                outfile = open(job.result, 'r');
+                outfile = open(job.outfile, 'r');
                 res = job.read_results_from_temp(outfile)
                 outfile.close()
-                return res   
+                return res
     
         #Group 1 (e-value) 2 (bitscore) and 9 (taxon name) contain the relevant information, other ones can be ignored unless we plan to do something later
 

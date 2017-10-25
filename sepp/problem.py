@@ -96,9 +96,8 @@ class Problem(object):
         assert isinstance(job, Job), "job '%s' is not a Job object" %str(job)
         if job.result_set:
             if hasattr(job, 'results_on_temp') and job.results_on_temp:
-                outfile = open(job.result, 'r');
-                res = job.read_results_from_temp(outfile)
-                outfile.close()
+                with open(job.result, 'r') as f:
+                    res = eval(f.read())
                 return res
             else:
                 return job.result
