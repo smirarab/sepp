@@ -98,6 +98,8 @@ class Problem(object):
             if hasattr(job, 'results_on_temp') and job.results_on_temp:
                 with open(job.result, 'r') as f:
                     res = eval(f.read())
+                with open(job.result, 'w') as f:
+                    pass
                 return res
             else:
                 return job.result
