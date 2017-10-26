@@ -1,3 +1,6 @@
+* Version 4.3.4: 
+     * avoid pipes for hmmsearch to deal with memory issues
+     * Increase the default -F to 20000
 * Version 4.3.2: more fixes to UPP
      * added a  seed number
      * Fixed PASTA alignment and tree file names
