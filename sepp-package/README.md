@@ -48,8 +48,10 @@ version, the final newick output is already decorated.
 ### Notes on installation/running
 
 * Any version of python works
-* If you already have SEPP installed an you want to simply use your current installation, instead of the package, don't despair. Check out the DEVGUIDE and you will get an idea of how this can be done. You simply need to simlink `ref` and `python` in the right place. 
-* To pass any argument to SEPP, you can pass them to `run-sepp.sh`; all SEPP arguments (except the input fragment file, output prefix, and reference alignment/tree) can be provided.
+* If you already have SEPP installed and you want to simply use your current installation, instead of the package, don't despair. 
+  Check out the [DEVGUIDE.md](DEVGUIDE.md) and you will get an idea of how this can be done.
+  You simply need to simlink `ref` and `python` to the right place. 
+* To pass any argument to SEPP, you can pass them to `run-sepp.sh`; all SEPP arguments (except the input fragment file, output prefix, and reference alignment/tree) can be provided to `run-sepp.sh`.
 * By default, this package will use all available cores on your node. Pass in `-x 4` to manually control the number of threads to limit it to 4. 
   This may prove important if you have too many cores and not enough memory per core. 
 * Be default, subset size and placement size are set to 1,000 and 5,000. To change, pass in `-A` and `-P` options to `run-sepp.sh`.
@@ -58,15 +60,14 @@ version, the final newick output is already decorated.
       On your machine, this may not be the best strategy. 
       To improve performance, you want to use the best available partition you have for temporary directories on your machine. 
       For example, you may have an SSD partition. 
-      To change the location of temporaries, edit the `run-sepp.sh` file and update `tmp` and `tmpssd`. See the file for examples. 
+      To change the location of temporaries, set environmental variables TMPDIR and  TMPDIRSSD. See the file for examples. 
     * After you are done with your run, you may want to manually remove the temporaries or you may want to copy them to a permanent place. 
-      There are two temporary directories and the main (`sepp-temp-*`) will have the alignment files, which you may want to keep (these are huge). 
-      You can change this by editing the two lines related to `tmp` and `tmpssd`. 
+      There are two temporary directories: the main one (`sepp-temp-XXXX`) will have the alignment files, which you may want to keep (these are huge). 
 
 ### Notes on the reference alignment/tree
 
 * To build the reference tree, see [this page](buildref/README.md).
-    * we started from [this file](ftp://greengenes.microbio.me/greengenes_release/gg_13_8_otus/trees/99_otus.tree) from the public Greengenes dataset. 
+    * We started from [this file](ftp://greengenes.microbio.me/greengenes_release/gg_13_8_otus/trees/99_otus.tree) from the public Greengenes dataset. 
     * Taxonomic labels are removed (for the next few steps)
     * The reference alignment is called `gg_13_5_ssu_align_99_pfiltered.fasta` and is included within the package
     * The reference tree is resolved and branch lengths are re-estimated using RAxML:
@@ -79,4 +80,4 @@ version, the final newick output is already decorated.
 
 #### Acknowledgments 
 
-* We thank Daniel MCDonald for help with this package. 
+* We thank Daniel MCDonald for help with this package and contributed code. 
