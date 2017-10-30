@@ -1,4 +1,6 @@
-* Version 4.3.4: 
+* Version 4.3.4:
+     * Cleaning up the default (info) log  a bit
+* Version 4.3.3: 
      * avoid pipes for hmmsearch to deal with memory issues
      * Increase the default -F to 20000
 * Version 4.3.2: more fixes to UPP

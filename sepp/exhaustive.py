@@ -357,7 +357,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 frag_chunk_problem.fragments = fragment_chunk_files[afc]
                     
         _LOG.info("Breaking each alignment subset into %d fragment chunks." %self.root_problem.fragment_chunks)
-        _LOG.info("Subproblem structure: %s" %str(self.root_problem))
+        _LOG.debug("Subproblem structure: %s" %str(self.root_problem))
         return self.root_problem
     
     def create_fragment_files(self):
