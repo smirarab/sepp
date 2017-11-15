@@ -34,9 +34,9 @@ for l in ls[i:-1]:
     elif "Overall Time for Tree Evaluation" in l:
         v['tm'] = float(lr[-1])
         
-print 'This is a RAxML_info file from a -f e run, automatically reformatted'
-print ''.join(ls[0:i])
-print raxmlinfo % ( v['pi(A):'], v['pi(C):'], v['pi(G):'], v['pi(T):'],
+print('This is a RAxML_info file from a -f e run, automatically reformatted')
+print(''.join(ls[0:i]))
+print(raxmlinfo % ( v['pi(A):'], v['pi(C):'], v['pi(G):'], v['pi(T):'],
                     v['tm'],
                     v['A <-> C:'],v['A <-> G:'],v['A <-> T:'],v['C <-> G:'],v['C <-> T:'],v['G <-> T:'],
-                    v['lk'])
+                    v['lk']))
