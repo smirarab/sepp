@@ -1,7 +1,7 @@
 #!/bin/bash  
 
 if [ $# -lt 2 ]; then
-   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument]
+   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment]
    Optional commands need not be in order. Any SEPP option can also be passed. For example, use
    -x 8
    to make SEPP us 8 threads"
@@ -68,6 +68,14 @@ do
 			p="$2"
 			shift # past argument
 			;;
+		-a|--referenceAlignment)
+			alg="$2"
+			shift # past argument
+			;;
+		-t|--referencePhylogeny)
+			t="$2"
+			shift # past argument
+			;;
 		*)
 			opts="$opts"" ""$key"" ""$2"
 			shift # past argument
@@ -80,9 +88,15 @@ done
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 # Reference tree
-t="$DIR/ref/reference-gg-raxml-bl-rooted-relabelled.tre"
+if [ -z $t ]; then
+	# resort to the default reference tree, if not specified via command line argument
+	t="$DIR/ref/reference-gg-raxml-bl-rooted-relabelled.tre"
+fi;
 # Reference alignment
-alg="$DIR/ref/gg_13_5_ssu_align_99_pfiltered.fasta"
+if [ -z $alg ]; then
+	# resort to the default reference alignment, if not specified via command line argument
+	alg="$DIR/ref/gg_13_5_ssu_align_99_pfiltered.fasta"
+fi;
 # RAxML info file generated when creating the reference RAxML tree
 rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 
