@@ -139,7 +139,7 @@ def _init_parser():
                              "[default: 10%% of the total number of taxa or the alignment length (whichever bigger)]")
     decompGroup.add_argument("-F", "--fragmentChunkSize", type = int, 
                       dest = "max_chunk_size", metavar = "N",
-                      default = 5000, 
+                      default = 20000, 
                       help = "maximum fragment chunk size of N. Helps controlling memory.  "
                              "[default: 5000]")
     decompGroup.add_argument("-D", "--distance", type = float, 
