@@ -95,7 +95,14 @@ class Problem(object):
             return None
         assert isinstance(job, Job), "job '%s' is not a Job object" %str(job)
         if job.result_set:
-            return job.result
+            if hasattr(job, 'results_on_temp') and job.results_on_temp:
+                with open(job.result, 'r') as f:
+                    res = eval(f.read())
+                with open(job.result, 'w') as f:
+                    pass
+                return res
+            else:
+                return job.result
         else:
             raise Exception ("job '%s' has no results set yet: %s" %(jobname,str(job)))
     

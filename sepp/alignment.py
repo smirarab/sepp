@@ -516,7 +516,7 @@ class ExtendedAlignment(MutableAlignment):
         if isinstance(base_alignment, ReadOnlyAlignment):
             self.set_alignment(copy.deepcopy(base_alignment))            
         elif isinstance(base_alignment, str):
-            _LOG.info("Reading base alignment: %s." %(base_alignment))
+            _LOG.debug("Reading base alignment: %s." %(base_alignment))
             self.read_filepath(base_alignment, "FASTA")
         
         if isinstance(path_to_sto_extension, str):
@@ -526,7 +526,7 @@ class ExtendedAlignment(MutableAlignment):
         
         self.from_string_to_bytearray()
         for path in paths:
-            _LOG.info("Reading sto extended alignment: %s." %(path))
+            _LOG.debug("Reading sto extended alignment: %s." %(path))
             ext = ExtendedAlignment(self.fragments)            
             ext.read_extended_alignment(path)  
             _LOG.info("Merging extension sto file (%s) into base alignment (%s)." %(path,base_alignment))             

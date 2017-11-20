@@ -29,7 +29,7 @@ from distutils.core import setup, Command
 from distutils.command.install import install
 from distutils.spawn import find_executable
 
-version = "4.3.2"
+version = "4.3.4"
     
 def get_tools_dir(where):
     platform_name = platform.system()

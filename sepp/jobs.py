@@ -51,7 +51,8 @@ class ExternalSeppJob(Job):
         if path:
             self.path  = path
         else:
-            self.path = sepp.config.options().__getattribute__(self.job_type).path         
+            self.path = sepp.config.options().__getattribute__(self.job_type).path
+        self.results_on_temp = False         
     
     def get_id(self):
         return self._id
@@ -347,6 +348,9 @@ class HMMSearchJob(ExternalSeppJob):
         self.elim = None
         self.filters = None
         self.pipe = sepp.config.options().hmmsearch.piped.strip().lower() == "true" if hasattr(sepp.config.options().hmmsearch, "piped") else True
+        #_LOG.info("Pipe: %s" %str(self.pipe ))
+        self.results_on_temp = not self.pipe
+        _LOG.debug("HmmSearch: Piped?: %s and keep on temp?: %s" %(str(self.pipe), str(self.results_on_temp)))
         
         
     def setup(self, hmmmodel, fragments, output_file, elim=None, filters=True, **kwargs):
@@ -400,13 +404,28 @@ class HMMSearchJob(ExternalSeppJob):
           return {}
         if self.pipe:
             outfile = (self.stdoutdata.split("\n"))
+            return self.read_results_from_temp(outfile)
         else:
             assert os.path.exists(self.outfile)
-            assert os.stat(self.outfile)[stat.ST_SIZE] != 0        
-            outfile = open(self.outfile, 'r');
-        results = {}
+            assert os.stat(self.outfile)[stat.ST_SIZE] != 0  
+            if self.results_on_temp:
+                with open(self.outfile, 'r') as outfile:
+                    res = self.read_results_from_temp(outfile)
+                with open(self.outfile, 'w') as target:
+                     target.write(str(res));
+                return self.outfile
+            else:
+                outfile = open(job.outfile, 'r');
+                res = job.read_results_from_temp(outfile)
+                outfile.close()
+                return res
     
         #Group 1 (e-value) 2 (bitscore) and 9 (taxon name) contain the relevant information, other ones can be ignored unless we plan to do something later
+
+    
+    def read_results_from_temp(self, outfile):
+        results = {}
+                    
         pattern = re.compile(r"([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)")
         start_reading = False
         for line in outfile:            
@@ -420,10 +439,9 @@ class HMMSearchJob(ExternalSeppJob):
                 matches = pattern.search(line)
                 if (matches is not None and matches.group(0).find("--") == -1):
                     results[matches.group(9).strip()] = (float(matches.group(1).strip()), float(matches.group(2).strip()))
-                    _LOG.debug("Fragment scores;" 
-                               "fragment:%s E-Value:%s BitScore:%s" %(matches.group(9).strip(),matches.group(1).strip(), matches.group(2).strip()))
+                    #_LOG.debug("Fragment scores;" 
+                    #           "fragment:%s E-Value:%s BitScore:%s" %(matches.group(9).strip(),matches.group(1).strip(), matches.group(2).strip()))
         return results
-    
 
 
 class PplacerJob(ExternalSeppJob):
