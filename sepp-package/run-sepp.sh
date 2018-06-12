@@ -35,7 +35,7 @@ fi
 # from http://stackoverflow.com/a/2130323
 function cleanup {
   exitcode=`echo $?`
-  if [ ! -z "$printDebug" ];
+  if [ $exitcode != 0 ] && [ ! -z "$printDebug" ];
   then
     echo "========= Execution of SEPP failed with exit code $exitcode =================";
     echo "temporary working directories are NOT deleted for further inspection:";
