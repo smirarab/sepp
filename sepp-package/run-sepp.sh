@@ -124,6 +124,9 @@ rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 
 set -e
 
+if [ ! -z "$printDebug" ]; then
+	export SEPP_DEBUG=True
+fi;
 python $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
 
 tail sepp-$name-*
