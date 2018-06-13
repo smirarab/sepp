@@ -1,7 +1,7 @@
 #!/bin/bash  
 
 if [ $# -lt 2 ]; then
-   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -b 1 = report debugging information ]
+   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -n 1 = no tree-, just placements- computation] [optional: -b 1 = report debugging information ]
    Optional commands need not be in order. Any SEPP option can also be passed. For example, use
    -x 8
    to make SEPP us 8 threads"
@@ -90,6 +90,10 @@ do
 			t="$2"
 			shift # past argument
 			;;
+		-n|--noTreeComputation)
+			noTree="$2"
+			shift # past argument
+			;;
 		-b|--debugInformation)
 			printDebug="$2"
 			shift # past argument
@@ -129,14 +133,20 @@ cp -r $tmpssd $tmp;
 cp $tmp/${name}_placement.json .
 cp $tmp/${name}_rename-json.py .
 
-gbin=$( dirname `grep -A1 "pplacer" $DIR/sepp/.sepp/main.config |grep path|sed -e "s/^path=//g"` )
+# we might want to split computation in two parts: a) obtaining placements and b) creation of an insertion tree.
+# If -n set to something, we stop after a) and leave it to the user to compute b) afterwards.
+if [ -z ${noTree+x} ]; then
+	gbin=$( dirname `grep -A1 "pplacer" $DIR/sepp/.sepp/main.config |grep path|sed -e "s/^path=//g"` )
 
-$gbin/guppy tog ${name}_placement.json
+	$gbin/guppy tog ${name}_placement.json
 
-cat ${name}_placement.tog.tre | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.tre
+	cat ${name}_placement.tog.tre | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.tre
 
-$gbin/guppy tog --xml ${name}_placement.json
+	$gbin/guppy tog --xml ${name}_placement.json
 
-cat ${name}_placement.tog.xml | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
+	cat ${name}_placement.tog.xml | python ${name}_rename-json.py > ${name}_placement.tog.relabelled.xml
+else
+	echo "User requested skipping of insertion tree computation. Only placements are returned.";
+fi;
 
 echo output files are at ${name}_placement.* and more files are at $tmp . Consider removing $tmp if its files are not needed. 
