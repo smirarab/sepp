@@ -1,7 +1,7 @@
 #!/bin/bash  
 
 if [ $# -lt 2 ]; then
-   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -n 1 = no tree-, just placements- computation]
+   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -n 1 = no tree-, just placements- computation] [optional: -b 1 = report debugging information ]
    Optional commands need not be in order. Any SEPP option can also be passed. For example, use
    -x 8
    to make SEPP us 8 threads"
@@ -34,9 +34,23 @@ fi
 
 # from http://stackoverflow.com/a/2130323
 function cleanup {
-  echo "Removing $tmp"
-  rm -r $tmp
-  rm -r $tmpssd
+  exitcode=`echo $?`
+  if [ $exitcode != 0 ] && [ ! -z "$printDebug" ];
+  then
+    echo "========= Execution of SEPP failed with exit code $exitcode =================";
+    echo "temporary working directories are NOT deleted for further inspection:";
+    echo "  \$tmp = $tmp";
+    echo "  \$tmpssd = $tmpssd";
+    echo "--------- Content of STDOUT -----------------------------------------";
+    cat sepp-$name-out.log
+    echo "--------- Content of STDERR -----------------------------------------";
+    cat sepp-$name-err.log
+    echo "=====================================================================";
+  else
+    echo "Removing $tmp";
+    rm -r $tmp
+    rm -r $tmpssd
+  fi
   unset TMPDIR
 }
 trap cleanup EXIT
@@ -80,6 +94,10 @@ do
 			noTree="$2"
 			shift # past argument
 			;;
+		-b|--debugInformation)
+			printDebug="$2"
+			shift # past argument
+			;;
 		*)
 			opts="$opts"" ""$key"" ""$2"
 			shift # past argument
@@ -106,6 +124,9 @@ rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 
 set -e
 
+if [ ! -z "$printDebug" ]; then
+	export SEPP_DEBUG=True
+fi;
 python $DIR/sepp/run_sepp.py -P $p -A $a -t $t -a $alg -r $rxi -f $f -o $name $opts -d $tmp/ -p $tmpssd 1>sepp-$name-out.log 2>sepp-$name-err.log
 
 tail sepp-$name-*
