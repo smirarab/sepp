@@ -11,7 +11,7 @@ SEPP stands for `SATe-enabled phylogenetic placement`, and so is a method for th
 SEPP operates by using a divide-and-conquer strategy adopted from SATe-II ([Liu et al., Systematic Biology 2012](http://sysbio.oxfordjournals.org/content/61/1/90.full.pdf+html?sid=dd32838d-89dc-4bda-8008-6f948146341f) and [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)) to construct an Ensemble of Hidden Markov Models (HMMs) to represent the input multiple sequence alignment `A`.
 It then computes the fit of each query sequence in `X` to each HMM in the ensemble, and uses the highest scoring HMM to add the sequence to the input tree `T`. This technique improves the accuracy of the placements of the query sequences compared to using a single HMM to represent the input alignment. SEPP uses tools in HMMER to construct HMMs, compute the fit of sequences to HMMs, and add sequences to the alignment `A` (code by Sean Eddy). UPP uses pplacer (code by Erick Matsen) to add query sequences to the input tree `T`, after they are added to the alignment `A`.   SEPP is also used in other software, including TIPP (taxonomic identical using phylogenetic placement) and UPP (ultra-large alignments using phylogeny-aware profiles).
 
-Developers: Siavash Mirarab, Tandy Warnow, and Nam Nguyen, with valuable contributions from Uyen Mai and Daniel McDonald.
+Developers: Siavash Mirarab, Tandy Warnow, and Nam Nguyen, with valuable contributions from Uyen Mai, Daniel McDonald and Stefan Janssen.
 
 ### Publication:
 S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 [http://www.ncbi.nlm.nih.gov/pubmed/22174280#](http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
