@@ -246,7 +246,20 @@ class AbstractAlgorithm(object):
         _LOG.debug("start reading fragment files and breaking to at least %s chunks but at most %s sequences " %(str(chunks),str(max_chunk_size)))
         self.root_problem.fragments = MutableAlignment()
         self.root_problem.fragments.read_file_object(self.options.fragment_file)
-        for (k,v) in extra_frags.items():
+
+        # test if input fragment names might collide with reference names.
+        # code contribution by Stefan Janssen (June 13th, 2018)
+        ids_reference = set(self.root_problem.subalignment.keys())
+        ids_inputfragments = set(self.root_problem.fragments.keys())
+        ids_overlap = ids_reference & ids_inputfragments
+        if len(ids_overlap) > 0:
+            raise ValueError((
+                "Your input fragment file contains %i sequences, whose names "
+                "overlap with names in your reference. Please rename your inp"
+                "ut fragments and re-start. Duplicate names are:\n  '%s'") %
+                (len(ids_overlap), "'\n  '".join(ids_overlap)))
+
+       for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks, max_chunk_size)        
         ret = []
