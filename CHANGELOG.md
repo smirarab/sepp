@@ -1,3 +1,5 @@
+* Version 4.3.5:
+     * raise a ValueError if names of fragments to be inserted collide with names of reference sequences.
 * Version 4.3.4:
      * Cleaning up the default (info) log  a bit
 * Version 4.3.3: 
