@@ -259,7 +259,7 @@ class AbstractAlgorithm(object):
                 "ut fragments and re-start. Duplicate names are:\n  '%s'") %
                 (len(ids_overlap), "'\n  '".join(ids_overlap)))
 
-       for (k,v) in extra_frags.items():
+        for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks, max_chunk_size)        
         ret = []
