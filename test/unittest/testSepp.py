@@ -48,6 +48,15 @@ class Test(unittest.TestCase):
             self.x.run()
         self.assertTrue(self.x.results is None)
 
+    def test_seqnames_whitespaces(self):
+        self.x.options.fragment_file = open(
+            "data/q2-fragment-insertion/input_fragments_spaces.fasta", "r")
+        with self.assertRaisesRegex(
+                ValueError,
+                "contain either whitespaces: "):
+            self.x.run()
+        self.assertTrue(self.x.results is None)
+
 
 if __name__ == "__main__":
     unittest.main()
