@@ -448,9 +448,10 @@ alignment/tree pair and will generate a info file
 (`RAxML_info.some_name_you_chooose`), that can be used with
 SEPP .
 
-**Note:** with new versions of RAxML, you may have to manually edit the RAxML info file to fix some formatting changes. 
+**Note:** With newer versions of RAxML, you may have to manually edit the RAxML info file to fix some formatting changes. 
 For example, with version 8.0.22, we had to manually remove a line that read: ` Partition: 0 with name: No Name Provided` and
 only then, the info file was recognized by pplacer.
+[This script](./sepp-package/buildref/reformat-info.py) may become useful for reformatting if you ran RAxML with `-f e` to get your info file and you are using DNA sequences.
 
 For example, in the test directory, you can go to `mock/pyrg` and run:
 
