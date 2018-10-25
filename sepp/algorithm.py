@@ -259,6 +259,22 @@ class AbstractAlgorithm(object):
                 "ut fragments and re-start. Duplicate names are:\n  '%s'") %
                 (len(ids_overlap), "'\n  '".join(ids_overlap)))
 
+        # test if input fragment names contain whitespaces / tabs which would
+        # cause hmmsearch to fail.
+        # code contribution by Stefan Janssen (June 22nd, 2018)
+        ids_inputfragments_spaces = [
+            id_
+            for id_ in ids_inputfragments
+            if (' ' in id_) or ('\t' in id_)]
+        if len(ids_inputfragments_spaces) > 0:
+            raise ValueError((
+                "Your input fragment file contains %i sequences, whose names "
+                "contain either whitespaces: ' ' or tabulator '\\t' symbols. "
+                "Please rename your input fragments and re-start. Affected "
+                "names are:\n  '%s'") %
+                (len(ids_inputfragments_spaces),
+                 "'\n  '".join(ids_inputfragments_spaces)))
+
         for (k,v) in extra_frags.items():
             self.root_problem.fragments[k] = v.replace("-","")
         alg_chunks = self.root_problem.fragments.divide_to_equal_chunks(chunks, max_chunk_size)        

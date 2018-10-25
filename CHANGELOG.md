@@ -1,8 +1,10 @@
+* Version 4.3.6:
+     * raise a ValueError if names of fragments to be inserted contain whitespace characters ' ' or '\t'.
 * Version 4.3.5:
      * raise a ValueError if names of fragments to be inserted collide with names of reference sequences.
 * Version 4.3.4:
      * Cleaning up the default (info) log  a bit
-* Version 4.3.3: 
+* Version 4.3.3:
      * avoid pipes for hmmsearch to deal with memory issues
      * Increase the default -F to 20000
 * Version 4.3.2: more fixes to UPP
@@ -11,7 +13,7 @@
      * degap input files when already aligned
      * avoid checking file names twice
 * Version 4.3.1: fixes to UPP
-     * In the absence of fragments, outputs are generated in a consistent fashion 
+     * In the absence of fragments, outputs are generated in a consistent fashion
      * PASTA alignment and trees are given a name prefixed by the output prefix naem
 * Version 4.3.0:
      * Added (Uyen Mai) an option -M and -S midpoint to break by midpoint and to stop by diameter
