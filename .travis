@@ -31,3 +31,4 @@ script:
   - COVERAGE_FILE=.coverage coverage run --rcfile .coveragerc setup.py nosetests --with-doctest
 after_success:
   - coveralls
+ 
