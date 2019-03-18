@@ -61,6 +61,7 @@ class Test(unittest.TestCase):
         
         assert readonly_subalignment.is_aligned() == True
         
+        print("STEFAN", readonly_subalignment.is_all_gap(2))
         assert readonly_subalignment.is_all_gap(2) == True, "Site 2 should be all gaps"
         assert readonly_subalignment.is_all_gap(150) == False, "Site 100 should not be all gaps"        
         
