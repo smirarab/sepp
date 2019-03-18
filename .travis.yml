@@ -26,9 +26,10 @@ install:
   - conda create -n test_env python=$PYVERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
-  - pip install . --no-deps
+  # install SEPP
+  - python setup.py config -c
+  - python setup.py install
 script:
   - COVERAGE_FILE=.coverage coverage run --rcfile .coveragerc setup.py nosetests --with-doctest
 after_success:
   - coveralls
- 
