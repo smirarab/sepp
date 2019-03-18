@@ -37,8 +37,8 @@ script:
   - python TestFork.py
   - python testMerge.py
   - python testSepp.py
-  # following tests runs relatively long
-  - python TestForkJoin.py
+  # following tests runs relatively long and has extensive output
+  - python TestForkJoin.py 2> /dev/null
   #- COVERAGE_FILE=.coverage coverage run --rcfile .coveragerc setup.py nosetests --with-doctest
   #- flake8 micronota setup.py
 after_success:
