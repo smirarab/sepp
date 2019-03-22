@@ -251,8 +251,8 @@ class Join_ApplyModel_Summarize(Join):
         for tip in self.summarylevel_problem.iter_leaves():
             resultsPerTipSubproblem.append(tip.get_job_result_by_name(
                 "applymodel"))
-        self.summarylevel_problem.jobs["summarize"].resultsPerTipSubproblem =
-        resultsPerTipSubproblem
+        self.summarylevel_problem.jobs["summarize"].resultsPerTipSubproblem = \
+            resultsPerTipSubproblem
         JobPool().enqueue_job(self.summarylevel_problem.jobs["summarize"])
 
 

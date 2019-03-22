@@ -17,7 +17,8 @@ class TestExternalJob(ExternalSeppJob):
             self.stderrdata and also will be logged'''
             pass
         elif pipe == 1:
-            '''The following line forces output to be saved to a file. Note that
+            '''The following line forces output to be saved to a file. Note
+            that
             1- A file object/descriptor cannot be used here because this is
                executed in parent process, and in child process those file
                handlers will not be available.
@@ -44,8 +45,13 @@ class TestExternalJob(ExternalSeppJob):
             self.pattern, self.options, "pipe: %d" % self.pipe)
 
     def read_results(self):
-        return open("./.stdout").read() if self.pipe == 2 else self.stdoutdata
-        if self.stdoutdata is not None else "Nothing captured"
+        if self.pipe == 2:
+            return open("./.stdout").read()
+        else:
+            if self.stdoutdata is not None:
+                return self.stdoutdata
+            else:
+                return "Nothing captured"
 
 
 class Test(unittest.TestCase):
@@ -81,14 +87,13 @@ class Test(unittest.TestCase):
         find_job.ignore_error = True
         try:
             JobPool().enqueue_job(find_job)
-            assert if JobPool().wait_for_all_jobs() is False
+            assert JobPool().wait_for_all_jobs() is False
         except JobError as e:
-            assert str(e).find("No such file or directory") != -1,
-            "The error we expected is no such file or directory"
+            assert(str(e).find("No such file or directory") != -1,
+                   "The error we expected is no such file or directory")
 
-        assert if JobPool().get_asynch_result_object(find_job).successful() is
-        False,
-        "We expected the job to fail"
+        assert(JobPool().get_asynch_result_object(find_job).successful() is
+               False, "We expected the job to fail")
 
     def testNoPipe(self):
         find_job = TestExternalJob(pipe=1)
@@ -105,15 +110,14 @@ class Test(unittest.TestCase):
         find_job.ignore_error = True
         try:
             JobPool().enqueue_job(find_job)
-            assert if JobPool().wait_for_all_jobs() is False
+            assert JobPool().wait_for_all_jobs() is False
             JobPool().get_asynch_result_object(find_job).get()
         except JobError as e:
-            assert str(e).find("No such file or directory") != -1,
-            "The error we expected is no such file or directory"
+            assert(str(e).find("No such file or directory") != -1,
+                   "The error we expected is no such file or directory")
 
-        assert if JobPool().get_asynch_result_object(find_job).successful() is
-        False,
-        "We expected the job to fail"
+        assert(JobPool().get_asynch_result_object(find_job).successful() is
+               False, "We expected the job to fail")
 
 
 if __name__ == "__main__":
