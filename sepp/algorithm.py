@@ -237,7 +237,7 @@ class AbstractAlgorithm(object):
 
         _LOG.info(
             "Decomposition Sizes are set to alignment: %d placement: %d" %
-            options.alignment_size, options.placement_size)
+            (options.alignment_size, options.placement_size))
 
     def check_outputprefix(self):
         if self.outchecked:
