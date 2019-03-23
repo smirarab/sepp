@@ -111,15 +111,15 @@ if __name__ == '__main__':
 
     print(errs)
 
-    assert(len(errs) == len(errors),
-           "Number of errors from failed jobs: %d. Number of errors: %d" %
-           (len(errs), len(errors)))
+    assert len(errs) == len(errors), \
+        "Number of errors from failed jobs: %d. Number of errors: %d" % \
+        (len(errs), len(errors))
     assert False not in [x in errors for x in errs]
 
     # print [job.state for job in jobs]
     print("Number of started jobs - number of printed results:", s)
     print("Number of failed jobs:", len(errors))
-    assert(s == len(errors),
-           "Parallelization Error, what happened to the rest?")
+    assert s == len(errors), \
+        "Parallelization Error, what happened to the rest?"
 
     print("Everything seems fine!")
