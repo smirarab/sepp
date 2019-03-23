@@ -89,11 +89,11 @@ class Test(unittest.TestCase):
             JobPool().enqueue_job(find_job)
             assert JobPool().wait_for_all_jobs() is False
         except JobError as e:
-            assert(str(e).find("No such file or directory") != -1,
-                   "The error we expected is no such file or directory")
+            assert str(e).find("No such file or directory") != -1, \
+                "The error we expected is no such file or directory"
 
-        assert(JobPool().get_asynch_result_object(find_job).successful() is
-               False, "We expected the job to fail")
+        assert JobPool().get_asynch_result_object(find_job).successful() is \
+            False, "We expected the job to fail"
 
     def testNoPipe(self):
         find_job = TestExternalJob(pipe=1)
@@ -113,11 +113,11 @@ class Test(unittest.TestCase):
             assert JobPool().wait_for_all_jobs() is False
             JobPool().get_asynch_result_object(find_job).get()
         except JobError as e:
-            assert(str(e).find("No such file or directory") != -1,
-                   "The error we expected is no such file or directory")
+            assert str(e).find("No such file or directory") != -1, \
+                "The error we expected is no such file or directory"
 
-        assert(JobPool().get_asynch_result_object(find_job).successful() is
-               False, "We expected the job to fail")
+        assert JobPool().get_asynch_result_object(find_job).successful() is \
+            False, "We expected the job to fail"
 
 
 if __name__ == "__main__":
