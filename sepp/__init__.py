@@ -24,8 +24,8 @@ import os
 __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder",
            "tools", "problem"]
 version = "4.3.6"
-_DEBUG = "SEPP_DEBUG" in os.environ
-and os.environ["SEPP_DEBUG"].lower() == "true"
+_DEBUG = ("SEPP_DEBUG" in os.environ) and \
+    (os.environ["SEPP_DEBUG"].lower() is "true")
 # print "Debug mode is %s." %("on" if _DEBUG else "off")
 _INSTALL_PATH = __path__[0]
 
