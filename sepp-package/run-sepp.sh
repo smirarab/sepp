@@ -1,7 +1,7 @@
 #!/bin/bash  
 
 if [ $# -lt 2 ]; then
-   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -n 1 = no tree-, just placements- computation] [optional: -b 1 = report debugging information ]
+   echo USAGE: $0 "[input fragments file] [output prefix] [optional: -x number-of-cores ] [optional: -A alignment subset size] [optional: -P placement subset size] [optional: any other SEPP argument] [optional: -t filename reference phylogeny] [optional: -a filename reference alignment] [optional: -r filename reference RAxML info file] [optional: -n 1 = no tree-, just placements- computation] [optional: -b 1 = report debugging information ]
    Optional commands need not be in order. Any SEPP option can also be passed. For example, use
    -x 8
    to make SEPP us 8 threads"
@@ -90,6 +90,10 @@ do
 			t="$2"
 			shift # past argument
 			;;
+		-r|--referenceInfofile)
+			rxi="$2"
+			shift # past argument
+			;;
 		-n|--noTreeComputation)
 			noTree="$2"
 			shift # past argument
@@ -120,7 +124,10 @@ if [ -z $alg ]; then
 	alg="$DIR/ref/gg_13_5_ssu_align_99_pfiltered.fasta"
 fi;
 # RAxML info file generated when creating the reference RAxML tree
-rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
+if [ -z $rxi ]; then
+	# resort to the default reference RAxML info file, if not specified via command line argument
+	alg="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
+fi;
 
 set -e
 

@@ -6,7 +6,7 @@ Created on Oct 2, 2012
 import unittest
 import sys
 
-from sepp.config import options  
+from sepp.config import options
 from sepp import config
 import os
 import io
@@ -24,76 +24,71 @@ class Test(unittest.TestCase):
         back = config.main_config_path
         config.main_config_path = os.path.expanduser("~/.sepp/main.config.notexistentfile") # Diasable main config path for this test
         sys.argv = [sys.argv[0], "-A" ,"2", "-c" ,"data/configs/test.config", "--outdir", "dir_form_commandline"]
-          
+
         assert options().alignment_size == 2, "Commandline option -A not read properly"
-        
+
         assert isinstance(options().config_file, filetypes) and options().config_file.name == "data/configs/test.config", "Commandline option -c not read properly"
 
-        assert (options().pplacer is not None 
+        assert (options().pplacer is not None
                 and options().pplacer.path == "pplacer"), "config file options not read properly"
-                            
-        assert options().placement_size == 10, "Config file option placementSize not read properly"                    
-        
+
+        assert options().placement_size == 10, "Config file option placementSize not read properly"
+
         assert options().outdir.endswith("dir_form_commandline"), "Config file value outdir is not properly overwritten:%s " %options().outdir
-        
+
         assert options().tempdir is not None, "Default value not properly set for tempfile attribute"
-        
-        print(options())
-        
+
         config.main_config_path = back
 
     def testConfigFileMissingFile(self):
-        
+
         config._options_singelton = None # Just to make different test cases independent of each other.
-        back = config.main_config_path 
+        back = config.main_config_path
         config.main_config_path = os.path.expanduser("~/.sepp/main.config.notexistentfile") # Diasable main config path for this test
-         
+
         sys.argv = [sys.argv[0], "-c" ,"data/configs/test2.config", "-f", "data/simulated/test.fas"]
         assert isinstance(options().config_file, filetypes) and options().config_file.name == "data/configs/test2.config", "Commandline option -c not read properly"
 
         assert isinstance(options().alignment_file, filetypes) and options().alignment_file.name == "data/simulated/test.small.fas", "Config file option alignment not read properly"
 
         assert isinstance(options().fragment_file, filetypes) and options().fragment_file.name == "data/simulated/test.fas", "Command-line option -f alignment not read properly"
-        
-        print(options())       
-        
-        config.main_config_path = back             
+
+        config.main_config_path = back
 
     def testMainConfigFile(self):
-        
+
         config._options_singelton = None # Just to make different test cases independent of each other.
-                 
+
         sys.argv = [sys.argv[0]]
-                  
-        assert (options().pplacer is not None 
+
+        assert (options().pplacer is not None
                 and os.path.exists(options().pplacer.path)), ("main config file"
-                "options not read properly, or nonexistent binaries: pplacer = %s" 
+                "options not read properly, or nonexistent binaries: pplacer = %s"
                 %options().pplacer.path)
 
-        assert (options().hmmalign is not None 
+        assert (options().hmmalign is not None
                 and os.path.exists(options().hmmalign.path)), ("main config file"
-                "options not read properly, or nonexistent binaries: hmmalign = %s" 
+                "options not read properly, or nonexistent binaries: hmmalign = %s"
                 %options().pplacer.path)
 
 
-        assert (options().hmmsearch is not None 
+        assert (options().hmmsearch is not None
                 and os.path.exists(options().hmmalign.path)), ("main config file"
-                "options not read properly, or nonexistent binaries: hmmsearch = %s" 
+                "options not read properly, or nonexistent binaries: hmmsearch = %s"
                 %options().pplacer.path)
-                                
-        print(options())                            
-        
+
+
     def testCpuCount(self):
         config._options_singelton = None # Just to make different test cases independent of each other.
         back = config.main_config_path
         config.main_config_path = os.path.expanduser("~/.sepp/main.config.notexistentfile") # Diasable main config path for this test
         sys.argv = [sys.argv[0], "-x" ,"7"]
-          
+
         assert options().cpu == 7, "Commandline option -x not read properly"
-        
-        print(options())
-        
-        config.main_config_path = back        
+
+        config.main_config_path = back
+
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testConfigFile']
     unittest.main()
