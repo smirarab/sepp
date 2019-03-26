@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
         alg = MutableAlignment()
         alg.read_filepath("data/mock/pyrg/sate.fasta")
 
-        subset  = list(alg.keys())[9:12]
+        subset  = ['NC_008701_720717_722309','NC_013156_149033_150643','NC_013887_802739_801129']
         readonly_subalignment = ReadonlySubalignment(subset, alg)
 
         assert len(readonly_subalignment) == 3, len(readonly_subalignment)
