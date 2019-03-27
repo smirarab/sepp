@@ -1,3 +1,6 @@
+* Version 4.3.7:
+     * Clean up run-sepp.sh to expose more options
+     * Beginning steps for building more robust builds
 * Version 4.3.6:
      * raise a ValueError if names of fragments to be inserted contain whitespace characters ' ' or '\t'.
 * Version 4.3.5:

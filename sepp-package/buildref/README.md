@@ -15,7 +15,7 @@ We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_o
    ```
    note that here, `alg` is the alignment and `t` is the reference tree
 
-3. You need to run the following to reestimate branch lengths:
+3. You need to run the following to re-estimate branch lengths:
    ```
    raxmlHPC-PTHREADS -s $alg -m GTRCAT -n score-bl-$alg -F -f e -t RAxML_result.score-$alg -T 16 -p $RANDOM 
    ```
@@ -25,7 +25,7 @@ We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_o
    root.sh  archaea.99.ids RAxML_result.score-bl-$alg  reference-$alg-rooted.tre
    ```
 
-5. You need to reformat your info file to the righ format
+5. You need to reformat your info file to the right format
    ```
    python reformat-info.py RAxML_info.score-bl-$alg > RAxML_info.$alg
    ```
@@ -36,6 +36,10 @@ We use as example, `gg_13_5_pasta_99_10masked.fasta` for the alignment and `99_o
    ```
    You can perhaps also just use tax2tree directly on the final output
 
+7. [May be needed] Depending on the steps used, sometimes, the bacteria branch is left with no length. This can be solved using
+   ``` bash
+   sed -i -e "s/'k__Bacteria'/'k__Bacteria':0.0/g" reference-$alg-rooted-relabelled.tre
+   ```
 
 At the end, your reference files are: 
 * your original alignment, 
