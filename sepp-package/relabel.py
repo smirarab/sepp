@@ -2,8 +2,11 @@ import dendropy
 
 taxa = dendropy.TaxonNamespace()
 
-t=dendropy.Tree.get_from_path(src='99_otus.tree',schema='newick', taxon_namespace=taxa)
-t2=dendropy.Tree.get_from_path(src='sepp-package/ref/reference-gg-raxml-bl-rooted.tre',schema='newick', taxon_namespace=taxa)
+t = dendropy.Tree.get_from_path(src='99_otus.tree', schema='newick',
+                                taxon_namespace=taxa)
+t2 = dendropy.Tree.get_from_path(
+    src='sepp-package/ref/reference-gg-raxml-bl-rooted.tre', schema='newick',
+    taxon_namespace=taxa)
 
 t.encode_bipartitions()
 
@@ -24,4 +27,6 @@ a = t2.find_node_with_label(label="k__Archaea")
 
 t2.reroot_at_node(a, update_bipartitions=False)
 
-t2.write_to_path(dest='reference-gg-raxml-bl-rooted-relabelled.tre',schema='newick',suppress_rooting=True,suppress_internal_node_labels=False)
+t2.write_to_path(dest='reference-gg-raxml-bl-rooted-relabelled.tre',
+                 schema='newick', suppress_rooting=True,
+                 suppress_internal_node_labels=False)
