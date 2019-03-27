@@ -18,10 +18,15 @@ from sepp.problem import Problem
 
 # Depth of problem hierarchy (for decomposition). Tips are equivalent
 # of alignment subsets
-DEPTH = 4
+DEPTH = 3
 # The level at which subproblems are aggregated (equivalent of placement
 # subsets)
-SUMMERIZE_LEVEL = 3
+SUMMERIZE_LEVEL = 2
+
+
+def trimstr(i):
+    s = str(i)
+    return s if len(s) < 101 else "%s ..." % (s[0:100])
 
 
 class TestProblem(Problem):
@@ -49,7 +54,7 @@ class GenericJob(Job):
 
     def print_result(self, result):
         print("Process [%s]: %s finished with results: %s" % (
-              os.getpid(), self.type, result), file=sys.stderr)
+              os.getpid(), self.type, trimstr(result)), file=sys.stderr)
 
 
 class BuildModelJob(GenericJob):
@@ -71,9 +76,10 @@ class BuildModelJob(GenericJob):
             os.getpid(), self.problem_name), file=sys.stderr)
         h = 0
         step = random() / 10000
-        for i in range(0, 100000):
+        for i in range(0, 10000):
             h += step * i
             # time.sleep(step/100)
+
         return int(h)
 
 
@@ -107,7 +113,8 @@ class SearchJob(GenericJob):
             file=sys.stderr)
         # time.sleep(random()/10)
         # self.state = step
-        for i in range(1, 10000):
+        for i in range(1, 2000):
+
             ret = [abs(self.model-fragment) for fragment in self.fragments]
         return ret
 
@@ -137,9 +144,10 @@ class ApplyModelJob(GenericJob):
             file=sys.stderr)
         # time.sleep(random()/20)
         # self.state = step
-        for i in range(1, 10000):
-            ret = [self.model * fragment / 10000.0
+        for i in range(1, 2000):
+            ret = [self.model * fragment / 2000.0
                    for fragment in self.fragments]
+
         return ret
 
 
@@ -159,15 +167,16 @@ class SummarizeJob(GenericJob):
         '''
         Simply normalize the model-applied fragments across
         '''
-        print("Process [%s]: %s running %s with results from tips %s" % (
-            os.getpid(), self.type, self.problem_name,
-            str(self.resultsPerTipSubproblem)), file=sys.stderr)
+        print(trimstr(
+            "Process [%s]: %s running %s with results from tips %s") % (
+                os.getpid(), self.type, self.problem_name,
+                str(self.resultsPerTipSubproblem)), file=sys.stderr)
         # time.sleep(random()/20)
         # self.state = step
         all_fragments = []
         for fragments in self.resultsPerTipSubproblem:
             all_fragments.extend(fragments)
-        for i in range(1, 100000):
+        for i in range(1, 20000):
             fsum = sum(all_fragments)
             ret = [(fragment + .0) / fsum for fragment in all_fragments]
         return ret
@@ -278,9 +287,10 @@ class Join_tip_searchfragment(Join):
             os.getpid(), self.root_problem), file=sys.stderr)
 
         def print_fragments(problem):
-            print("level " + str(problem.level), str(
-                problem.get_job_result_by_name("buildmodel")),
-                problem.fragments)
+            print(
+                "\t" * (problem.level),
+                trimstr(problem.get_job_result_by_name("buildmodel")),
+                trimstr(problem.fragments))
             for c in problem.children:
                 print_fragments(c)
         print_fragments(self.root_problem)
@@ -392,6 +402,6 @@ if __name__ == '__main__':
     ''' print out the results of summarize jobs. We could merge the
     results from all summarize jobs here if we wanted '''
     for problem in root_problem.iter_nodes_at_level(SUMMERIZE_LEVEL):
-        print(problem.get_job_result_by_name("buildmodel"),
-              problem.get_job_result_by_name("summarize"))
+        print(trimstr(problem.get_job_result_by_name("buildmodel")),
+              trimstr(problem.get_job_result_by_name("summarize")))
     # print [str(x) for x in root_problem.iter_leaves()]
