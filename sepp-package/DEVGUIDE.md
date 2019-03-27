@@ -19,7 +19,7 @@ You can get this for example by running:
 ln -s `echo 'import dendropy; import os; print (os.path.split(dendropy.__file__)[0])'|python` sepp/
 ```
 
-Then zip them all up
+Then archive them all into a single file:
 
 ```
 cd ..
