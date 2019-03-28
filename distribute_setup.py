@@ -167,14 +167,14 @@ def use_setuptools(version=DEFAULT_VERSION, download_base=DEFAULT_URL,
             e = sys.exc_info()[1]
             if was_imported:
                 sys.stderr.write(
-                "The required version of distribute (>=%s) is not available,\n"
-                "and can't be installed while this script is running. Please\n"
-                "install a more recent version first, using\n"
-                "'easy_install -U distribute'."
-                "\n\n(Currently using %r)\n" % (version, e.args[0]))
+                    "The required version of distribute (>=%s) is not"
+                    "available,\n and can't be installed while this script is"
+                    " running. Please\n install a more recent version first,"
+                    " using\n'easy_install -U distribute'."
+                    "\n\n(Currently using %r)\n" % (version, e.args[0]))
                 sys.exit(2)
             else:
-                del pkg_resources, sys.modules['pkg_resources']    # reload ok
+                del pkg_resources, sys.modules['pkg_resources']  # reload ok
                 return _do_download(version, download_base, to_dir,
                                     download_delay)
         except pkg_resources.DistributionNotFound:
@@ -265,6 +265,7 @@ def _patch_file(path, content):
         f.close()
     return True
 
+
 _patch_file = _no_sandbox(_patch_file)
 
 
@@ -315,6 +316,7 @@ def _remove_flat_installation(placeholder):
                      'Setuptools distribution', element)
     return True
 
+
 _remove_flat_installation = _no_sandbox(_remove_flat_installation)
 
 
@@ -329,8 +331,8 @@ def _create_fake_setuptools_pkg_info(placeholder):
         log.warn('Could not find the install location')
         return
     pyver = '%s.%s' % (sys.version_info[0], sys.version_info[1])
-    setuptools_file = 'setuptools-%s-py%s.egg-info' % \
-            (SETUPTOOLS_FAKED_VERSION, pyver)
+    setuptools_file = 'setuptools-%s-py%s.egg-info' % (
+        SETUPTOOLS_FAKED_VERSION, pyver)
     pkg_info = os.path.join(placeholder, setuptools_file)
     if os.path.exists(pkg_info):
         log.warn('%s already exists', pkg_info)
@@ -355,6 +357,7 @@ def _create_fake_setuptools_pkg_info(placeholder):
     finally:
         f.close()
 
+
 _create_fake_setuptools_pkg_info = _no_sandbox(
     _create_fake_setuptools_pkg_info
 )
@@ -377,6 +380,7 @@ def _patch_egg_dir(path):
     finally:
         f.close()
     return True
+
 
 _patch_egg_dir = _no_sandbox(_patch_egg_dir)
 
@@ -446,8 +450,10 @@ def _fake_setuptools():
     else:
         log.warn('Egg installation')
         pkg_info = os.path.join(setuptools_location, 'EGG-INFO', 'PKG-INFO')
-        if (os.path.exists(pkg_info) and
-            _same_content(pkg_info, SETUPTOOLS_PKG_INFO)):
+        if (
+            os.path.exists(pkg_info) and
+            _same_content(pkg_info, SETUPTOOLS_PKG_INFO)
+           ):
             log.warn('Already patched.')
             return
         log.warn('Patching...')
@@ -530,6 +536,7 @@ def _build_install_args(options):
         install_args.append('--user')
     return install_args
 
+
 def _parse_args():
     """
     Parse the command line for options
@@ -546,12 +553,13 @@ def _parse_args():
     # positional arguments are ignored
     return options
 
+
 def main(version=DEFAULT_VERSION):
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
     tarball = download_setuptools(download_base=options.download_base)
     return _install(tarball, _build_install_args(options))
 
+
 if __name__ == '__main__':
     sys.exit(main())
-
