@@ -1,15 +1,21 @@
 import dendropy
 import sys
 
-# Arguments: 1: a "reference" tree with internal taxon labels                                      example: 99_otus.tree
-#            2: a "new" tree that is a refinement of the refrence tree, but lacks internal nodes   example: reference-gg-raxml-bl-rooted.tre
-#            3: the output: the new tree with internal nodes added                                 example: reference-gg-raxml-bl-rooted-relabelled.tre
+# Arguments: 1: a "reference" tree with internal taxon labels
+#               example: 99_otus.tree
+#            2: a "new" tree that is a refinement of the refrence tree, but
+#               lacks internal nodes
+#               example: reference-gg-raxml-bl-rooted.tre
+#            3: the output: the new tree with internal nodes added
+#               example: reference-gg-raxml-bl-rooted-relabelled.tre
 # Assumes there is a single node called k__Archaea to root the output tree on
 
 taxa = dendropy.TaxonNamespace()
 
-t=dendropy.Tree.get_from_path(src=sys.argv[1],schema='newick', taxon_namespace=taxa)
-t2=dendropy.Tree.get_from_path(src=sys.argv[2],schema='newick', taxon_namespace=taxa)
+t = dendropy.Tree.get_from_path(
+    src=sys.argv[1], schema='newick', taxon_namespace=taxa)
+t2 = dendropy.Tree.get_from_path(
+    src=sys.argv[2], schema='newick', taxon_namespace=taxa)
 
 t.encode_bipartitions()
 
@@ -30,4 +36,5 @@ a = t2.find_node_with_label(label="k__Archaea")
 
 t2.reroot_at_node(a, update_bipartitions=False)
 
-t2.write_to_path(dest=sys.argv[3],schema='newick',suppress_rooting=True,suppress_internal_node_labels=False)
+t2.write_to_path(dest=sys.argv[3], schema='newick', suppress_rooting=True,
+                 suppress_internal_node_labels=False)
