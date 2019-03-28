@@ -3,6 +3,7 @@ Created on June 14, 2018
 
 @author: Stefan.M.Janssen@gmail.com
 '''
+import sys
 import tempfile
 import shutil
 import unittest
@@ -17,6 +18,8 @@ class Test(unittest.TestCase):
     x = None
 
     def setUp(self):
+        # ensure necessary settings are made
+        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
         self.x = ExhaustiveAlgorithm()
         self.x.options.alignment_file = open(
             get_data_path(
