@@ -6,14 +6,19 @@ Created on Nov 20, 2012
 import unittest
 from sepp.jobs import MergeJsonJob
 import sys
+import os.path
+from sepp.math_utils import get_data_path
 
 
 class Test(unittest.TestCase):
     def testMerge(self):
         sys.argv = [sys.argv[0]]
-        stdindata = open("data/tmp/tempmerge").read()
+        stdindata = open(get_data_path("tmp/tempmerge")).read()
         mergeJsonJob = MergeJsonJob()
-        mergeJsonJob.setup(stdindata, "data/tmp/mergedfile")
+        mergeJsonJob.setup(stdindata.replace(
+            'data/tmp/pplacer.extended',
+            os.path.dirname(get_data_path("tmp/tempmerge")) +
+            '/pplacer.extended'), get_data_path("tmp/mergedfile"))
         mergeJsonJob.run()
 
 
