@@ -9,6 +9,7 @@ import sys
 import os
 from multiprocessing import Lock
 import time
+import unittest
 
 
 class TestJob(Job):
@@ -68,7 +69,7 @@ class TestJob(Job):
 
 s = 0
 lock = Lock()
-if __name__ == '__main__':
+def run():
     global pool
     pool1 = JobPool(2)
     pool2 = JobPool()
@@ -123,3 +124,12 @@ if __name__ == '__main__':
         "Parallelization Error, what happened to the rest?"
 
     print("Everything seems fine!")
+
+
+class Test(unittest.TestCase):
+    def test_me(self):
+        run()
+
+
+if __name__ == '__main__':
+    unittest.main()
