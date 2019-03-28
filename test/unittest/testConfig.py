@@ -88,36 +88,39 @@ class Test(unittest.TestCase):
         # Just to make different test cases independent of each other.
         config._options_singelton = None
 
-        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test.config")]
-        print("STEFAN", options().pplacer.path)
+        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
+        # set pplacer filepath to a file shipped with the code base
+        options().pplacer.path = get_data_path(
+            "../../../tools/bundled/Darwin/pplacer")
+
         assert (options().pplacer is not None and os.path.exists(
                 options().pplacer.path)), \
             ("main config file options not read properly,"
              "or nonexistent binaries: pplacer = %s" %
              options().pplacer.path)
 
-        # assert (options().hmmalign is not None and os.path.exists(
-        #         options().hmmalign.path)), \
-        #     ("main config file options not read properly, or nonexistent "
-        #      "binaries: hmmalign = %s" % options().pplacer.path)
-        #
-        # assert (options().hmmsearch is not None and os.path.exists(
-        #         options().hmmalign.path)), \
-        #     ("main config file options not read properly, or nonexistent "
-        #      "binaries: hmmsearch = %s" % options().pplacer.path)
-    #
-    # def testCpuCount(self):
-    #     # Just to make different test cases independent of each other.
-    #     config._options_singelton = None
-    #     back = config.main_config_path
-    #     # Diasable main config path for this test
-    #     config.main_config_path = os.path.expanduser(
-    #         "~/.sepp/main.config.notexistentfile")
-    #     sys.argv = [sys.argv[0], "-x", "7"]
-    #
-    #     assert options().cpu == 7, "Commandline option -x not read properly"
-    #
-    #     config.main_config_path = back
+        options().hmmalign.path = get_data_path(
+            "../../../tools/bundled/Darwin/hmmalign")
+        assert (options().hmmalign is not None and os.path.exists(
+                options().hmmalign.path)), \
+            ("main config file options not read properly, or nonexistent "
+             "binaries: hmmalign = %s" % options().hmmalign.path)
+
+        options().hmmsearch.path = get_data_path(
+            "../../../tools/bundled/Darwin/hmmsearch")
+        assert (options().hmmsearch is not None and os.path.exists(
+                options().hmmsearch.path)), \
+            ("main config file options not read properly, or nonexistent "
+             "binaries: hmmsearch = %s" % options().hmmsearch.path)
+
+    def testCpuCount(self):
+        # Just to make different test cases independent of each other.
+        config._options_singelton = None
+        # Diasable main config path for this test
+        config.main_config_path = self.fp_config
+        sys.argv = [sys.argv[0], "-x", "7"]
+
+        assert options().cpu == 7, "Commandline option -x not read properly"
 
 
 if __name__ == "__main__":
