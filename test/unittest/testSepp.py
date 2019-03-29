@@ -9,6 +9,8 @@ import shutil
 import unittest
 import sepp
 from sepp.filemgr import get_data_path
+import platform
+from argparse import Namespace
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 sepp._DEBUG = True
@@ -32,6 +34,14 @@ class Test(unittest.TestCase):
             get_data_path(
                 "q2-fragment-insertion/reference_phylogeny_tiny.nwk"), "r")
         self.x.options.outdir = tempfile.mkdtemp()
+
+        suff_bit = "-64" if sys.maxsize > 2**32 else "-32"
+        if platform.system() == 'Darwin':
+            suff_bit = ""
+        for prog in ['hmmalign', 'hmmbuild', 'hmmsearch', 'pplacer']:
+            setattr(self.x.options, prog, Namespace(
+                path=get_data_path("../../../tools/bundled/%s/%s%s" % (
+                    platform.system(), prog, suff_bit))))
 
     def tearDown(self):
         self.x.options.alignment_file.close()
