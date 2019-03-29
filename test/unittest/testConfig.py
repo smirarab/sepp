@@ -14,7 +14,7 @@ try:
     filetypes = (io.IOBase, file)
 except NameError:
     filetypes = io.IOBase
-from sepp.math_utils import get_data_path
+from sepp.filemgr import get_data_path
 from tempfile import mkstemp
 
 

@@ -7,7 +7,7 @@ import unittest
 from sepp.jobs import MergeJsonJob
 import sys
 import os.path
-from sepp.math_utils import get_data_path
+from sepp.filemgr import get_data_path
 
 
 class Test(unittest.TestCase):

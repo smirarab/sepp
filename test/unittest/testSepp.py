@@ -7,7 +7,7 @@ import tempfile
 import shutil
 import unittest
 import sepp
-from sepp.math_utils import get_data_path
+from sepp.filemgr import get_data_path
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 sepp._DEBUG = True
