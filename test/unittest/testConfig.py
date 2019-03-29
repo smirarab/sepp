@@ -19,7 +19,7 @@ from tempfile import mkstemp
 import logging
 
 
-logging.disable(logging.CRITICAL)
+logging.disable(logging.INFO)
 
 class Test(unittest.TestCase):
     fp_config = None
