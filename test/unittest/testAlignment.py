@@ -8,7 +8,7 @@ import sepp
 from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
     ExtendedAlignment
 from sepp.problem import SeppProblem
-from sepp.math_utils import get_data_path
+from sepp.filemgr import get_data_path
 
 
 sepp._DEBUG = True
