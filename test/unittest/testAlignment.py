@@ -8,6 +8,7 @@ import sepp
 from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
     ExtendedAlignment
 from sepp.problem import SeppProblem
+from sepp.filemgr import get_data_path
 
 
 sepp._DEBUG = True
@@ -23,7 +24,7 @@ class Test(unittest.TestCase):
 
     def testAlignmentReadFasta(self):
         alg = MutableAlignment()
-        alg.read_filepath("data/mock/pyrg/sate.fasta")
+        alg.read_filepath(get_data_path("mock/pyrg/sate.fasta"))
 
         assert len(alg) == 65, "MutableAlignment length is %s" % len(alg)
 
@@ -31,7 +32,7 @@ class Test(unittest.TestCase):
 
     def testReadOnlySubAlignment(self):
         alg = MutableAlignment()
-        alg.read_filepath("data/mock/pyrg/sate.fasta")
+        alg.read_filepath(get_data_path("mock/pyrg/sate.fasta"))
 
         subset = ['NC_008701_720717_722309', 'NC_013156_149033_150643',
                   'NC_013887_802739_801129']
@@ -66,7 +67,8 @@ class Test(unittest.TestCase):
         assert readonly_subalignment.is_all_gap(150) is False, \
             "Site 100 should not be all gaps"
 
-        readonly_subalignment.write_to_path("data/mock/pyrg/sate.sub.fasta")
+        readonly_subalignment.write_to_path(get_data_path(
+            "mock/pyrg/sate.sub.fasta"))
 
         mutable_subalignment = readonly_subalignment.get_mutable_alignment()
         mutable_subalignment.delete_all_gap()
@@ -91,12 +93,12 @@ class Test(unittest.TestCase):
             "SBDF", "SGBJ", "SDHE", "SJIB", "SHHI", "SIDE", "SJII"]
 
         alg = MutableAlignment()
-        alg.read_filepath("data/simulated/test.fasta")
+        alg.read_filepath(get_data_path("simulated/test.fasta"))
         alg.delete_all_gap()
         tlen = alg.get_length()
 
         frg = MutableAlignment()
-        frg.read_filepath("data/simulated/test.fas")
+        frg.read_filepath(get_data_path("simulated/test.fas"))
         # print frg.get_num_taxa()
 
         pp = SeppProblem(list(alg.keys()))
@@ -111,36 +113,38 @@ class Test(unittest.TestCase):
             [k for k in list(frg.keys()) if int(k[-1]) <= 1], frg)
 
         cp1labels = cp1.write_subalignment_without_allgap_columns(
-            "data/tmp/cp1.fasta")
+            get_data_path("tmp/cp1.fasta"))
         cp2labels = cp2.write_subalignment_without_allgap_columns(
-            "data/tmp/cp2.fasta")
-        tmp = MutableAlignment().read_filepath("data/tmp/cp1.fasta")
+            get_data_path("tmp/cp2.fasta"))
+        tmp = MutableAlignment().read_filepath(get_data_path("tmp/cp1.fasta"))
         assert all([not tmp.is_all_gap(pos)
                     for pos in range(0, tmp.get_length())])
-        tmp = MutableAlignment().read_filepath("data/tmp/cp2.fasta")
+        tmp = MutableAlignment().read_filepath(get_data_path("tmp/cp2.fasta"))
         assert all([not tmp.is_all_gap(pos)
                     for pos in range(0, tmp.get_length())])
 
-        cp1.fragments.write_to_path("data/tmp/cp1.frags.fas")
-        cp2.fragments.write_to_path("data/tmp/cp2.frags.fas")
+        cp1.fragments.write_to_path(get_data_path("tmp/cp1.frags.fas"))
+        cp2.fragments.write_to_path(get_data_path("tmp/cp2.frags.fas"))
 
         '''We have done the hmmalign before.
            don't worry about that right now'''
 
         ext1 = ExtendedAlignment(cp1.fragments)
         ext1.build_extended_alignment(
-            "data/tmp/cp1.fasta", "data/tmp/cp1.extended.sto")
+            get_data_path("tmp/cp1.fasta"),
+            get_data_path("tmp/cp1.extended.sto"))
         ext1.relabel_original_columns(cp1labels)
         ext2 = ExtendedAlignment(cp2.fragments)
         ext2.build_extended_alignment(
-            "data/tmp/cp2.fasta", "data/tmp/cp2.extended.sto")
+            get_data_path("tmp/cp2.fasta"),
+            get_data_path("tmp/cp2.extended.sto"))
         ext2.relabel_original_columns(cp2labels)
 
         extmerger = ExtendedAlignment([])
         extmerger.merge_in(ext1)
         mixed = extmerger.merge_in(ext2)
 
-        extmerger.write_to_path("data/tmp/extended.merged.fasta")
+        extmerger.write_to_path(get_data_path("tmp/extended.merged.fasta"))
 
         assert extmerger.is_aligned(), "Merged alignment is not aligned"
         in1 = len([x for x in ext1._col_labels if x < 0])

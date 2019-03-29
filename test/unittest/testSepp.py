@@ -7,6 +7,7 @@ import tempfile
 import shutil
 import unittest
 import sepp
+from sepp.filemgr import get_data_path
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 sepp._DEBUG = True
@@ -18,12 +19,15 @@ class Test(unittest.TestCase):
     def setUp(self):
         self.x = ExhaustiveAlgorithm()
         self.x.options.alignment_file = open(
-            "data/q2-fragment-insertion/reference_alignment_tiny.fasta", "r")
+            get_data_path(
+                "q2-fragment-insertion/reference_alignment_tiny.fasta"), "r")
         self.x.options.info_file = open(
-            "data/q2-fragment-insertion/RAxML_info-reference-gg-raxml-bl.info",
+            get_data_path(
+                "q2-fragment-insertion/RAxML_info-reference-gg-raxml-bl.info"),
             "r")
         self.x.options.tree_file = open(
-            "data/q2-fragment-insertion/reference_phylogeny_tiny.nwk", "r")
+            get_data_path(
+                "q2-fragment-insertion/reference_phylogeny_tiny.nwk"), "r")
         self.x.options.outdir = tempfile.mkdtemp()
 
     def tearDown(self):
@@ -35,13 +39,15 @@ class Test(unittest.TestCase):
 
     def test_id_collision_working(self):
         self.x.options.fragment_file = open(
-            "data/q2-fragment-insertion/input_fragments.fasta", "r")
+            get_data_path(
+                "q2-fragment-insertion/input_fragments.fasta"), "r")
         self.x.run()
         self.assertTrue(self.x.results is not None)
 
     def test_id_collision_collision(self):
         self.x.options.fragment_file = open(
-            "data/q2-fragment-insertion/input_fragments_collide.fasta", "r")
+            get_data_path(
+                "q2-fragment-insertion/input_fragments_collide.fasta"), "r")
         with self.assertRaisesRegex(
                 ValueError,
                 ' whose names overlap with names in your reference'):
@@ -50,7 +56,8 @@ class Test(unittest.TestCase):
 
     def test_seqnames_whitespaces(self):
         self.x.options.fragment_file = open(
-            "data/q2-fragment-insertion/input_fragments_spaces.fasta", "r")
+            get_data_path(
+                "q2-fragment-insertion/input_fragments_spaces.fasta"), "r")
         with self.assertRaisesRegex(
                 ValueError,
                 "contain either whitespaces: "):

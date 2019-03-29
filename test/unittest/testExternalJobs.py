@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
 
         find_job = TestExternalJob()
         find_job.pattern = ".."
-        find_job.options = "-name %s" % res0.replace("./test", "*")
+        find_job.options = "-name %s" % res0.split('/')[-1]
         JobPool().enqueue_job(find_job)
 
         JobPool().wait_for_all_jobs()
@@ -78,7 +78,7 @@ class Test(unittest.TestCase):
 
         assert res1 != ""
 
-        assert res1.replace("../unittest/", "./") == res0
+        assert res1.endswith(res0[2:])
 
     def testError(self):
         find_job = TestExternalJob()
