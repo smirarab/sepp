@@ -588,9 +588,9 @@ class ExtendedAlignment(MutableAlignment):
         for c in insertions:
             if assertion:
                 for k in self.get_base_seq_names():
-                    assert not [self[k][c] != "-", \
-                    ("Insertion column has sequence among original "
-                     "sequences. An error? column: %d k= %s" % (c, k))
+                    assert not self[k][c] != "-", \
+                        ("Insertion column has sequence among original "
+                        "sequences. An error? column: %d k= %s" % (c, k))
             self.col_labels[c] = insertion
             insertion -= 1
         ''' Adjust labels of other columns '''
