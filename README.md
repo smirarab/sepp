@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/smirarab/sepp.svg?branch=master)](https://travis-ci.org/smirarab/sepp) [![Coverage Status](https://coveralls.io/repos/github/sjanssen2/sepp/badge.svg?branch=coveralls)](https://coveralls.io/github/sjanssen2/sepp?branch=master)
+[![Build Status](https://travis-ci.org/smirarab/sepp.svg?branch=master)](https://travis-ci.org/smirarab/sepp) [![Coverage Status](https://coveralls.io/repos/github/sjanssen2/sepp/badge.svg?branch=coveralls)](https://coveralls.io/github/smirarab/sepp?branch=master)
 ------------------------------------
 Summary
 ------------------------------------
