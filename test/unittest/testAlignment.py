@@ -14,7 +14,7 @@ from tempfile import mkstemp
 from os import remove
 
 
-logging.disable(logging.CRITICAL)
+logging.disable(logging.INFO)
 sepp._DEBUG = True
 
 
