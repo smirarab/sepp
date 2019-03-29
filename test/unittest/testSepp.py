@@ -3,11 +3,14 @@ Created on June 14, 2018
 
 @author: Stefan.M.Janssen@gmail.com
 '''
+import sys
 import tempfile
 import shutil
 import unittest
 import sepp
 from sepp.filemgr import get_data_path
+import platform
+from argparse import Namespace
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 sepp._DEBUG = True
@@ -17,6 +20,8 @@ class Test(unittest.TestCase):
     x = None
 
     def setUp(self):
+        # ensure necessary settings are made
+        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
         self.x = ExhaustiveAlgorithm()
         self.x.options.alignment_file = open(
             get_data_path(
@@ -29,6 +34,14 @@ class Test(unittest.TestCase):
             get_data_path(
                 "q2-fragment-insertion/reference_phylogeny_tiny.nwk"), "r")
         self.x.options.outdir = tempfile.mkdtemp()
+
+        suff_bit = "-64" if sys.maxsize > 2**32 else "-32"
+        if platform.system() == 'Darwin':
+            suff_bit = ""
+        for prog in ['hmmalign', 'hmmbuild', 'hmmsearch', 'pplacer']:
+            setattr(self.x.options, prog, Namespace(
+                path=get_data_path("../../../tools/bundled/%s/%s%s" % (
+                    platform.system(), prog, suff_bit))))
 
     def tearDown(self):
         self.x.options.alignment_file.close()

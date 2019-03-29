@@ -6,9 +6,15 @@ Created on Oct 2, 2012
 import unittest
 from sepp.jobs import ExternalSeppJob
 from sepp.scheduler import JobPool, JobError
+from multiprocessing import cpu_count
 
 
 class TestExternalJob(ExternalSeppJob):
+    def tearDown(self):
+        # clean up JobPool for other unit tests
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+
     def __init__(self, pipe=0, **kwargs):
         self.pipe = pipe
         if pipe == 0:
@@ -55,6 +61,11 @@ class TestExternalJob(ExternalSeppJob):
 
 
 class Test(unittest.TestCase):
+    def tearDown(self):
+        # clean up JobPool for other unit tests
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+
     def testSuccess(self):
         find_job = TestExternalJob()
         find_job.pattern = "."
