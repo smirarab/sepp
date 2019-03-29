@@ -16,7 +16,10 @@ except NameError:
     filetypes = io.IOBase
 from sepp.filemgr import get_data_path
 from tempfile import mkstemp
+import logging
 
+
+logging.disable(logging.CRITICAL)
 
 class Test(unittest.TestCase):
     fp_config = None
