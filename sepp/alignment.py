@@ -57,7 +57,7 @@ def get_pdistance(distances, leaves, stat='mean'):
                 pdistance = pdistance + distances[name]
                 counts = counts + 1
             elif stat == 'max':
-                if (distance[name] > pdistance):
+                if (distances[name] > pdistance):
                     pdistance = distances[name]
 
     if (stat == 'mean'):
@@ -587,11 +587,10 @@ class ExtendedAlignment(MutableAlignment):
         insertion = -1
         for c in insertions:
             if assertion:
-                assert \
-                    not any([self[k][c] != "-"
-                             for k in self.get_base_seq_names()]), \
-                    ("Insertion column has sequence among original "
-                     "sequences. An error? column: %d k= %s" % (c, k))
+                for k in self.get_base_seq_names():
+                    assert not self[k][c] != "-", \
+                        ("Insertion column has sequence among original "
+                        "sequences. An error? column: %d k= %s" % (c, k))
             self.col_labels[c] = insertion
             insertion -= 1
         ''' Adjust labels of other columns '''
