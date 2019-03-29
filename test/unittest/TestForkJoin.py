@@ -12,8 +12,9 @@ from sepp.scheduler import Job, JobPool, Join
 from random import random
 import sys
 import os
-from multiprocessing import Lock
+from multiprocessing import Lock, cpu_count
 from sepp.problem import Problem
+import unittest
 
 
 # Depth of problem hierarchy (for decomposition). Tips are equivalent
@@ -377,7 +378,13 @@ def build_job_dag(root_problem):
 
 s = 0
 lock = Lock()
-if __name__ == '__main__':
+root_problem = None
+
+
+def run():
+    global root_problem
+    JobPool().terminate()
+    JobPool().__init__(2)
     pool = JobPool(2)
 
     '''build the problem structure'''
@@ -405,3 +412,17 @@ if __name__ == '__main__':
         print(trimstr(problem.get_job_result_by_name("buildmodel")),
               trimstr(problem.get_job_result_by_name("summarize")))
     # print [str(x) for x in root_problem.iter_leaves()]
+
+
+class Test(unittest.TestCase):
+    def tearDown(self):
+        # clean up JobPool for other unit tests
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+
+    def test_me(self):
+        run()
+
+
+if __name__ == '__main__':
+    unittest.main()

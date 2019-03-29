@@ -9,12 +9,10 @@ from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
     ExtendedAlignment
 from sepp.problem import SeppProblem
 from sepp.filemgr import get_data_path
-import logging
 from tempfile import mkstemp
 from os import remove
 
 
-logging.disable(logging.INFO)
 sepp._DEBUG = True
 
 

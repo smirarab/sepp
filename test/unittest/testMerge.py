@@ -5,17 +5,21 @@ Created on Nov 20, 2012
 '''
 import unittest
 from sepp.jobs import MergeJsonJob
+from sepp.scheduler import JobPool
+from multiprocessing import cpu_count
 import sys
 import os.path
 from sepp.filemgr import get_data_path
 import sepp.config
-import logging
 from argparse import Namespace
 
 
-logging.disable(logging.INFO)
-
 class Test(unittest.TestCase):
+    def tearDown(self):
+        # clean up JobPool for other unit tests
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+
     def testMerge(self):
         sys.argv = [sys.argv[0]]
         stdindata = open(get_data_path("tmp/tempmerge")).read()

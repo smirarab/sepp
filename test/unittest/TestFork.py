@@ -4,6 +4,7 @@ Created on Aug 22, 2012
 @author: smirarab
 '''
 from sepp.scheduler import Job, JobPool
+from multiprocessing import cpu_count
 from random import random
 import sys
 import os
@@ -23,7 +24,7 @@ class TestJob(Job):
         self.state = None
 
         def add_a_child(parent):
-            print("Adding a child job for %s" % (parent), file=sys.stderr)
+            # print("Adding a child job for %s" % (parent), file=sys.stderr)
             JobPool().enqueue_job(TestJob("%s.child" % parent))
             # print "Added a child for: ",parent
 
@@ -42,14 +43,14 @@ class TestJob(Job):
 
     def print_res(self, result):
         global s
-        print("%s returned: %d" % (self.jobname, self.result))
+        # print("%s returned: %d" % (self.jobname, self.result))
         lock.acquire()
         s -= 1
         lock.release()
 
     def run(self):
-        print("Process [%s]: running %s" % (os.getpid(), self.jobname),
-              file=sys.stderr)
+        # print("Process [%s]: running %s" % (os.getpid(), self.jobname),
+        #       file=sys.stderr)
         # Adding the following line results in a failure:
         # AssertionError: daemonic processes are not allowed to have children.
         # This is expected because the new process is going to try to start a
@@ -69,6 +70,8 @@ class TestJob(Job):
 
 s = 0
 lock = Lock()
+
+
 def run():
     global pool
     pool1 = JobPool(2)
@@ -101,7 +104,7 @@ def run():
         assert(jobs[3].result_set is False)
 
     errors = pool.get_all_job_errors()
-    print("Following job errors were raised:", errors)
+    # print("Following job errors were raised:", errors)
 
     try:
         pool.wait_for_all_jobs(ignore_error=False)
@@ -110,7 +113,7 @@ def run():
 
     errs = [pool.get_job_error(job) for job in pool.get_failed_jobs()]
 
-    print(errs)
+    # print(errs)
 
     assert len(errs) == len(errors), \
         "Number of errors from failed jobs: %d. Number of errors: %d" % \
@@ -118,15 +121,20 @@ def run():
     assert False not in [x in errors for x in errs]
 
     # print [job.state for job in jobs]
-    print("Number of started jobs - number of printed results:", s)
-    print("Number of failed jobs:", len(errors))
+    # print("Number of started jobs - number of printed results:", s)
+    # print("Number of failed jobs:", len(errors))
     assert s == len(errors), \
         "Parallelization Error, what happened to the rest?"
 
-    print("Everything seems fine!")
+    # print("Everything seems fine!")
 
 
 class Test(unittest.TestCase):
+    def tearDown(self):
+        # clean up JobPool for other unit tests
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+
     def test_me(self):
         run()
 

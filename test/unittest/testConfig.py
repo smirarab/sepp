@@ -16,10 +16,9 @@ except NameError:
     filetypes = io.IOBase
 from sepp.filemgr import get_data_path
 from tempfile import mkstemp
-import logging
+from sepp.scheduler import Job, JobPool
+from multiprocessing import cpu_count
 
-
-logging.disable(logging.INFO)
 
 class Test(unittest.TestCase):
     fp_config = None
@@ -119,11 +118,22 @@ class Test(unittest.TestCase):
     def testCpuCount(self):
         # Just to make different test cases independent of each other.
         config._options_singelton = None
-        # Diasable main config path for this test
+        # Disable main config path for this test
         config.main_config_path = self.fp_config
+        JobPool().terminate()
+        JobPool().__init__(7)
         sys.argv = [sys.argv[0], "-x", "7"]
 
         assert options().cpu == 7, "Commandline option -x not read properly"
+
+        # clean up after test:
+        # 1) the JobPool CPU counts needs to be reset to the default
+        # 2) the command line arguments must be restored
+        JobPool().terminate()
+        JobPool().__init__(cpu_count())
+        sys.argv = [sys.argv[0], "-x", str(cpu_count())]
+        config._options_singelton = None
+        options()
 
 
 if __name__ == "__main__":
