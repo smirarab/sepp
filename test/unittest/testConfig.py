@@ -135,6 +135,25 @@ class Test(unittest.TestCase):
         config._options_singelton = None
         options()
 
+    def testLog(self):
+        import sepp
+        import logging
+        import sepp.jobs
+        
+        sdb = sepp._DEBUG
+        
+        sepp._DEBUG = True
+        sepp.reset_loggers()
+        sepp.jobs._LOG.debug("test debugging works")
+        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.DEBUG)
+        
+        sepp._DEBUG = False
+        sepp.reset_loggers()
+        sepp.jobs._LOG.debug("test debugging is disabled")
+        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.INFO )
+        
+        sepp._DEBUG = sdb
+        sepp.reset_loggers()
 
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testConfigFile']
