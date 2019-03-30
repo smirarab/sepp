@@ -19,10 +19,9 @@ import unittest
 
 # Depth of problem hierarchy (for decomposition). Tips are equivalent
 # of alignment subsets
-DEPTH = 3
-# The level at which subproblems are aggregated (equivalent of placement
-# subsets)
-SUMMERIZE_LEVEL = 2
+DEPTH = 2
+# The level subproblems are aggregated (like placement subsets)
+SUMMERIZE_LEVEL = 1
 
 
 def trimstr(i):

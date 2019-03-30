@@ -11,6 +11,7 @@ import sepp
 from sepp.filemgr import get_data_path
 import platform
 from argparse import Namespace
+import sepp.scheduler
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 #sepp._DEBUG = True
@@ -20,10 +21,8 @@ from sepp.exhaustive import ExhaustiveAlgorithm
 class Test(unittest.TestCase):
     x = None
 
-    def setUp(self):
-        # ensure necessary settings are made
+    def resetSepp(self):
         sepp.scheduler._jobPool = None
-        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
         self.x = ExhaustiveAlgorithm()
         self.x.options.alignment_file = open(
             get_data_path(
@@ -44,42 +43,34 @@ class Test(unittest.TestCase):
             setattr(self.x.options, prog, Namespace(
                 path=get_data_path("../../../tools/bundled/%s/%s%s" % (
                     platform.system(), prog, suff_bit))))
+    def setUp(self):
+        # ensure necessary settings are made
+        sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
+        self.resetSepp()
 
     def tearDown(self):
-        self.x.options.alignment_file.close()
-        self.x.options.info_file.close()
-        self.x.options.tree_file.close()
-        self.x.options.fragment_file.close()
-        sepp.scheduler._jobPool = None
         shutil.rmtree(self.x.options.outdir, ignore_errors=True)
+        self.resetSepp()
 
-    def test_id_collision_working(self):
+    def test_diamMid(self):
         self.x.options.fragment_file = open(
             get_data_path(
                 "q2-fragment-insertion/input_fragments.fasta"), "r")
+        self.x.options.maxDiam = 0.1
+        self.x.options.fragmentChunkSize = 1
+        self.x.options.decomp_strategy = "midpoint"
         self.x.run()
         self.assertTrue(self.x.results is not None)
 
-    def test_id_collision_collision(self):
+    def test_diamCent(self):
         self.x.options.fragment_file = open(
             get_data_path(
-                "q2-fragment-insertion/input_fragments_collide.fasta"), "r")
-        with self.assertRaisesRegex(
-                ValueError,
-                ' whose names overlap with names in your reference'):
-            self.x.run()
-        self.assertTrue(self.x.results is None)
-
-    def test_seqnames_whitespaces(self):
-        self.x.options.fragment_file = open(
-            get_data_path(
-                "q2-fragment-insertion/input_fragments_spaces.fasta"), "r")
-        with self.assertRaisesRegex(
-                ValueError,
-                "contain either whitespaces: "):
-            self.x.run()
-        self.assertTrue(self.x.results is None)
-
+                "q2-fragment-insertion/input_fragments.fasta"), "r")
+        self.x.options.maxDiam = 0.1
+        self.x.options.fragmentChunkSize = 1
+        self.x.options.decomp_strategy = "centroid"
+        self.x.run()
+        self.assertTrue(self.x.results is not None)
 
 if __name__ == "__main__":
     unittest.main()
