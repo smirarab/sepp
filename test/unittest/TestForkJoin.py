@@ -168,10 +168,9 @@ class SummarizeJob(GenericJob):
         '''
         Simply normalize the model-applied fragments across
         '''
-        print(trimstr(
-            "Process [%s]: %s running %s with results from tips %s") % (
+        print("Process [%s]: %s running %s with results from tips %s" % (
                 os.getpid(), self.type, self.problem_name,
-                str(self.resultsPerTipSubproblem)), file=sys.stderr)
+                trimstr(self.resultsPerTipSubproblem)), file=sys.stderr)
         # time.sleep(random()/20)
         # self.state = step
         all_fragments = []
