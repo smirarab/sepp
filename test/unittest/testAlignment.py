@@ -13,9 +13,6 @@ from tempfile import mkstemp
 from os import remove
 
 
-sepp._DEBUG = True
-
-
 class Test(unittest.TestCase):
     fp_dummy1 = None
     fp_dummy2 = None
