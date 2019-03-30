@@ -13,8 +13,8 @@ import platform
 from argparse import Namespace
 
 from sepp.exhaustive import ExhaustiveAlgorithm
-sepp._DEBUG = True
-sepp.reset_loggers()
+#sepp._DEBUG = True
+#sepp.reset_loggers()
 
 
 class Test(unittest.TestCase):
