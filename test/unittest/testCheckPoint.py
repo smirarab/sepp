@@ -60,6 +60,17 @@ class Test(unittest.TestCase):
         self.x.run()
         self.assertTrue(self.x.results is not None)
 
+    def test_restore_checkpoints(self):
+        from shutil import copyfile
+        frec = tempfile.mktemp()
+        copyfile(get_data_path("checkpointdump"), frec)
+        with open(self._checkpointfile, 'w') as f:
+            f.write("%s, 2019-03-31 00:13:35.949731" %frec)
+        self.x.options.checkpoint = set_checkpoint(self._checkpointfile)
+        self.x.options.checkpoint_interval = 5
+        self.x.run()
+        self.assertTrue(self.x.results is not None)
+
 
 if __name__ == "__main__":
     unittest.main()
