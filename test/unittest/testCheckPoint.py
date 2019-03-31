@@ -47,6 +47,7 @@ class Test(unittest.TestCase):
         self.x.options.placement_size = 20
 
     def setUp(self):
+        sys.argv = [sys.argv[0]]
         self.resetSepp()
         self._checkpointfile = tempfile.mktemp()
 
