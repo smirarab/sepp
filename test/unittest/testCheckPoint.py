@@ -8,7 +8,6 @@ import tempfile
 import shutil
 import unittest
 import platform
-import os
 from argparse import Namespace
 import sepp
 from sepp.filemgr import get_data_path
@@ -54,7 +53,6 @@ class Test(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.x.options.outdir, ignore_errors=True)
         self.resetSepp()
-        os.remove(self.fp_config)
 
     def test_make_checkpoints(self):
         self.x.options.checkpoint = set_checkpoint(self._checkpointfile)
