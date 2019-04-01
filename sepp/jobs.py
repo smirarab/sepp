@@ -451,7 +451,7 @@ class HMMSearchJob(ExternalSeppJob):
                 return self.outfile
             else:
                 outfile = open(self.outfile, 'r')
-                res = job.read_results_from_temp(outfile)
+                res = self.read_results_from_temp(outfile)
                 outfile.close()
                 return res
 
