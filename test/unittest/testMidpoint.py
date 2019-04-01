@@ -14,8 +14,8 @@ from argparse import Namespace
 import sepp.scheduler
 
 from sepp.exhaustive import ExhaustiveAlgorithm
-#sepp._DEBUG = True
-#sepp.reset_loggers()
+# sepp._DEBUG = True
+# sepp.reset_loggers()
 
 
 class Test(unittest.TestCase):
@@ -43,6 +43,7 @@ class Test(unittest.TestCase):
             setattr(self.x.options, prog, Namespace(
                 path=get_data_path("../../../tools/bundled/%s/%s%s" % (
                     platform.system(), prog, suff_bit))))
+
     def setUp(self):
         # ensure necessary settings are made
         sys.argv = [sys.argv[0], "-c", get_data_path("configs/test2.config")]
