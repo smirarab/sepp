@@ -7,8 +7,6 @@ import sys
 import tempfile
 import shutil
 import unittest
-import platform
-from argparse import Namespace
 import sepp
 from sepp.filemgr import get_data_path
 from sepp.config import set_checkpoint
@@ -16,9 +14,8 @@ import sepp.scheduler
 
 from sepp.exhaustive import ExhaustiveAlgorithm
 
-#sepp._DEBUG = True
-#sepp.reset_loggers()
-
+# sepp._DEBUG = True
+# sepp.reset_loggers()
 
 
 class Test(unittest.TestCase):

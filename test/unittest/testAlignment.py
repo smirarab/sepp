@@ -4,7 +4,6 @@ Created on Sep 19, 2012
 @author: smirarab
 '''
 import unittest
-import sepp
 from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
     ExtendedAlignment
 from sepp.problem import SeppProblem

@@ -3,7 +3,7 @@
 # utils for tree decomposition
 
 
-from dendropy import Tree, Node
+from dendropy import Tree
 try:
     from queue import Queue  # python 3
 except ImportError:
@@ -108,7 +108,6 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
         d1 = -1
         d2 = -1
         anchor1 = None
-        anchor2 = None
         node.diameter = 0
         # node.topo_diam = 0
         node.bestLCA = None
@@ -129,11 +128,9 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
             if d > d1:
                 d2 = d1
                 d1 = d
-                anchor2 = anchor1
                 anchor1 = ch.anchor
             elif d > d2:
                 d2 = d
-                anchor2 = ch.anchor
             if ch.diameter > node.diameter:
                 node.diameter = ch.diameter
                 node.bestLCA = ch.bestLCA

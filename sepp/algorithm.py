@@ -4,7 +4,7 @@ Created on Oct 2, 2012
 @author: smirarab
 '''
 from sepp.config import options
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 from sepp.scheduler import JobPool
 from sepp.filemgr import directory_has_files_with_prefix, get_temp_file
 from sepp.alignment import MutableAlignment

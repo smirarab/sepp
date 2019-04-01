@@ -8,16 +8,15 @@ from sepp.config import options
 import argparse
 import json
 from sepp.algorithm import AbstractAlgorithm
-from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
+from sepp.alignment import MutableAlignment, ExtendedAlignment
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
-    MergeJsonJob, ExternalSeppJob
+    ExternalSeppJob
 from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
 from dendropy.datamodel.treemodel import Tree
 import dendropy
 import pickle
-import pdb
 from sepp import get_logger
 from functools import reduce
 
@@ -329,7 +328,6 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         '''Append main tree to merge input'''
         mergeinput.append("%s;" % (
             self.root_problem.subtree.compose_newick(labels=True)))
-        jsons = []
         for pp in self.root_problem.get_children():
             assert isinstance(pp, SeppProblem)
             for i in range(0, self.root_problem.fragment_chunks):
