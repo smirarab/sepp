@@ -25,9 +25,8 @@ import sys
 # from distutils.core import setup
 from distribute_setup import use_setuptools
 import shutil
-from setuptools import setup, find_packages
+from setuptools import find_packages
 from distutils.core import setup, Command
-from distutils.command.install import install
 from distutils.spawn import find_executable
 
 use_setuptools(version="0.6.24")
@@ -96,13 +95,6 @@ class ConfigSepp(Command):
             self.configfile, self.basepath))
 
     def run(self):
-        def get_tool_name(tool, bits):
-            # MAC doesn't have 32/64
-            if platform.system() == "Darwin" or not bits:
-                return tool
-            is_64bits = sys.maxsize > 2**32
-            return "%s-%s" % (tool, "64" if is_64bits else "32")
-
         def get_tool_name(tool, bits):
             # MAC doesn't have 32/64
             if platform.system() == "Darwin" or not bits:

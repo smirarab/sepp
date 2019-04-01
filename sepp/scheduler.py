@@ -365,7 +365,7 @@ class _JobPool:
                     result.get()
                     if len(job.errors) != 0:
                         raise Exception(job.errors[0])
-                except Exception as e:
+                except Exception:
                     if not ignore_error and not job.ignore_error:
                         raise
             ''' _lock is acquired so that while we are iterating through the

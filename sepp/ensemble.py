@@ -3,24 +3,16 @@ Created on May 31, 2015
 
 @author: namphuon
 '''
-import sys
-import random
 import argparse
 import os
-import shutil
-from argparse import ArgumentParser, Namespace
 from sepp import get_logger
-from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
-from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
-from sepp.jobs import PastaAlignJob
-from sepp.filemgr import get_temp_file
+from sepp.alignment import MutableAlignment
+from sepp.exhaustive import ExhaustiveAlgorithm
 from sepp.config import options, valid_decomp_strategy
 import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
 from sepp.scheduler import JobPool, Join
-from multiprocessing import Pool, Manager
-from sepp.alignment import ExtendedAlignment
 
 _LOG = get_logger(__name__)
 
@@ -224,7 +216,7 @@ def augment_parser():
         help="Aligned fasta file "
              "[default: %(default)s]")
 
-    uppGroup = parser.add_argument_group(
+    parser.add_argument_group(
         "UPP Options".upper(),
         "These options set settings specific to UPP")
 

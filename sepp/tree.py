@@ -34,9 +34,7 @@ try:
 except ImportError:
     from io import StringIO
 
-import sys
 import copy
-import pdb
 import string
 import random
 import re
@@ -136,7 +134,6 @@ for l2 in sys.stdin.readlines():
         return len(self._tree.nodes())
 
     def calc_splits(self):
-        n = self.count_leaves()
         for i in self._tree.postorder_edge_iter():
             nd = i.head_node
             if nd.is_leaf():
@@ -234,7 +231,7 @@ for l2 in sys.stdin.readlines():
         if (self.n_leaves == 1):
             return (None, None, None)
         root = self._tree.seed_node
-        (t1_root, t2_root) = (root._child_nodes[0], root._child_nodes[1])
+        t1_root = root._child_nodes[0]
         t = self._tree
         t.prune_subtree(t1_root, update_splits=True, delete_outdegree_one=True)
         t1 = PhylogeneticTree(t)
@@ -255,7 +252,6 @@ for l2 in sys.stdin.readlines():
         assert nr.parent_node is e.tail_node
         is_valid_tree(t)
 
-        n = self.n_leaves
         potentially_deleted_nd = e.tail_node
         grandparent_nd = potentially_deleted_nd.parent_node
         e.tail_node.remove_child(nr, suppress_unifurcations=True)

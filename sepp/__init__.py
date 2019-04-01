@@ -61,16 +61,18 @@ def get_logger(name="sepp"):
         __set_loggers.add(name)
     return logger
 
+
 def reset_loggers():
     global __set_loggers
     __set_loggers = set()
     import pkgutil
     import sepp
     for l, name, _ in pkgutil.iter_modules(['sepp']):
-        logger = (getattr(getattr(sepp,name, None),"_LOG", None))
+        logger = (getattr(getattr(sepp, name, None), "_LOG", None))
         if logger:
-            setattr(getattr(sepp,name, None),"_LOG", get_logger("sepp.%s"%name) )
-        
+            setattr(getattr(sepp, name, None), "_LOG", get_logger(
+                "sepp.%s" % name))
+
 
 def log_exception(logger):
     '''Logs the exception trace to the logObj as an error'''
