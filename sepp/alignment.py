@@ -25,10 +25,8 @@ import re
 from sepp.filemgr import open_with_intermediates
 
 from collections import Mapping
-from abc import ABCMeta
 import copy
 from sepp import get_logger
-import pdb
 import io
 try:
     filetypes = (io.IOBase, file)
@@ -590,7 +588,7 @@ class ExtendedAlignment(MutableAlignment):
                 for k in self.get_base_seq_names():
                     assert not self[k][c] != "-", \
                         ("Insertion column has sequence among original "
-                        "sequences. An error? column: %d k= %s" % (c, k))
+                         "sequences. An error? column: %d k= %s" % (c, k))
             self.col_labels[c] = insertion
             insertion -= 1
         ''' Adjust labels of other columns '''

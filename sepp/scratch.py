@@ -5,6 +5,12 @@ Created on June 3, 2014
 @author: namphuon
 '''
 
+from sepp.scheduler import Join, JobPool
+from sepp.problem import SeppProblem
+from sepp.jobs import HMMAlignJob
+from sepp import get_logger
+_LOG = get_logger(__name__)
+
 
 class JoinBlastJobs(Join):
     '''

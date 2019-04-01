@@ -2,11 +2,9 @@
 Created on May 13, 2014
 @author: namphuon
 '''
-import sys
 import argparse
 import os
-from argparse import ArgumentParser, Namespace
-from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
+from sepp.alignment import MutableAlignment
 
 
 def parse_args():

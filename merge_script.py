@@ -3,22 +3,9 @@ Created on Oct 10, 2012
 
 @author: smirarab
 '''
-import sys
-import random
-import argparse
-from argparse import ArgumentParser, Namespace
-from sepp import get_logger
-from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
-from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
-from sepp.jobs import PplacerJob, MafftAlignJob, FastTreeJob, PastaAlignJob
-from sepp.filemgr import get_temp_file
-from sepp.config import options
-import sepp.config
-from sepp.math_utils import lcm
+from sepp.alignment import MutableAlignment, ExtendedAlignment
+from sepp.exhaustive import JoinAlignJobs
 from sepp.problem import SeppProblem
-from sepp.scheduler import JobPool
-from multiprocessing import Pool, Manager
-from sepp.alignment import ExtendedAlignment
 import glob
 
 job_joiner = JoinAlignJobs

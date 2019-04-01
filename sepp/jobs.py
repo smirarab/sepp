@@ -5,7 +5,7 @@ Created on Sep 19, 2012
 '''
 from sepp.scheduler import Job, JobError
 from sepp import get_logger
-from abc import abstractmethod, ABCMeta
+from abc import abstractmethod
 from subprocess import Popen
 
 import os
@@ -16,7 +16,6 @@ import re
 from sepp.tree import PhylogeneticTree
 import sepp.config
 import traceback
-import pdb
 
 import io
 try:
