@@ -1,7 +1,7 @@
-from sepp.exhaustive_tipp import *
 import os
 import tempfile
 import re
+import sepp
 from sepp.alignment import MutableAlignment
 from sepp.alignment import _write_fasta
 from sepp.config import options
@@ -212,7 +212,7 @@ def distribution(classification_files, output_dir):
                      "order": {'unclassified': 1},
                      "class": {'unclassified': 1},
                      "phylum": {'unclassified': 1}}
-        (old_name, old_rank, old_probability, old_line) = ("", None, -1, "")
+        old_name = ""
         for line in class_in:
             results = line.strip().split(',')
             if (len(results) > 5):
@@ -223,8 +223,7 @@ def distribution(classification_files, output_dir):
             if (rank not in distribution):
                 continue
             if (old_name == ""):
-                (old_name, old_rank, old_probability, old_line) = (
-                    name, rank, probability, line)
+                old_name = name
             if (name != old_name):
                 total_frags += 1
                 assert frag_info['phylum']['unclassified'] != 1
@@ -239,8 +238,7 @@ def distribution(classification_files, output_dir):
                              "order": {'unclassified': 1},
                              "class": {'unclassified': 1},
                              "phylum": {'unclassified': 1}}
-                (old_name, old_rank, old_probability, old_line) = (
-                    name, rank, probability, line)
+                old_name = name
             if (id not in frag_info[rank]):
                 frag_info[rank][id] = 0
             frag_info[rank][id] += probability

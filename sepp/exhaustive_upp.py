@@ -8,7 +8,6 @@ import random
 import argparse
 import os
 import shutil
-from argparse import ArgumentParser, Namespace
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
@@ -18,9 +17,6 @@ from sepp.config import options, valid_decomp_strategy
 import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
-from sepp.scheduler import JobPool
-from multiprocessing import Pool, Manager
-from sepp.alignment import ExtendedAlignment
 
 _LOG = get_logger(__name__)
 
@@ -88,8 +84,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                     1 + options().backbone_threshold)))
             frag_names = [
                 name for name in sequences
-                if len(sequences[name]) > max_length
-                or len(sequences[name]) < min_length]
+                if len(sequences[name]) > max_length or
+                len(sequences[name]) < min_length]
             if (len(frag_names) > 0):
                 _LOG.info(
                     "Detected %d fragmentary sequences" % len(frag_names))

@@ -15,7 +15,6 @@ from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
 from sepp.math_utils import lcm
-import pdb
 _LOG = get_logger(__name__)
 
 
@@ -271,7 +270,6 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         '''Append main tree to merge input'''
         mergeinput.append(
             "%s;" % (self.root_problem.subtree.compose_newick(labels=True)))
-        jsons = []
         for pp in self.root_problem.get_children():
             assert isinstance(pp, SeppProblem)
             for i in range(0, self.root_problem.fragment_chunks):
