@@ -383,7 +383,7 @@ def run():
     global root_problem
     JobPool().terminate()
     JobPool().__init__(2)
-    pool = JobPool(2)
+    JobPool(2)
 
     '''build the problem structure'''
     root_problem = build_subproblems()

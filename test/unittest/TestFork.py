@@ -6,8 +6,6 @@ Created on Aug 22, 2012
 from sepp.scheduler import Job, JobPool
 from multiprocessing import cpu_count
 from random import random
-import sys
-import os
 from multiprocessing import Lock
 import time
 import unittest
@@ -79,7 +77,7 @@ def run():
     if pool1 != pool2:
         raise Exception("hmmm, I thought JobPool is 'Singleton'")
     try:
-        pool3 = JobPool(4)
+        JobPool(4)
     except Exception as e:
         print(("As expected, making a new JobPool with a"
                " different cpu count failed: %s") % e)

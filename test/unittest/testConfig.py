@@ -16,7 +16,7 @@ except NameError:
     filetypes = io.IOBase
 from sepp.filemgr import get_data_path
 from tempfile import mkstemp
-from sepp.scheduler import Job, JobPool
+from sepp.scheduler import JobPool
 from multiprocessing import cpu_count
 
 
@@ -47,8 +47,8 @@ class Test(unittest.TestCase):
             options().config_file.name.endswith("data/configs/test.config"), \
             "Commandline option -c not read properly"
 
-        assert (options().pplacer is not None
-                and options().pplacer.path == "pplacer"), \
+        assert (options().pplacer is not None and
+                options().pplacer.path == "pplacer"), \
             "config file options not read properly"
 
         assert options().placement_size == 10, \
@@ -139,19 +139,19 @@ class Test(unittest.TestCase):
         import sepp
         import logging
         import sepp.jobs
-        
+
         sdb = sepp._DEBUG
-        
+
         sepp._DEBUG = True
         sepp.reset_loggers()
         sepp.jobs._LOG.debug("test debugging works")
         assert(sepp.jobs._LOG.getEffectiveLevel() == logging.DEBUG)
-        
+
         sepp._DEBUG = False
         sepp.reset_loggers()
         sepp.jobs._LOG.debug("test debugging is disabled")
-        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.INFO )
-        
+        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.INFO)
+
         sepp._DEBUG = sdb
         sepp.reset_loggers()
 
