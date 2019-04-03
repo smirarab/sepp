@@ -17,16 +17,16 @@ fi
 export TMPDIR=$tmpbase
 
 # Should point to a (semi) permanent tmp for keeping the important parts of the results 
-tmp=`mktemp -d -t 'sepp-tmp-XXXXX'`
+tmp=`mktemp -d -t 'sepp-tmp-XXXXXXXXXX'`
 
 if [ -z ${TMPDIRSSD+x} ];
 then
     # if $TMPDIRSSD does not exist, just create under the main tmp
-	tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXXXXXXXX`
 else
 	# Should point to a fast (hopefully ssd) tmp location which may be removed after the run
     export TMPDIR=${TMPDIRSSD}
-	tmpssd=`mktemp -d -t sepp-tempssd-XXXX`
+	tmpssd=`mktemp -d -t sepp-tempssd-XXXXXXXXXX`
 
     # make sure the regular temp is reset so other consumers of the pipeline can use it
     export TMPDIR=$tmpbase
