@@ -370,9 +370,10 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                     pj.partial_setup_for_subproblem(
                         placement_problem, self.options.info_file, i)
                 elif self.placer == "epa":
-                    pj = EPAJob()
-                    pj.partial_setup_for_subproblem(
-                        placement_problem, self.molecule, i)
+                    raise ValueError("EPA Currently not supported")
+                    #pj = EPAJob()
+                    #pj.partial_setup_for_subproblem(
+                    #    placement_problem, self.molecule, i)
 
                 placement_problem.add_job(get_placement_job_name(i), pj)
 
