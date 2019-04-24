@@ -188,7 +188,8 @@ class TIPPJoinAlignJobs(JoinAlignJobs):
                 baseAlignment.write_to_path(pj.backbone_alignment_file)
 
             elif self.placer == "epa":
-                assert isinstance(pj, EPAJob)
+                # assert isinstance(pj, EPAJob)
+                raise ValueError("EPA Currently not supported")
 
                 # Write out the extended alignments in phylip for EPA
                 fullExtendedAlignment.write_to_path(
@@ -371,8 +372,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                         placement_problem, self.options.info_file, i)
                 elif self.placer == "epa":
                     raise ValueError("EPA Currently not supported")
-                    #pj = EPAJob()
-                    #pj.partial_setup_for_subproblem(
+                    # pj = EPAJob()
+                    # pj.partial_setup_for_subproblem(
                     #    placement_problem, self.molecule, i)
 
                 placement_problem.add_job(get_placement_job_name(i), pj)
