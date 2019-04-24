@@ -155,6 +155,7 @@ class Test(unittest.TestCase):
         sepp._DEBUG = sdb
         sepp.reset_loggers()
 
+
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testConfigFile']
     unittest.main()
