@@ -73,5 +73,6 @@ class Test(unittest.TestCase):
         self.x.run()
         self.assertTrue(self.x.results is not None)
 
+
 if __name__ == "__main__":
     unittest.main()
