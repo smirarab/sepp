@@ -126,7 +126,7 @@ fi;
 # RAxML info file generated when creating the reference RAxML tree
 if [ -z $rxi ]; then
 	# resort to the default reference RAxML info file, if not specified via command line argument
-	alg="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
+	rxi="$DIR/ref/RAxML_info-reference-gg-raxml-bl.info"
 fi;
 
 set -e
