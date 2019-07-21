@@ -1,3 +1,5 @@
+* Version 4.3.9:
+     * fix info file path in `run_sepp.sh` script
 * Version 4.3.7:
      * Clean up run-sepp.sh to expose more options
      * Beginning steps for building more robust builds
