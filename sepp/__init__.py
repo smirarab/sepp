@@ -23,7 +23,7 @@ import os
 
 __all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder",
            "tools", "problem"]
-version = "4.3.8"
+version = "4.3.9"
 _DEBUG = ("SEPP_DEBUG" in os.environ) and \
     (os.environ["SEPP_DEBUG"].lower() == "true")
 
