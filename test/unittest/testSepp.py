@@ -59,7 +59,7 @@ class Test(unittest.TestCase):
                 "q2-fragment-insertion/input_fragments.fasta"), "r")
         self.x.run()
         self.assertTrue(self.x.results is not None)
-        
+
     def test_id_collision_collision(self):
         self.x.options.fragment_file = open(
             get_data_path(
@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
                 ' whose names overlap with names in your reference'):
             self.x.run()
         self.assertTrue(self.x.results is None)
-  
+
     def test_seqnames_whitespaces(self):
         self.x.options.fragment_file = open(
             get_data_path(
@@ -79,7 +79,7 @@ class Test(unittest.TestCase):
                 "contain either whitespaces: "):
             self.x.run()
         self.assertTrue(self.x.results is None)
-        
+
     def test_fake_jobs(self):
         self.x.options.fragment_file = open(
             get_data_path(
