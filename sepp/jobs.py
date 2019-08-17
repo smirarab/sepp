@@ -435,25 +435,28 @@ class HMMSearchJob(ExternalSeppJob):
            Reads the search output file and returns a dictionary that contains
            the e-values of the searched fragments
         '''
-        if self.fake_run:
-            return {}
-        if self.pipe:
-            outfile = (self.stdoutdata.split("\n"))
-            return self.read_results_from_temp(outfile)
-        else:
-            assert os.path.exists(self.outfile)
-            assert os.stat(self.outfile)[stat.ST_SIZE] != 0
-            if self.results_on_temp:
+        if self.results_on_temp:
+            if self.fake_run:
+                res = {}
+            else:
+                assert os.path.exists(self.outfile)
+                assert os.stat(self.outfile)[stat.ST_SIZE] != 0
                 with open(self.outfile, 'r') as outfile:
                     res = self.read_results_from_temp(outfile)
-                with open(self.outfile, 'w') as target:
-                    target.write(str(res))
-                return self.outfile
+            with open(self.outfile, 'w') as target:
+                target.write(str(res))
+            return self.outfile
+        else:
+            if self.fake_run:
+                res = {}
+            elif self.pipe:
+                outfile = self.stdoutdata.split("\n")
+                res = self.read_results_from_temp(outfile)
             else:
                 outfile = open(self.outfile, 'r')
                 res = self.read_results_from_temp(outfile)
                 outfile.close()
-                return res
+            return res
 
         # Group 1 (e-value) 2 (bitscore) and 9 (taxon name) contain the
         # relevant information, other ones can be ignored unless we plan to

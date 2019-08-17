@@ -80,6 +80,21 @@ class Test(unittest.TestCase):
             self.x.run()
         self.assertTrue(self.x.results is None)
 
+    def test_fake_jobs(self):
+        self.x.options.fragment_file = open(
+            get_data_path(
+                "q2-fragment-insertion/input_fragments_tiny.fasta"), "r")
+        self.x.run()
+        self.assertTrue(self.x.results is not None)
+
+    def test_notpiped_jobs(self):
+        sepp.config.options().hmmsearch.piped = "False"
+        self.x.options.fragment_file = open(
+            get_data_path(
+                "q2-fragment-insertion/input_fragments_tiny.fasta"), "r")
+        self.x.run()
+        self.assertTrue(self.x.results is not None)
+
 
 if __name__ == "__main__":
     unittest.main()
