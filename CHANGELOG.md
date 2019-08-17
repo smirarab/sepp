@@ -1,3 +1,5 @@
+* Version 4.3.10:
+     * fix issue #70 a bug when hmmsearch fake jobs where not piped
 * Version 4.3.9:
      * fix info file path in `run_sepp.sh` script
 * Version 4.3.7:
