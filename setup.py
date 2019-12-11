@@ -82,7 +82,7 @@ class ConfigSepp(Command):
     def copy_tool_to_lib(self, tool, where=None, bits=True):
         if tool.startswith('hmm'):
             shutil.copy2(
-                os.path.join(os.environ['$CONDA_PREFIX'], 'bin', tool),
+                os.path.join(os.environ['CONDA_PREFIX'], 'bin', tool),
                 os.path.join(self.get_tools_dest(), tool))
         else:
             shutil.copy2(
