@@ -80,9 +80,14 @@ class ConfigSepp(Command):
         return os.path.join(self.basepath, "bundled-v%s" % version)
 
     def copy_tool_to_lib(self, tool, where=None, bits=True):
-        shutil.copy2(
-            os.path.join(get_tools_dir(where), get_tool_name(tool, bits)),
-            os.path.join(self.get_tools_dest(), tool))
+        if tool.startswith('hmm'):
+            shutil.copy2(
+                os.path.join(os.environ['$CONDA_PREFIX'], 'bin', tool),
+                os.path.join(self.get_tools_dest(), tool))
+        else:
+            shutil.copy2(
+                os.path.join(get_tools_dir(where), get_tool_name(tool, bits)),
+                os.path.join(self.get_tools_dest(), tool))
 
     def initialize_options(self):
         """init options"""
@@ -120,6 +125,7 @@ class ConfigSepp(Command):
         self.copy_tool_to_lib("hmmalign")
         self.copy_tool_to_lib("hmmsearch")
         self.copy_tool_to_lib("hmmbuild")
+
         # TODO: should we compile and build merge.jar?
         self.copy_tool_to_lib("seppJsonMerger.jar", where="merge", bits=False)
 
