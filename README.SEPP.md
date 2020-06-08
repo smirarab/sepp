@@ -46,6 +46,14 @@ Before installing the software you need to make sure the following programs are 
 
 Installation Steps:
 -------------------
+
+
+### Bioconda
+
+If you use Bioconda, you can try installing SEPP using https://anaconda.org/bioconda/sepp
+
+### From source code
+
 SEPP is distributed as Python source code. Once you have the above required software installed, do the following. 
 
 **Note:** these installation steps have recently changed
@@ -64,8 +72,8 @@ directory should not be removed later if `-c` is used.
 * To use any other location for the config file and the binary files, change the file `home.path` after step 3 and before step 4. 
 You need to also update the paths inside the `.sepp/main.config` file after step 3 and before step 4. 
 
-Common Problems:
--------------------
+#### Common Problems:
+
 1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: `python setup.py install --prefix=/some/path/on/your/system`, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
 2. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them. To point sepp to your installation of hmmer and placer modify `~/.sepp/main.config`. 
