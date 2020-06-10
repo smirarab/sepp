@@ -1,3 +1,4 @@
+from itertools import groupby
 import os
 import tempfile
 import re
@@ -10,6 +11,8 @@ Collection of functions for metagenomic pipeline for taxonomic classification
 Created on June 3, 2014
 
 @author: namphuon
+
+Edited on June 9, 2020 by ekmolloy and shahnidhi
 '''
 global character_map, taxon_map, level_map, key_map, refpkg
 character_map = {'A': 'T', 'a': 't', 'C': 'G', 'c': 'g', 'T': 'A',
@@ -43,6 +46,9 @@ def load_reference_package():
 
             if (key1 != "blast") and (key1 != "taxonomy"):
                 refpkg["genes"].append(key1)
+
+    refpkg["genes"] = set(refpkg["genes"])
+    refpkg["genes"] = list(refpkg["genes"])    
 
 
 # TODO Fix parameter passing
@@ -99,9 +105,15 @@ def build_profile(input, output_directory):
         print("Unable to bin any fragments!\n")
         return
 
+    for gene in refpkg["genes"]:
+        try:
+            if binned_fragments[gene]["nfrags"] == 0:
+                del binned_fragments[gene]
+        except KeyError:
+            pass
+
     if options().gene is not None:
         keep = set(options().gene.split(','))
-
         for gene in refpkg["genes"]:
             if gene not in keep:
                 try:
@@ -110,7 +122,7 @@ def build_profile(input, output_directory):
                 except KeyError:
                     pass
 
-    # Load up taxonomy for 30 marker genes
+    # Load up taxonomy for marker genes
     (taxon_map, level_map, key_map) = load_taxonomy(refpkg["taxonomy"]["taxonomy"])
 
     # Store all classifications here
@@ -118,7 +130,7 @@ def build_profile(input, output_directory):
     classification_files = []
 
     # Run TIPP on each fragment
-    for (gene, frags) in binned_fragments.items():
+    for gene in binned_fragments.keys():
         # Set placement subset size to equal the size of each marker
         with open(refpkg[gene]["size"], 'r') as f:
             total_taxa = int(f.readline().strip())
@@ -139,6 +151,7 @@ def build_profile(input, output_directory):
 
         if alignment_size > total_taxa:
             alignment_size = total_taxa
+
         if placement_size > total_taxa:
             placement_size = total_taxa
 
@@ -153,8 +166,8 @@ def build_profile(input, output_directory):
 
         # Set number of CPUS
         cpus = options().cpu
-        if (len(frags) < cpus):
-            cpus = len(frags)
+        if binned_fragments[gene]["nfrags"] < cpus:
+            cpus = binned_fragments[gene]["nfrags"]
 
         # Set extra arguments
         extra = ''
@@ -169,7 +182,7 @@ def build_profile(input, output_directory):
                   + " -c " + options().config_file.name \
                   + " --cpu " + str("%d" % cpus) \
                   + " -m " + options().molecule \
-                  + " -f " + temp_dir + '/' + gene + ".frags.fas.fixed" \
+                  + " -f " + binned_fragments[gene]["file"] \
                   + " -t " + refpkg[gene]["placement-tree"] \
                   + " -adt " + refpkg[gene]["alignment-decomposition-tree"] \
                   + " -a " + refpkg[gene]["alignment"] \
@@ -487,19 +500,62 @@ def hmmer_to_markers(input, temp_dir):
             genes[val[1]][name] = fragments[name]
         else:
             genes[val[1]][name] = reverse_sequence(fragments[name])
+    
     genes.pop("NA", None)
+    
     for gene, seq in genes.items():
-        gene_file = temp_dir + "/%s.frags.fas" % gene
-        _write_fasta(seq, gene_file + ".fixed")
+        gene_file = temp_dir + '/' + gene + ".frags.fas.fixed"
+        _write_fasta(seq, gene_file)
 
-    return genes
+    binned_fragments = {}
+    for gene, seq in genes.items():
+        binned_fragments[gene] = {}
+        binned_fragments[gene]["file"] = temp_dir + '/' + gene + ".frags.fas.fixed"
+        binned_fragments[gene]["nfrags"] = len(seq.keys())
+
+    return binned_fragments
+
+
+def fasta_iter(fasta_name):
+    with open(fasta_name, 'r') as fp:
+        line = fp.readline()
+        if line[0] != '>':
+            raise("Unable to read %s" % fasta_name)
+
+        nextheader = line.strip()
+        nextseq = []  
+
+        for line in fp:
+            if line[0] == '>':
+                header = nextheader[1:]
+                seq = "".join(nextseq)
+                nextheader = line.strip()
+                nextseq = []
+                yield header, seq
+            else:
+                nextseq.append(line.strip())
+
+
+def fastq_iter(fastq_name):
+    """
+    Function from Nidhi Shah:
+    https://github.com/shahnidhi/tipp2_scripts/blob/master/get_marker_assignment.py
+    """
+    with open(fastq_name, 'r') as fp:
+        for i, line in enumerate(fp):
+            if i%4 == 2:
+                continue
+            elif i%4 == 0:
+                header = line[1:].strip()
+            elif i%4 == 1:
+                seq = line.strip()
+            else:
+                # qual = line.strip()
+                yield header, seq
 
 
 def blast_to_markers(input, temp_dir):
     global refpkg
-
-    fragments = MutableAlignment()
-    fragments.read_filepath(input)
 
     # First blast sequences against all markers
     blast_results = temp_dir + "/blast.out"
@@ -509,51 +565,53 @@ def blast_to_markers(input, temp_dir):
     else:
         blast_results = options().blast_file
 
-    sys.exit()
-
     # Next bin the blast hits to the best gene
-    gene_binning = bin_blast_results(blast_results)
+    hitinfo = bin_blast_results(blast_results)
 
-    # Now figure out direction of fragments
-    binned_fragments = dict([
-        (gene, dict([(seq_name, fragments[seq_name])
-                     for seq_name in gene_binning[gene]]))
-        for gene in gene_binning])
+    binned_fragments = {}
+    for gene in refpkg["genes"]:
+        binned_fragments[gene] = {}
+        binned_fragments[gene]["file"] = temp_dir + "/" + gene + ".frags.fas.fixed"
+        binned_fragments[gene]["fptr"] = open(binned_fragments[gene]["file"], 'w')
+        binned_fragments[gene]["nfrags"] = 0
 
-    print("Finding best orientation of reads\n")
-    for (gene, frags) in binned_fragments.items():
-        # Add reverse complement sequence
-        frags_rev = dict([(name + '_rev', reverse_sequence(seq))
-                          for (name, seq) in frags.items()])
+    if input.lower().endswith(('.fastq', '.fq')):
+        fiter = fastq_iter(input)
+    elif input.lower().endswith(('.fasta', '.fa', '.fna')):
+        fiter = fasta_iter(input)
+    
+    for ff in fiter:
+        header = ff[0]
+        seq = ff[1]
 
-        gene_frags = MutableAlignment()
-        gene_frags.set_alignment(frags)
-        gene_frags.set_alignment(frags_rev)
-        gene_file = temp_dir + "/%s.frags.fas" % gene
-        _write_fasta(gene_frags, gene_file)
+        doit = True
+        try:
+            gene = hitinfo[header]["gene"]
+        except KeyError:
+            doit = False        
 
-        # Now run HMMER search
-        hmmer_output = temp_dir + '/' + gene + ".out"
-        hmmer_search(
-            gene_file,
-            refpkg[gene]["hmm"],
-            hmmer_output)
-        results = read_hmmsearch_results(hmmer_output)
+        if doit:
+            qstart = hitinfo[header]["qstart"]
+            qend = hitinfo[header]["qend"]
 
-        # Now select best direction for each frag
-        for key in frags:
-            forward_score = -10000
-            backward_score = -10000
-            if (key in results):
-                forward_score = results[key][1]
-            if (key+"_rev" in results):
-                backward_score = results[key + "_rev"][1]
-            if (backward_score > forward_score):
-                frags[key] = gene_frags[key + "_rev"]
+            if not options().no_trim:
+                if qstart > qend:
+                    s = qend
+                    e = qstart + 1
+                else:
+                    s = qstart
+                    e = qend + 1
+                seq = seq[s:e]
 
-        # Now write to file
-        _write_fasta(frags, gene_file + ".fixed")
-        binned_fragments[gene] = frags
+            if qstart > qend:
+                seq = reverse_sequence(seq)
+
+            binned_fragments[gene]["fptr"].write('>' + header + '\n')
+            binned_fragments[gene]["fptr"].write(seq + '\n')
+            binned_fragments[gene]["nfrags"] += 1
+
+    for gene in refpkg["genes"]:
+        binned_fragments[gene]["fptr"].close()
 
     return binned_fragments
 
@@ -603,16 +661,50 @@ def bin_blast_results(input):
     # Map the blast results to the markers
     gene_mapping = read_mapping(refpkg["blast"]["seq-to-marker-map"])
 
-    genes = {}
+    hitinfo = {}
+
     with open(input) as f:
         for line in f:
             results = line.split('\t')
-            gene = gene_mapping[results[1]][1]
-            if gene in genes:
-                genes[gene].append(results[0])
-            else:
-                genes[gene] = [results[0]]
-    return genes
+
+            qseqid = results[0]
+            sseqid = results[1]
+            #pident = float(results[2])
+            #length = int(results[3])
+            #mismatch = int(results[4])
+            #gapopen = int(results[5])
+            qstart = int(results[6])
+            qend = int(results[7])
+            #qlen = int(results[8])
+            #sstart = int(results[9])
+            #send = int(results[10])
+            #slen = int(results[11])
+            #evalue = float(results[12])
+            bitscore = float(results[13].strip())
+
+            query_coverage = abs(qend - qstart) + 1
+
+            doit = False
+            if query_coverage >= options().blast_threshold:
+                try:
+                    tmp = hitinfo[qseqid]
+                    if tmp[bitscore] < bitscore:
+                        doit = True
+                except KeyError:
+                    hitinfo[qseqid] = {}
+                    doit = True
+
+            if doit: 
+                hitinfo[qseqid]["gene"] = gene_mapping[sseqid][1]
+                hitinfo[qseqid]["qstart"] = qstart
+                hitinfo[qseqid]["qend"] = qend
+                #hitinfo[qseqid]["qlen"] = qlen
+                #hitinfo[qseqid]["sstart"] = sstart
+                #hitinfo[qseqid]["send"] = send
+                #hitinfo[qseqid]["slen"] = slen
+                hitinfo[qseqid]["bitscore"] = bitscore
+
+    return hitinfo
 
 
 def hmmer_search(input, hmmer, output):
@@ -634,7 +726,7 @@ def blast_fragments(input, output):
 
     cmd = options().__getattribute__('blast').path \
               + " -db " + refpkg["blast"]["database"] \
-              + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qseq sseq qlen\"" \
+              + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend qlen sstart send slen evalue bitscore\"" \
               + " -query " + input \
               + " -out " + output \
               + " -num_threads " + str("%d" % options().cpu)
@@ -656,6 +748,13 @@ def augment_parser():
     tippGroup = parser.add_argument_group(
         "TIPP Options".upper(),
         "These arguments set settings specific to TIPP")
+
+    tippGroup.add_argument(
+        "-bt", "--blastThreshold", type=float,
+        dest="blast_threshold", metavar="N",
+        default=50,
+        help="Minimum query coverage for blast hit to map read to a marker"
+             "This should be a number between >0 [default : 50]")
 
     tippGroup.add_argument(
         "-at", "--alignmentThreshold", type=float,
@@ -686,6 +785,12 @@ def augment_parser():
         help="Blast file with fragments already binned. ")
 
     tippGroup.add_argument(
+        "-no_trim", "--do_not_trim_after_blast",
+        dest="no_trim", action='store_true',
+        default=False,
+        help="Trim query sequence based on blast hit. ")
+
+    tippGroup.add_argument(
         "-bin", "--bin_using", type=str,
         dest="bin", metavar="N",
         default="blast",
@@ -695,7 +800,7 @@ def augment_parser():
         "-D", "--dist",
         dest="dist", action='store_true',
         default=False,
-        help="Treat fragments as distribution")
+        help="Treat fragments as distribution. ")
 
     tippGroup.add_argument(
         "-C", "--cutoff", type=float,
