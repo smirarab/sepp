@@ -509,15 +509,17 @@ def blast_to_markers(input, temp_dir):
     else:
         blast_results = options().blast_file
 
+    sys.exit()
+
     # Next bin the blast hits to the best gene
     gene_binning = bin_blast_results(blast_results)
-    
+
     # Now figure out direction of fragments
     binned_fragments = dict([
         (gene, dict([(seq_name, fragments[seq_name])
                      for seq_name in gene_binning[gene]]))
         for gene in gene_binning])
-    
+
     print("Finding best orientation of reads\n")
     for (gene, frags) in binned_fragments.items():
         # Add reverse complement sequence
@@ -632,11 +634,10 @@ def blast_fragments(input, output):
 
     cmd = options().__getattribute__('blast').path \
               + " -db " + refpkg["blast"]["database"] \
-              + " -outfmt 6 " \
+              + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qseq sseq qlen\"" \
               + " -query " + input \
               + " -out " + output \
-              + " -num_threads " + str("%d" % options().cpu) \
-              + " -max_target_seqs 1"
+              + " -num_threads " + str("%d" % options().cpu)
 
     print(cmd)
     os.system(cmd)
@@ -715,10 +716,6 @@ def main():
     augment_parser()
 
     sepp.config._options_singelton = sepp.config._parse_options()
-
-    if (options().alignment_size is None):
-        print("WARNING: Alignment subset size set to NONE, re-setting to 100.")
-        options().alignment_size = 100
 
     input = options().fragment_file.name
 
