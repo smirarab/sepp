@@ -120,14 +120,36 @@ def build_profile(input, output_directory):
     # Run TIPP on each fragment
     for (gene, frags) in binned_fragments.items():
         # Set placement subset size to equal the size of each marker
-        total_taxa = 0
         with open(refpkg[gene]["size"], 'r') as f:
             total_taxa = int(f.readline().strip())
+        default_subset_size = int(total_taxa * 0.10)
 
-        # Set alignment subset decomposition size
-        decomp_size = options().alignment_size
-        if (decomp_size > total_taxa):
-            decomp_size = int(total_taxa / 2)
+        # Set alignment size and placement size
+        alignment_size = options().alignment_size
+        placement_size = options().placement_size
+
+        if alignment_size is None:
+            if placement_size is None:
+                alignment_size = default_subset_size
+            else:
+                alignment_size = placement_size
+
+        if placement_size is None:
+            placement_size = max(default_subset_size, alignment_size)
+
+        if alignment_size > total_taxa:
+            alignment_size = total_taxa
+        if placement_size > total_taxa:
+            placement_size = total_taxa
+
+        if (alignment_size == placement_size) or \
+           (placement_size == total_taxa):
+            pass
+        else:
+            print("Alignment subset size can be different from placement"
+                  " subset size only if placement subset size is set to the number of"
+                  " taxa (note: marker %s has %d leaves)" % (gene, total_taxa))
+            return
 
         # Set number of CPUS
         cpus = options().cpu
@@ -156,8 +178,8 @@ def build_profile(input, output_directory):
                   + " -txm " + refpkg[gene]["seq-to-taxid-map"] \
                   + " -at " + str("%0.2f" % options().alignment_threshold) \
                   + " -pt 0.0" \
-                  + " -A " + str("%d" % decomp_size) \
-                  + " -P " + str("%d" % total_taxa) \
+                  + " -A " + str("%d" % alignment_size) \
+                  + " -P " + str("%d" % placement_size) \
                   + " -p " + temp_dir + "/temp_file" \
                   + " -o tipp_" + gene \
                   + " -d " + output_directory + "/markers/ " \
