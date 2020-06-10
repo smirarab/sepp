@@ -49,6 +49,7 @@ def load_reference_package():
 # TODO Make taxonomy loading a class
 def load_taxonomy(taxonomy_file, lower=True):
     global taxon_map, level_map, key_map
+
     f = open(taxonomy_file, 'r')
 
     # First line is the keywords for the taxonomy, need to map the keyword to
@@ -84,17 +85,30 @@ def load_taxonomy(taxonomy_file, lower=True):
 
 def build_profile(input, output_directory):
     global taxon_map, level_map, key_map, levels, refpkg
+
     temp_dir = tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-    if (options().bin == 'blast'):
-        binned_fragments = blast_to_markers(input, temp_dir)
-    else:
+
+    if (options().bin == "hmmer"):
         binned_fragments = hmmer_to_markers(input, temp_dir)
+    else:
+        binned_fragments = blast_to_markers(input, temp_dir)
 
     if binned_fragments:
         print("Finished binning")
     else:
         print("Unable to bin any fragments!\n")
         return
+
+    if options().gene is not None:
+        keep = set(options().gene.split(','))
+
+        for gene in refpkg["genes"]:
+            if gene not in keep:
+                try:
+                    del binned_fragments[gene]
+                    print("Removed reads that hit %s" % gene)
+                except KeyError:
+                    pass
 
     # Load up taxonomy for 30 marker genes
     (taxon_map, level_map, key_map) = load_taxonomy(refpkg["taxonomy"]["taxonomy"])
@@ -173,9 +187,11 @@ def build_profile(input, output_directory):
                                           + "_classification_" \
                                           + str("%0.2f" % options().placement_threshold) \
                                           + ".txt"
+            
         gene_classification = generate_classification(
             tipp_output,
             options().placement_threshold)
+            
         write_classification(
             gene_classification,
             gene_classification_output)
@@ -195,6 +211,7 @@ def build_profile(input, output_directory):
 
 def distribution(classification_files, output_dir):
     global taxon_map, level_map, key_map, levels, level_names
+
     distribution = {"species": {}, "genus": {}, "family": {}, "order": {},
                     "class": {}, "phylum": {}}
     total_frags = 0
@@ -265,6 +282,7 @@ def distribution(classification_files, output_dir):
 
 def remove_unclassified_level(classifications, level=6):
     global taxon_map, level_map, key_map, levels
+    
     frags = list(classifications.keys())
     for frag in frags:
         if classifications[frag][level] == 'NA':
@@ -328,6 +346,7 @@ def write_abundance(classifications, output_dir, labels=True,
 
 def generate_classification(class_input, threshold):
     global taxon_map, level_map, key_map, levels
+
     class_in = open(class_input, 'r')
     level_map_hierarchy = {"species": 0, "genus": 1, "family": 2, "order": 3,
                            "class": 4, "phylum": 5, "root": 6}
@@ -460,18 +479,16 @@ def blast_to_markers(input, temp_dir):
     fragments = MutableAlignment()
     fragments.read_filepath(input)
 
-    if (options().gene is None):
-        # First blast sequences against all markers
-        blast_results = temp_dir + "/blast.out"
-        if (options().blast_file is None):
-            print("Blasting fragments against marker dataset\n")
-            blast_fragments(input, blast_results)
-        else:
-            blast_results = options().blast_file
-        # Next bin the blast hits to the best gene
-        gene_binning = bin_blast_results(blast_results)
+    # First blast sequences against all markers
+    blast_results = temp_dir + "/blast.out"
+    if (options().blast_file is None):
+        print("Blasting fragments against marker dataset\n")
+        blast_fragments(input, blast_results)
     else:
-        gene_binning = {options().gene: list(fragments.keys())}
+        blast_results = options().blast_file
+
+    # Next bin the blast hits to the best gene
+    gene_binning = bin_blast_results(blast_results)
     
     # Now figure out direction of fragments
     binned_fragments = dict([
@@ -513,6 +530,7 @@ def blast_to_markers(input, temp_dir):
         # Now write to file
         _write_fasta(frags, gene_file + ".fixed")
         binned_fragments[gene] = frags
+
     return binned_fragments
 
 
@@ -604,6 +622,7 @@ def blast_fragments(input, output):
 
 def reverse_sequence(sequence):
     global character_map
+
     #  Reverse complement the sequence
     return "".join([character_map.get(a, a) for a in sequence[::-1]])
 
@@ -647,7 +666,7 @@ def augment_parser():
         "-bin", "--bin_using", type=str,
         dest="bin", metavar="N",
         default="blast",
-        help="Tool for binning")
+        help="Use blast or hmmer for binning [default: blast]")
 
     tippGroup.add_argument(
         "-D", "--dist",
