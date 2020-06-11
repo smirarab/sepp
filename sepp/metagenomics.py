@@ -48,7 +48,7 @@ def load_reference_package():
                 refpkg["genes"].append(key1)
 
     refpkg["genes"] = set(refpkg["genes"])
-    refpkg["genes"] = list(refpkg["genes"])    
+    refpkg["genes"] = list(refpkg["genes"])
 
 
 # TODO Fix parameter passing
@@ -123,7 +123,8 @@ def build_profile(input, output_directory):
                     pass
 
     # Load up taxonomy for marker genes
-    (taxon_map, level_map, key_map) = load_taxonomy(refpkg["taxonomy"]["taxonomy"])
+    (taxon_map, level_map, key_map) = \
+        load_taxonomy(refpkg["taxonomy"]["taxonomy"])
 
     # Store all classifications here
     classifications = {}
@@ -160,8 +161,9 @@ def build_profile(input, output_directory):
             pass
         else:
             print("Alignment subset size can be different from placement"
-                  " subset size only if placement subset size is set to the number of"
-                  " taxa (note: marker %s has %d leaves)" % (gene, total_taxa))
+                  " subset size only if placement subset size is set to "
+                  "the number of taxa (note: marker %s has %d leaves)"
+                  % (gene, total_taxa))
             return
 
         # Set number of CPUS
@@ -177,34 +179,32 @@ def build_profile(input, output_directory):
             extra = extra + "-F %d" % options().max_chunk_size
         if options().cutoff != 0:
             extra = extra + " -C %f" % options().cutoff
- 
+
         cmd = "run_tipp.py " \
-                  + " -c " + options().config_file.name \
-                  + " --cpu " + str("%d" % cpus) \
-                  + " -m " + options().molecule \
-                  + " -f " + binned_fragments[gene]["file"] \
-                  + " -t " + refpkg[gene]["placement-tree"] \
-                  + " -adt " + refpkg[gene]["alignment-decomposition-tree"] \
-                  + " -a " + refpkg[gene]["alignment"] \
-                  + " -r " + refpkg[gene]["raxml-info-for-placement-tree"] \
-                  + " -tx " + refpkg["taxonomy"]["taxonomy"] \
-                  + " -txm " + refpkg[gene]["seq-to-taxid-map"] \
-                  + " -at " + str("%0.2f" % options().alignment_threshold) \
-                  + " -pt 0.0" \
-                  + " -A " + str("%d" % alignment_size) \
-                  + " -P " + str("%d" % placement_size) \
-                  + " -p " + temp_dir + "/temp_file" \
-                  + " -o tipp_" + gene \
-                  + " -d " + output_directory + "/markers/ " \
-                  + extra
+            + " -c " + options().config_file.name \
+            + " --cpu " + str("%d" % cpus) \
+            + " -m " + options().molecule \
+            + " -f " + binned_fragments[gene]["file"] \
+            + " -t " + refpkg[gene]["placement-tree"] \
+            + " -adt " + refpkg[gene]["alignment-decomposition-tree"] \
+            + " -a " + refpkg[gene]["alignment"] \
+            + " -r " + refpkg[gene]["raxml-info-for-placement-tree"] \
+            + " -tx " + refpkg["taxonomy"]["taxonomy"] \
+            + " -txm " + refpkg[gene]["seq-to-taxid-map"] \
+            + " -at " + str("%0.2f" % options().alignment_threshold) \
+            + " -pt 0.0" \
+            + " -A " + str("%d" % alignment_size) \
+            + " -P " + str("%d" % placement_size) \
+            + " -p " + temp_dir + "/temp_file" \
+            + " -o tipp_" + gene \
+            + " -d " + output_directory + "/markers/ " \
+            + extra
 
         print(cmd)
         os.system(cmd)
 
-        tipp_output = output_directory \
-                          + "/markers/tipp_" \
-                          + gene \
-                          + "_classification.txt"
+        tipp_output = output_directory + "/markers/tipp_" + gene \
+            + "_classification.txt"
 
         if (not os.path.exists(tipp_output)):
             continue
@@ -216,17 +216,14 @@ def build_profile(input, output_directory):
             options().placement_threshold)
 
         # Apply placement threshold to classification data
-        gene_classification_output =  output_directory \
-                                          + "/markers/tipp_" \
-                                          + gene \
-                                          + "_classification_" \
-                                          + str("%0.2f" % options().placement_threshold) \
-                                          + ".txt"
-            
+        gene_classification_output = output_directory \
+            + "/markers/tipp_" + gene + "_classification_" \
+            + str("%0.2f" % options().placement_threshold) + ".txt"
+
         gene_classification = generate_classification(
             tipp_output,
             options().placement_threshold)
-            
+
         write_classification(
             gene_classification,
             gene_classification_output)
@@ -317,7 +314,7 @@ def distribution(classification_files, output_dir):
 
 def remove_unclassified_level(classifications, level=6):
     global taxon_map, level_map, key_map, levels
-    
+
     frags = list(classifications.keys())
     for frag in frags:
         if classifications[frag][level] == 'NA':
@@ -325,7 +322,8 @@ def remove_unclassified_level(classifications, level=6):
 
 
 def write_classification(class_input, output):
-    '''Writes a classification file
+    '''
+    Writes a classification file
     '''
     class_out = open(output, 'w')
     class_out.write("fragment\tspecies\tgenus\tfamily\torder\tclass\tphylum\n")
@@ -455,7 +453,7 @@ def generate_classification(class_input, threshold):
 
 def hmmer_to_markers(input, temp_dir):
     global refpkg
- 
+
     fragments = MutableAlignment()
     fragments.read_filepath(input)
 
@@ -464,7 +462,7 @@ def hmmer_to_markers(input, temp_dir):
     all_frags = MutableAlignment()
     all_frags.set_alignment(fragments)
     all_frags.set_alignment(reverse)
-    frag_file = temp_dir+"/frags.fas"
+    frag_file = temp_dir + "/frags.fas"
     _write_fasta(all_frags, frag_file)
 
     # Now bin the fragments
@@ -500,9 +498,9 @@ def hmmer_to_markers(input, temp_dir):
             genes[val[1]][name] = fragments[name]
         else:
             genes[val[1]][name] = reverse_sequence(fragments[name])
-    
+
     genes.pop("NA", None)
-    
+
     for gene, seq in genes.items():
         gene_file = temp_dir + '/' + gene + ".frags.fas.fixed"
         _write_fasta(seq, gene_file)
@@ -510,7 +508,8 @@ def hmmer_to_markers(input, temp_dir):
     binned_fragments = {}
     for gene, seq in genes.items():
         binned_fragments[gene] = {}
-        binned_fragments[gene]["file"] = temp_dir + '/' + gene + ".frags.fas.fixed"
+        binned_fragments[gene]["file"] = temp_dir + '/' + gene \
+            + ".frags.fas.fixed"
         binned_fragments[gene]["nfrags"] = len(seq.keys())
 
     return binned_fragments
@@ -523,7 +522,7 @@ def fasta_iter(fasta_name):
             raise("Unable to read %s" % fasta_name)
 
         nextheader = line.strip()
-        nextseq = []  
+        nextseq = []
 
         for line in fp:
             if line[0] == '>':
@@ -543,11 +542,11 @@ def fastq_iter(fastq_name):
     """
     with open(fastq_name, 'r') as fp:
         for i, line in enumerate(fp):
-            if i%4 == 2:
+            if i % 4 == 2:
                 continue
-            elif i%4 == 0:
+            elif i % 4 == 0:
                 header = line[1:].strip()
-            elif i%4 == 1:
+            elif i % 4 == 1:
                 seq = line.strip()
             else:
                 # qual = line.strip()
@@ -555,6 +554,10 @@ def fastq_iter(fastq_name):
 
 
 def blast_to_markers(input, temp_dir):
+    """
+    Function based on:
+    https://github.com/shahnidhi/tipp2_scripts/blob/master/get_marker_assignment.py
+    """
     global refpkg
 
     # First blast sequences against all markers
@@ -571,39 +574,43 @@ def blast_to_markers(input, temp_dir):
     binned_fragments = {}
     for gene in refpkg["genes"]:
         binned_fragments[gene] = {}
-        binned_fragments[gene]["file"] = temp_dir + "/" + gene + ".frags.fas.fixed"
-        binned_fragments[gene]["fptr"] = open(binned_fragments[gene]["file"], 'w')
+        binned_fragments[gene]["file"] = temp_dir + "/" + gene \
+            + ".frags.fas.fixed"
+        binned_fragments[gene]["fptr"] = \
+            open(binned_fragments[gene]["file"], 'w')
         binned_fragments[gene]["nfrags"] = 0
 
     if input.lower().endswith(('.fastq', '.fq')):
         fiter = fastq_iter(input)
     elif input.lower().endswith(('.fasta', '.fa', '.fna')):
         fiter = fasta_iter(input)
-    
+
     for ff in fiter:
         header = ff[0]
         seq = ff[1]
 
-        doit = True
+        found = True
         try:
             gene = hitinfo[header]["gene"]
         except KeyError:
-            doit = False        
+            found = False
 
-        if doit:
+        if found:
             qstart = hitinfo[header]["qstart"]
             qend = hitinfo[header]["qend"]
+            sstart = hitinfo[header]["sstart"]
+            send = hitinfo[header]["send"]
 
             if not options().no_trim:
                 if qstart > qend:
                     s = qend
-                    e = qstart + 1
+                    e = qstart - 1
                 else:
-                    s = qstart
-                    e = qend + 1
+                    s = qstart - 1
+                    e = qend
                 seq = seq[s:e]
 
-            if qstart > qend:
+            if (sstart > send) or (qstart > qend):
                 seq = reverse_sequence(seq)
 
             binned_fragments[gene]["fptr"].write('>' + header + '\n')
@@ -669,40 +676,40 @@ def bin_blast_results(input):
 
             qseqid = results[0]
             sseqid = results[1]
-            #pident = float(results[2])
-            #length = int(results[3])
-            #mismatch = int(results[4])
-            #gapopen = int(results[5])
+            # pident = float(results[2])
+            # length = int(results[3])
+            # mismatch = int(results[4])
+            # gapopen = int(results[5])
             qstart = int(results[6])
             qend = int(results[7])
-            #qlen = int(results[8])
-            #sstart = int(results[9])
-            #send = int(results[10])
-            #slen = int(results[11])
-            #evalue = float(results[12])
-            bitscore = float(results[13].strip())
+            # qlen = int(results[8])
+            sstart = int(results[9])
+            send = int(results[10])
+            # slen = int(results[11])
+            # evalue = float(results[12])
+            # bitscore = float(results[13].strip())
+            qcov = abs(qend - qstart) + 1
 
-            query_coverage = abs(qend - qstart) + 1
-
-            doit = False
-            if query_coverage >= options().blast_threshold:
+            update = False
+            if qcov >= options().blast_threshold:
                 try:
-                    tmp = hitinfo[qseqid]
-                    if tmp[bitscore] < bitscore:
-                        doit = True
+                    # if hitinfo[qseqid]["bitscore"] < bitscore:
+                    if hitinfo[qseqid]["qcov"] < qcov:
+                        update = True
                 except KeyError:
                     hitinfo[qseqid] = {}
-                    doit = True
+                    update = True
 
-            if doit: 
+            if update:
                 hitinfo[qseqid]["gene"] = gene_mapping[sseqid][1]
                 hitinfo[qseqid]["qstart"] = qstart
                 hitinfo[qseqid]["qend"] = qend
-                #hitinfo[qseqid]["qlen"] = qlen
-                #hitinfo[qseqid]["sstart"] = sstart
-                #hitinfo[qseqid]["send"] = send
-                #hitinfo[qseqid]["slen"] = slen
-                hitinfo[qseqid]["bitscore"] = bitscore
+                # hitinfo[qseqid]["qlen"] = qlen
+                hitinfo[qseqid]["sstart"] = sstart
+                hitinfo[qseqid]["send"] = send
+                # hitinfo[qseqid]["slen"] = slen
+                # hitinfo[qseqid]["bitscore"] = bitscore
+                hitinfo[qseqid]["qcov"] = qcov
 
     return hitinfo
 
@@ -714,7 +721,7 @@ def hmmer_search(input, hmmer, output):
               + " -o " + output \
               + " " + hmmer \
               + " " + input
-    
+
     print(cmd)
     os.system(cmd)
 
@@ -725,11 +732,13 @@ def blast_fragments(input, output):
     global refpkg
 
     cmd = options().__getattribute__('blast').path \
-              + " -db " + refpkg["blast"]["database"] \
-              + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend qlen sstart send slen evalue bitscore\"" \
-              + " -query " + input \
-              + " -out " + output \
-              + " -num_threads " + str("%d" % options().cpu)
+        + " -db " + refpkg["blast"]["database"] \
+        + " -outfmt \"6" \
+        + " qseqid sseqid pident length mismatch gapopen" \
+        + " qstart qend qlen sstart send slen evalue bitscore\"" \
+        + " -query " + input \
+        + " -out " + output \
+        + " -num_threads " + str("%d" % options().cpu)
 
     print(cmd)
     os.system(cmd)
@@ -771,7 +780,7 @@ def augment_parser():
         help="Enough placements are selected to reach a commulative "
              "probability of N."
              "This should be a number between 0 and 1 [default: 0.95]")
-    
+
     tippGroup.add_argument(
         "-g", "--gene", type=str,
         dest="gene", metavar="N",
