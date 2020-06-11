@@ -156,14 +156,15 @@ def build_profile(input, output_directory):
         if placement_size > total_taxa:
             placement_size = total_taxa
 
-        if (alignment_size == placement_size) or \
-           (placement_size == total_taxa):
+        if (refpkg[gene]["alignment-decomposition-tree"] ==
+                refpkg[gene]["placement-tree"]) or \
+                (placement_size == total_taxa):
             pass
         else:
-            print("Alignment subset size can be different from placement"
-                  " subset size only if placement subset size is set to "
-                  "the number of taxa (note: marker %s has %d leaves)"
-                  % (gene, total_taxa))
+            print("Alignment decomposition tree can be different from"
+                  " placement tree only if the placement subset size"
+                  " is set to the number of taxa"
+                  " (note: marker %s has %d taxa)" % (gene, total_taxa))
             return
 
         # Set number of CPUS
