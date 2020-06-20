@@ -579,15 +579,18 @@ def blast_to_markers(input, temp_dir):
     binned_fragments = {}
     for gene in refpkg["genes"]:
         binned_fragments[gene] = {}
-        binned_fragments[gene]["file"] = temp_dir + "/" + gene \
+        binned_fragments[gene]["file"] = temp_dir + '/' + gene \
             + ".frags.fas.fixed"
         binned_fragments[gene]["fptr"] = \
             open(binned_fragments[gene]["file"], 'w')
         binned_fragments[gene]["nfrags"] = 0
 
-    if input.lower().endswith(('.fastq', '.fq')):
+    f = open(temp_dir + "/blast-binned.out", 'w')
+    f.write("qseqid,sseqid,marker,trim_qstart,trim_qend,qlen\n")
+
+    if input.lower().endswith((".fastq", ".fq")):
         fiter = fastq_iter(input)
-    elif input.lower().endswith(('.fasta', '.fa', '.fna')):
+    elif input.lower().endswith((".fasta", ".fa", ".fna")):
         fiter = fasta_iter(input)
 
     for ff in fiter:
@@ -601,29 +604,49 @@ def blast_to_markers(input, temp_dir):
             found = False
 
         if found:
+            sseqid = hitinfo[header]["sseqid"]
             qstart = hitinfo[header]["qstart"]
             qend = hitinfo[header]["qend"]
+            qlen = hitinfo[header]["qlen"]
             sstart = hitinfo[header]["sstart"]
             send = hitinfo[header]["send"]
+            slen = hitinfo[header]["slen"]
 
             if not options().no_trim:
-                if qstart > qend:
-                    s = qend
-                    e = qstart - 1
-                else:
-                    s = qstart - 1
-                    e = qend
-                seq = seq[s:e]
+                trim_qstart = 0
+                trim_qend = qlen
 
-            if (sstart > send) or (qstart > qend):
+                extra_qstart = qstart - 1
+                extra_qend = qlen - qend
+
+                if sstart < send:
+                    extra_sstart = sstart - 1
+                    extra_send = slen - send
+                else:
+                    extra_sstart = slen - sstart
+                    extra_send = send - 1
+
+                if extra_qstart > 2 * extra_sstart:
+                    trim_qstart = qstart - 1
+                    seq = seq[trim_qstart:]
+
+                if extra_qend > 2 * extra_send:
+                    trim_qend = qend
+                    seq = seq[:trim_qend]
+
+            if sstart > send:
                 seq = reverse_sequence(seq)
 
             binned_fragments[gene]["fptr"].write('>' + header + '\n')
             binned_fragments[gene]["fptr"].write(seq + '\n')
             binned_fragments[gene]["nfrags"] += 1
+            f.write(header + ',' + sseqid + ',' + gene + ','
+                    + str(trim_qstart + 1) + ',' + str(trim_qend) + ','
+                    + str(qlen) + '\n')
 
     for gene in refpkg["genes"]:
         binned_fragments[gene]["fptr"].close()
+    f.close()
 
     return binned_fragments
 
@@ -676,6 +699,7 @@ def bin_blast_results(input):
     hitinfo = {}
 
     with open(input) as f:
+        # BLAST output contains reads sorted in ascending order by bitscore
         for line in f:
             results = line.split('\t')
 
@@ -687,10 +711,10 @@ def bin_blast_results(input):
             # gapopen = int(results[5])
             qstart = int(results[6])
             qend = int(results[7])
-            # qlen = int(results[8])
+            qlen = int(results[8])
             sstart = int(results[9])
             send = int(results[10])
-            # slen = int(results[11])
+            slen = int(results[11])
             # evalue = float(results[12])
             # bitscore = float(results[13].strip())
             qcov = abs(qend - qstart) + 1
@@ -698,7 +722,6 @@ def bin_blast_results(input):
             update = False
             if qcov >= options().blast_threshold:
                 try:
-                    # if hitinfo[qseqid]["bitscore"] < bitscore:
                     if hitinfo[qseqid]["qcov"] < qcov:
                         update = True
                 except KeyError:
@@ -706,14 +729,14 @@ def bin_blast_results(input):
                     update = True
 
             if update:
+                hitinfo[qseqid]["sseqid"] = sseqid
                 hitinfo[qseqid]["gene"] = gene_mapping[sseqid][1]
                 hitinfo[qseqid]["qstart"] = qstart
                 hitinfo[qseqid]["qend"] = qend
-                # hitinfo[qseqid]["qlen"] = qlen
+                hitinfo[qseqid]["qlen"] = qlen
                 hitinfo[qseqid]["sstart"] = sstart
                 hitinfo[qseqid]["send"] = send
-                # hitinfo[qseqid]["slen"] = slen
-                # hitinfo[qseqid]["bitscore"] = bitscore
+                hitinfo[qseqid]["slen"] = slen
                 hitinfo[qseqid]["qcov"] = qcov
 
     return hitinfo
@@ -802,7 +825,7 @@ def augment_parser():
         "-no_trim", "--do_not_trim_after_blast",
         dest="no_trim", action='store_true',
         default=False,
-        help="Trim query sequence based on blast hit. ")
+        help="Trim query sequence if it extends outside marker (BLAST only). ")
 
     tippGroup.add_argument(
         "-bin", "--bin_using", type=str,
