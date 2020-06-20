@@ -612,10 +612,9 @@ def blast_to_markers(input, temp_dir):
             send = hitinfo[header]["send"]
             slen = hitinfo[header]["slen"]
 
+            trim_qstart = 0
+            trim_qend = qlen
             if not options().no_trim:
-                trim_qstart = 0
-                trim_qend = qlen
-
                 extra_qstart = qstart - 1
                 extra_qend = qlen - qend
 
