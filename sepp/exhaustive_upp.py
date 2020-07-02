@@ -112,7 +112,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if (options().molecule == 'amino'):
             moleculeType = 'protein'
         pastaalignJob.setup(backbone, options().backbone_size,
-                            moleculeType, options().cpu)
+                            moleculeType, options().cpu, **vars(options().pasta))
         pastaalignJob.run()
         (a_file, t_file) = pastaalignJob.read_results()
 

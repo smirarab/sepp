@@ -750,6 +750,8 @@ class PastaAlignJob(ExternalSeppJob):
             self.molecule == 'protein'
         self.threads = threads
         self._kwargs = kwargs
+        self._kwargs.pop('path')
+        self.user_options = self._kwargs.pop('user_options')
 
     def setup_for_subproblem(self, subproblem, molecule="dna", **kwargs):
         '''
@@ -764,6 +766,8 @@ class PastaAlignJob(ExternalSeppJob):
                  sepp.filemgr.get_root_temp_dir(),
                  '-j', 'pastajob', '--output-directory=%s/pastaout/' %
                  sepp.filemgr.get_root_temp_dir()]
+        if self.user_options:
+            invoc.extend(self.user_options.split(" "))
         return invoc
 
     def characterize_input(self):
