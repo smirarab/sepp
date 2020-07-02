@@ -482,6 +482,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         ''' Join all search jobs together (enqueues align jobs)'''
         jsj = JoinSearchJobs()
         jsj.setup_with_root_problem(self.root_problem)
+        _LOG.debug("Jobs joined successfully")
 
     def enqueue_firstlevel_job(self):
         for p in self.root_problem.children:
