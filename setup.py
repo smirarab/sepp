@@ -148,7 +148,7 @@ class ConfigUPP(ConfigSepp):
         for l2 in c:
             l2 = l2.replace("~", self.get_tools_dest())
             d.write(l2)
-        d.write('\n[pasta]\npath=run_pasta.py\n')
+        d.write('\n[pasta]\npath=run_pasta.py\nuser_options= --max-mem-mb=2000')
         d.close()
 
 
