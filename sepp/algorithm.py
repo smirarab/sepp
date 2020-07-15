@@ -6,7 +6,8 @@ Created on Oct 2, 2012
 from sepp.config import options
 from abc import abstractmethod
 from sepp.scheduler import JobPool
-from sepp.filemgr import directory_has_files_with_prefix, get_temp_file, remove_temp, get_root_temp_dir
+from sepp.filemgr import directory_has_files_with_prefix, get_temp_file
+from sepp.filemgr import remove_temp, get_root_temp_dir
 from sepp.alignment import MutableAlignment
 from sepp.tree import PhylogeneticTree
 import dendropy
@@ -199,10 +200,12 @@ class AbstractAlgorithm(object):
             (checkpoint_manager.get_total_time()))
 
         if self.options.remtemp:
-            _LOG.info("Now removing temp files from %s" %str(get_root_temp_dir()))
+            _LOG.info("Now removing temp files from %s" % str(
+                get_root_temp_dir()))
             remove_temp(get_root_temp_dir())
         else:
-            _LOG.info("Temp files are left behind at %s" %str(get_root_temp_dir()))
+            _LOG.info("Temp files are left behind at %s" % str(
+                get_root_temp_dir()))
 
     ''' The following are a bunch of helper methods that will be needed in
     most implementations of sepp'''
