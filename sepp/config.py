@@ -203,6 +203,13 @@ def _init_parser():
         help=("Tempfile files will be written to DIR. Full-path required. "
               "[default: %(default)s]"))
     outputGroup.add_argument(
+        "-rt", "--remtemp",
+        dest="remtemp",
+        action="store_true",
+        help=("Remove tempfile files will be written to DIR. Full-path required. "
+              "[default: %(default)s]"))
+    outputGroup.set_defaults(remtemp=False)
+    outputGroup.add_argument(
         "-o", "--output",
         dest="output", metavar="OUTPUT",
         default="output",
