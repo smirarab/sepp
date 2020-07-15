@@ -206,8 +206,8 @@ def _init_parser():
         "-rt", "--remtemp",
         dest="remtemp",
         action="store_true",
-        help=("Remove tempfile files will be written to DIR. Full-path required. "
-              "[default: %(default)s]"))
+        help=("Remove tempfile directory.  "
+              "[default: disabled]"))
     outputGroup.set_defaults(remtemp=False)
     outputGroup.add_argument(
         "-o", "--output",
