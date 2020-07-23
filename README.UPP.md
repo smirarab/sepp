@@ -22,7 +22,7 @@ PARALLEL IMPLEMENTATION: UPP is embarrassingly parallel. See Advanced Usage info
 
 
 
-Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow.
+Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow with valuable contributions from Metin Balaban.
 
 ###Publication:
 Nam Nguyen, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `Ultra-large alignments using Phylogeny Aware Profiles`. Accepted to RECOMB 2015 (Research in Computational Molecular Biology 2015) and Genome Biology.
@@ -76,9 +76,9 @@ The general command for running UPP is:
 
 This will run UPP(Default) as described in the main paper.  This will automatically select up to 1,000 sequences to be in the backbone set, generate a PASTA alignment and tree, and then align the remaining sequences to the backbone alignment.  UPP can also be run using a configuration file. 
 
-The main outputs of UPP are two alignment files, <prefix>_alignment.fasta and <prefix>_alignment_masked.fasta.  The  <prefix>_alignment.fasta file is the alignment of the unaligned sequences.  The <prefix>_alignment_masked.fasta is the masked alignment file; non-homologous sites in the query set are removed.  
+The main outputs of UPP are two alignment files, `<prefix>_alignment.fasta` and `<prefix>_alignment_masked.fasta`.  The  `<prefix>_alignment.fasta` file is the alignment of the unaligned sequences.  The `<prefix>_alignment_masked.fasta` is the masked alignment file; non-homologous sites in the query set are removed.  
 
-The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named _insertion_columns.txt).
+The secondary outputs are the backbone alignment and tree (always named as pasta.fasta and pasta.fasttree) and the list of insertion columns (named `<prefix>_insertion_columns.txt`).
 
 Sample configuration files and input files can be found under `test/unittest/data/upp/`. Change to that directory to run UPP on the sample files.  To run UPP(Fast) on a small test example with 1,000 sequences, run the following command from the `test/unittest/data/upp/` directory:
 
@@ -124,6 +124,14 @@ To run the parallelized version of UPP, run
 
 `python <bin>/run_upp.py -s input.fas -x <cpus>`
 
+If nucleotide sequences are known for input amino acid sequences (backbone and query), backtranslation of extended 
+alignment is performed via the following command:
+
+`python <bin>/run_upp.py -s input.fas -a <alignment_file> -t <tree_file> -b nucleotide_sequences.fas`
+
+where nucleotide_sequences.fas contains unaligned DNA sequences of both backbone and query sequences. 
+The command will create two DNA alignment files: `<prefix>_backtranslated_alignment.fasta` and 
+`<prefix>_backtranslated_alignment_masked.fasta` .
 
 ---------------------------------------------
 Bugs and Errors
