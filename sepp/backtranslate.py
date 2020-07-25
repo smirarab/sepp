@@ -27,8 +27,10 @@ gencode = {
 }
 
 dnacode = {'A': ['A'], 'C': ['C'], 'G': ['G'], 'T': ['T'],
-           'S': ['G', 'C'], 'R': ['G', 'A'], 'Y': ['T', 'C'], 'W': ['A', 'T'], 'M': ['A', 'C'], 'K': ['G', 'T'],
-           'B': ['G', 'C', 'T'], 'H': ['A', 'C', 'T'], 'D': ['G', 'A', 'T'], 'V': ['G', 'C', 'A'],
+           'S': ['G', 'C'], 'R': ['G', 'A'], 'Y': ['T', 'C'],
+           'W': ['A', 'T'], 'M': ['A', 'C'], 'K': ['G', 'T'],
+           'B': ['G', 'C', 'T'], 'H': ['A', 'C', 'T'],
+           'D': ['G', 'A', 'T'], 'V': ['G', 'C', 'A'],
            'N': ['A', 'C', 'G', 'T']}
 
 
@@ -40,14 +42,15 @@ def is_compatible(cd, aa):
     else:
         return aa == 'X' or aa in set(gencode[''.join(a)]
                                       for a in itertools.product(
-            [''.join(a) for a in itertools.product(dnacode[cd[0]], dnacode[cd[1]])],
-            dnacode[cd[2]]))
+            [''.join(a) for a in itertools.product(
+                dnacode[cd[0]], dnacode[cd[1]])], dnacode[cd[2]]))
 
 
 def is_ambiguous(cd):
     return len(set(gencode[''.join(a)]
                    for a in itertools.product(
-        [''.join(a) for a in itertools.product(dnacode[cd[0]], dnacode[cd[1]])],
+        [''.join(a) for a in itertools.product(
+            dnacode[cd[0]], dnacode[cd[1]])],
         dnacode[cd[2]]))) > 1
 
 
@@ -61,28 +64,23 @@ def backtranslate(faa, fna):
             for r in aa:
                 cds = s[i:i + 3]
                 if r == '-':
-                    # if is_ambiguous(cds):
-                    #    cd.append(cds)
-                    #    i += 3
-                    #    print >> sys.stderr, "Found ambiguous %s at %d of %s. Matched it with a -" %(cds, i, k)
-                    # else:
-                    #    print >> sys.stderr, "Add a dash after %d of %s." %(i, k)
                     cd.append('---')
                 else:
                     if is_compatible(cds, r):
                         cd.append(cds)
                         i += 3
                     else:
-                        if i == 0 and (cds=='GTG' or cds =='TTG') :
+                        if i == 0 and (cds == 'GTG' or cds == 'TTG'):
                             cd.append(cds)
                             i += 3
                         else:
-                            raise ValueError('%s at position %d of %s does not translate to %s' % (cds, i, k, r))
+                            raise ValueError(
+                                '%s at position %d of %s '
+                                'does not translate to %s' % (cds, i, k, r))
             newfna[k] = ''.join(cd)
         else:
             continue
     col_lab = faa.col_labels
     for i in col_lab:
-        newfna._col_labels = newfna._col_labels + [i,i,i]
+        newfna._col_labels = newfna._col_labels + [i, i, i]
     return newfna
-

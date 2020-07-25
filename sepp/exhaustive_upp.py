@@ -180,7 +180,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if options().placement_size is None:
             options().placement_size = options().backbone_size
 
-        if options().backtranslation_sequence_file and options().molecule != "amino":
+        if options().backtranslation_sequence_file and \
+                options().molecule != "amino":
             _LOG.error(
                 ("Backtranslation can be performed only when "
                  "input sequences are amino acid. "))
@@ -287,22 +288,31 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         extended_alignment.write_insertion_column_indexes(outfilename)
         _LOG.info("The index of insertion columns written to %s" % outfilename)
         if self.options.backtranslation_sequence_file:
-            outfilename = self.get_output_filename("backtranslated_alignment.fasta")
+            outfilename = self.get_output_filename(
+                "backtranslated_alignment.fasta")
             backtranslation_seqs = MutableAlignment()
-            backtranslation_seqs.read_file_object(self.options.backtranslation_sequence_file)
+            backtranslation_seqs.read_file_object(
+                self.options.backtranslation_sequence_file)
             try:
-                extended_backtranslated_alignment = backtranslate(self.results, backtranslation_seqs)
+                extended_backtranslated_alignment = backtranslate(
+                    self.results, backtranslation_seqs)
             except Exception as e:
-                _LOG.warning("Backtranslation failed due to following error: " + str(e) + ".\n"
-                          "No translated DNA sequence will be written to a file.")
+                _LOG.warning("Backtranslation failed due "
+                             "to following error: " + str(e) + ".\n"
+                             "No translated DNA sequence will be "
+                             "written to a file.")
                 pass
             else:
                 extended_backtranslated_alignment.write_to_path(outfilename)
-                _LOG.info("Backtranslated alignment written to %s" % outfilename)
+                _LOG.info(
+                    "Backtranslated alignment written to %s" % outfilename)
                 extended_backtranslated_alignment.remove_insertion_columns()
-                outfilename = self.get_output_filename("backtranslated_alignment_masked.fasta")
+                outfilename = self.get_output_filename(
+                    "backtranslated_alignment_masked.fasta")
                 extended_backtranslated_alignment.write_to_path(outfilename)
-                _LOG.info("Backtranslated masked alignment written to %s" % outfilename)
+                _LOG.info(
+                    "Backtranslated masked alignment written "
+                    "to %s" % outfilename)
 
         extended_alignment.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
@@ -441,7 +451,8 @@ def augment_parser():
         dest="backtranslation_sequence_file", metavar="SEQ",
         type=argparse.FileType('r'),
         default=None,
-        help="Fasta file containing unaligned DNA sequences corresponding every reference and query sequence "
+        help="Fasta file containing unaligned DNA sequences "
+             "corresponding every reference and query sequence "
              "[default: None]")
 
     uppGroup = parser.add_argument_group(
