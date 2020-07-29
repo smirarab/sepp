@@ -120,7 +120,7 @@ def build_profile(input, output_directory):
         print("Finished binning")
     else:
         print("Unable to bin any fragments!\n")
-        with open(output_director + "/abundance.phylum.csv", 'w') as f:
+        with open(output_directory + "/abundance.phylum.csv", 'w') as f:
             f.write("Unable to create an abundance profile, because"
                     " none of the input sequences mapped to the"
                     " marker gene(s).")
