@@ -338,8 +338,8 @@ def write_classification(class_input, output):
         class_out.write("%s\n" % "\t".join(class_input[frag]))
     class_out.close()
 
-
-# Fix problem with NA being unclassified
+# Fix problem with NA being unclassified -- 
+## @shahnidhi: The havenot_classified_at_lower_level varibale  keeps track of whether the NA is because it is unclassified or if the lineage doesn't have any label defined at that level. This was earlier artificially inflating the unclassified counts at that level
 def write_abundance(classifications, output_dir, labels=True,
                     remove_unclassified=True):
     global taxon_map, level_map, key_map, levels
@@ -352,14 +352,21 @@ def write_abundance(classifications, output_dir, labels=True,
                    5: 'class', 6: 'phylum'}
     for lineage in classifications.values():
         # insert into level map
+        havenot_classified_at_lower_level = True
         for level in range(1, 7):
             if (lineage[level] == 'NA'):
-                if ('unclassified' not in level_abundance[level]):
-                    level_abundance[level]['unclassified'] = 0
-                level_abundance[level]['unclassified'] += 1
+                if havenot_classified_at_lower_level:
+                    if ('unclassified' not in level_abundance[level]):
+                        level_abundance[level]['unclassified'] = 0
+                    level_abundance[level]['unclassified'] += 1
+                else:
+                    if ('' not in level_abundance[level]):
+                        level_abundance[level][''] = 0
+                    level_abundance[level][''] += 1
                 level_abundance[level]['total'] += 1
                 # continue
             else:
+                havenot_classified_at_lower_level = False
                 if (lineage[level] not in level_abundance[level]):
                     level_abundance[level][lineage[level]] = 0
                 level_abundance[level][lineage[level]] += 1
@@ -372,7 +379,7 @@ def write_abundance(classifications, output_dir, labels=True,
             if clade == 'total':
                 continue
             name = clade
-            if labels and name != 'unclassified':
+            if labels and name != 'unclassified' and name != "":
                 name = taxon_map[clade][key_map['tax_name']]
             lines.append('%s\t%0.4f\n' % (
                 name, float(level_abundance[level][clade]) / level_abundance[
@@ -380,7 +387,6 @@ def write_abundance(classifications, output_dir, labels=True,
         lines.sort()
         f.write(''.join(lines))
         f.close()
-
 
 def generate_classification(class_input, threshold):
     global taxon_map, level_map, key_map, levels
