@@ -205,6 +205,12 @@ public class JSONMerger {
     HashMap < String, String > labelMap = mapTreeBranchNames(jsonTree, originalTree);
 
     JSONArray placements = json.getJSONArray("placements");
+    JSONArray fields = json.getJSONArray("fields");
+    
+    int locEdgeNum=0;
+    while (! fields.getString(locEdgeNum).equals("edge_num")) {
+      locEdgeNum++;
+    }
 
     for (Iterator < JSONObject > iterator = placements.iterator(); iterator.hasNext();) {
       JSONObject placement = iterator.next();
@@ -254,8 +260,8 @@ public class JSONMerger {
           /*
            * Adjust the placement edge label
            */
-          String newLab = (String) labelMap.get(precord.getString(0));
-          newRecord.set(0, new Integer(newLab));
+          String newLab = (String) labelMap.get(precord.getString(locEdgeNum));
+          newRecord.set(locEdgeNum, new Integer(newLab));
           /*
            * Adjust edge length values to correspond to somewhere on the main tree.
            * TODO: This is pretty bad. We should fix this.
