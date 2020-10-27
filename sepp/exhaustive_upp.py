@@ -390,7 +390,7 @@ def augment_parser():
              "[default: 10]")
     decompGroup.add_argument(
         "-R", "--full_length_range",type=str,
-        dest="full_length_range", metavar="Nmin Nmax",
+        dest="full_length_range", metavar="\"Nmin Nmax\"",
         default=None,
         help="Only consider sequences with lengths within Nmin and Nmax")
     decompGroup.add_argument(
