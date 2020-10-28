@@ -1,5 +1,6 @@
+* Version 4.3.14:
+	* Added option `-R "Nmin Nmax"` to specify the range of full length sequences to UPP
 * Version 4.3.13:
-	* Added option to specify the range of full length sequences to UPP
     * Added backtranslation functionality to UPP for amino acid sequences.
 * Version 4.3.12:
 	* Added `-rt` to remove temp files	
