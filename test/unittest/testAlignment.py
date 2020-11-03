@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
             assert k in subset, \
                 "%s not found in subset but returned by subalignment" % k
             assert s == alg[k], \
-                "sequence associated with %k not matching parent alignment" % k
+                "sequence associated with %s not matching parent alignment" % k
 
         try:
             readonly_subalignment[2] = "ACGT"
