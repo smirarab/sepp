@@ -66,7 +66,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences.read_file_object(self.options.sequence_file)
         sequences.degap()
         fragments = MutableAlignment()
-        if (options().median_full_length is not None):
+        if (options().median_full_length is not None or options().full_length_range is not None):
             if (options().median_full_length == -1):
                 seq_lengths = sorted(
                     [len(seq) for seq in list(sequences.values())])
@@ -77,12 +77,17 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                         seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
                 else:
                     options().median_full_length = seq_lengths[l2]
-
-            (min_length, max_length) = (
-                int(options().median_full_length * (
-                    1 - options().backbone_threshold)),
-                int(options().median_full_length*(
-                    1 + options().backbone_threshold)))
+            if options().full_length_range is not None:
+                L = sorted(int(x) for x in options().full_length_range.split())
+                min_length = L[0]
+                max_length = L[1]
+            else:   
+                (min_length, max_length) = (
+                    int(options().median_full_length * (
+                        1 - options().backbone_threshold)),
+                    int(options().median_full_length*(
+                        1 + options().backbone_threshold)))
+            _LOG.info("Full length sequences are set to be from %d to %d character long" % (min_length,max_length))
             frag_names = [
                 name for name in sequences
                 if len(sequences[name]) > max_length or
@@ -383,6 +388,11 @@ def augment_parser():
         default=10,
         help="max alignment subset size of N "
              "[default: 10]")
+    decompGroup.add_argument(
+        "-R", "--full_length_range",type=str,
+        dest="full_length_range", metavar="\"Nmin Nmax\"",
+        default=None,
+        help="Only consider sequences with lengths within Nmin and Nmax")
     decompGroup.add_argument(
         "-M", "--median_full_length", type=int,
         dest="median_full_length", metavar="N",
