@@ -14,7 +14,7 @@ import dendropy
 from sepp import get_logger
 import sys
 import os
-from sepp.problem import SeppProblem
+from sepp.problem import RootProblem
 import time
 from sepp.checkpointing import CheckPointManager
 
@@ -212,41 +212,41 @@ class AbstractAlgorithm(object):
 
     def check_and_set_sizes(self, total):
         # If sizes are not set, then use 10% rule
-        options = self.options
-        if (options.maxDiam is not None) and \
-           (options.decomp_strategy not in ["midpoint", "centroid"]):
+        my_options = self.options
+        if (my_options.maxDiam is not None) and \
+           (my_options.decomp_strategy not in ["midpoint", "centroid"]):
             raise Exception(("The max diameter option can be used only with "
                              "the midpoint or the centroid decomposition "
                              "specified using -S"))
-        if options.alignment_size is None:
-            if options.placement_size is None:
-                options.alignment_size = int(total*.10)
+        if my_options.alignment_size is None:
+            if my_options.placement_size is None:
+                my_options.alignment_size = int(total * .10)
             else:
-                options.alignment_size = options.placement_size
-        if options.placement_size is None:
-            options.placement_size = max(int(total * .10),
-                                         options.alignment_size)
-        if options.placement_size is not None and \
-           options.placement_size < options.alignment_size:
+                my_options.alignment_size = my_options.placement_size
+        if my_options.placement_size is None:
+            my_options.placement_size = max(int(total * .10),
+                                            my_options.alignment_size)
+        if my_options.placement_size is not None and \
+           my_options.placement_size < my_options.alignment_size:
             _LOG.warning(
                 ("alignment_size (%d) cannot be larger than placement_size "
                  "(%d).   Setting alignment_size to be placement_size") %
-                (options.alignment_size, options.placement_size))
-            options.alignment_size = options.placement_size
-        if options.placement_size > total:
-            options.placement_size = total
+                (my_options.alignment_size, my_options.placement_size))
+            my_options.alignment_size = my_options.placement_size
+        if my_options.placement_size > total:
+            my_options.placement_size = total
             _LOG.warning(
                 ("Input placement size larger than total number of sequences!"
                  "  Setting placement size to %d") % total)
-        if options.alignment_size > total:
-            options.alignment_size = total
+        if my_options.alignment_size > total:
+            my_options.alignment_size = total
             _LOG.warning(
                 ("Input alignment size larger than total number of sequences!"
                  "  Setting alignment size to %d") % total)
 
         _LOG.info(
             "Decomposition Sizes are set to alignment: %d placement: %d" %
-            (options.alignment_size, options.placement_size))
+            (my_options.alignment_size, my_options.placement_size))
 
     def check_outputprefix(self):
         if self.outchecked:
@@ -334,7 +334,7 @@ class AbstractAlgorithm(object):
 
     def _create_root_problem(self, tree, alignment):
         """ Create the root problem"""
-        self.root_problem = SeppProblem(tree.leaf_node_names())
+        self.root_problem = RootProblem(tree.leaf_node_names())
         self.root_problem.label = "root"
         self.root_problem.subalignment = alignment
         self.root_problem.subtree = tree
