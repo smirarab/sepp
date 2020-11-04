@@ -1,8 +1,8 @@
-'''
+"""
 Created on Oct 10, 2012
 
 @author: smirarab
-'''
+"""
 import sys
 import random
 import argparse
@@ -23,11 +23,11 @@ _LOG = get_logger(__name__)
 
 
 class UPPJoinAlignJobs(JoinAlignJobs):
-    '''
+    """
     After all alignments jobs for a placement subset have finished,
     we need to build those extended alignments. This join takes care of that
     step.
-    '''
+    """
     def __init__(self):
         JoinAlignJobs.__init__(self)
 
@@ -66,8 +66,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences.read_file_object(self.options.sequence_file)
         sequences.degap()
         fragments = MutableAlignment()
-        if (options().median_full_length is not None or options().full_length_range is not None):
-            if (options().median_full_length == -1):
+        if options().median_full_length is not None \
+                or options().full_length_range is not None:
+            if options().median_full_length == -1:
                 seq_lengths = sorted(
                     [len(seq) for seq in list(sequences.values())])
                 lengths = len(seq_lengths)
@@ -81,13 +82,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 L = sorted(int(x) for x in options().full_length_range.split())
                 min_length = L[0]
                 max_length = L[1]
-            else:   
+            else:
                 (min_length, max_length) = (
                     int(options().median_full_length * (
                         1 - options().backbone_threshold)),
                     int(options().median_full_length*(
                         1 + options().backbone_threshold)))
-            _LOG.info("Full length sequences are set to be from %d to %d character long" % (min_length,max_length))
+            _LOG.info("Full length sequences are set to be from "
+                      "%d to %d character long" % (min_length, max_length))
             frag_names = [
                 name for name in sequences
                 if len(sequences[name]) > max_length or
@@ -389,7 +391,7 @@ def augment_parser():
         help="max alignment subset size of N "
              "[default: 10]")
     decompGroup.add_argument(
-        "-R", "--full_length_range",type=str,
+        "-R", "--full_length_range", type=str,
         dest="full_length_range", metavar="\"Nmin Nmax\"",
         default=None,
         help="Only consider sequences with lengths within Nmin and Nmax")

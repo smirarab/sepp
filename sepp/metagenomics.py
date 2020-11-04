@@ -229,7 +229,7 @@ def distribution(classification_files, output_dir):
                 assert frag_info['phylum']['unclassified'] != 1
                 for clade, cladeval in frag_info.items():
                     for clade_name, cnc in cladeval.items():
-                        if ((clade_name, cnc) not in distribution[clade]):
+                        if clade_name not in distribution[clade]:
                             distribution[clade][clade_name] = 0
                         distribution[clade][clade_name] += cnc
                 frag_info = {"species": {'unclassified': 1},

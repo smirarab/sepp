@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
         options()
 
     def testLog(self):
-        import sepp
+
         import logging
         import sepp.jobs
 

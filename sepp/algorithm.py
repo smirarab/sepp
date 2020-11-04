@@ -1,8 +1,8 @@
-'''
+"""
 Created on Oct 2, 2012
 
 @author: smirarab
-'''
+"""
 from sepp.config import options
 from abc import abstractmethod
 from sepp.scheduler import JobPool
@@ -22,25 +22,25 @@ _LOG = get_logger(__name__)
 
 
 class AbstractAlgorithm(object):
-    '''
+    """
     This class provides the interface for an abstract algorithm. All different
     ways of implementing SEPP are considered to be different 'algorithms'.
 
     New algorithms should be implemented by extending AbastractAlgorithm and
     implementing its abstract methods.
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         self.root_problem = None
         self.results = None
         self.options = options()
         self.outchecked = False  # for ease of access
 
     def check_options(self, supply=[]):
-        '''
+        """
         This method should check the input values stored in config.option to
         make sure every necessary argument is provided, and that the provided
         values are all fine.
@@ -50,14 +50,14 @@ class AbstractAlgorithm(object):
 
         By default expects tree_file, raxml_file, and fragment_file. Overwrite
         if required.
-        '''
-        if (options().tree_file is None):
+        """
+        if options().tree_file is None:
             supply = supply + ["tree file"]
-        if (options().alignment_file is None):
+        if options().alignment_file is None:
             supply = supply + ["alignment file"]
-        if (options().fragment_file is None):
+        if options().fragment_file is None:
             supply = supply + ["fragment file"]
-        if (len(supply) != 0):
+        if len(supply) != 0:
             raise ValueError(
                 ("Failed to supply: %s\nRun with -h option to see a list of"
                  " options.")
@@ -66,17 +66,17 @@ class AbstractAlgorithm(object):
 
     @abstractmethod
     def build_subproblems(self):
-        '''
+        """
         This method should read the config.options() and build a hierarchy of
         subproblems (see sepp.problem). This hierarchy will be used by
         build_job_dag to create a DAG of jobs (see sepp.jobs and
         sepp.scheduler)
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def connect_jobs(self):
-        '''
+        """
         Join Jobs are joined together to form a DAG using Joins (see
         sepp.scheduler)
         and call_back functions (see sepp.scheduler.Job).
@@ -98,44 +98,44 @@ class AbstractAlgorithm(object):
         subproblem hierarchy. This function only connects those jobs.
         This is called after recovery from a checkpoint, because joins and
         callbacks are not checkpointed.
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def build_jobs(self):
-        '''
+        """
         Builds separate jobs for different tasks that need to be done.
         This just creates jobs, without connecting them. connect_jobs is used
         to create jobs.
         build_job is not called after checkpoints are recovered, because the
         jobs are checkpointed (their connections are not).
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def enqueue_firstlevel_job(self):
-        '''
+        """
         This is called after the DAG is created (see buld_job_dag) to enqueue
         the first level of jobs (those with no dependency). These jobs should
         automatically enqueue the rest of the DAG upon completion.
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def merge_results(self):
-        '''
+        """
         This method should read results and prepare all the final results
         for output. Resutls should be saved in the problem hierarchy, and
         by setting ?? attribute
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def output_results(self):
-        '''
+        """
         This method should output the final results. Final results can be found
         in the problem hierarchy
-        '''
+        """
         raise NotImplementedError()
 
     def run(self):
@@ -172,7 +172,7 @@ class AbstractAlgorithm(object):
         checkpoint_manager.start_checkpointing(self.root_problem)
 
         '''Wait for all jobs to finish'''
-        if (not JobPool().wait_for_all_jobs()):
+        if not JobPool().wait_for_all_jobs():
             _LOG.exception(
                 "There have been errors in executed jobs. Terminating.")
             sys.exit(1)
@@ -218,12 +218,12 @@ class AbstractAlgorithm(object):
             raise Exception(("The max diameter option can be used only with "
                              "the midpoint or the centroid decomposition "
                              "specified using -S"))
-        if (options.alignment_size is None):
+        if options.alignment_size is None:
             if options.placement_size is None:
                 options.alignment_size = int(total*.10)
             else:
                 options.alignment_size = options.placement_size
-        if (options.placement_size is None):
+        if options.placement_size is None:
             options.placement_size = max(int(total * .10),
                                          options.alignment_size)
         if options.placement_size is not None and \
@@ -277,7 +277,7 @@ class AbstractAlgorithm(object):
                                           schema="newick",
                                           preserve_underscores=True))
 
-        return (alignment, tree)
+        return alignment, tree
 
     def read_and_divide_fragments(self, chunks, extra_frags={}):
         max_chunk_size = self.options.max_chunk_size
@@ -333,7 +333,7 @@ class AbstractAlgorithm(object):
         return ret
 
     def _create_root_problem(self, tree, alignment):
-        ''' Create the root problem'''
+        """ Create the root problem"""
         self.root_problem = SeppProblem(tree.leaf_node_names())
         self.root_problem.label = "root"
         self.root_problem.subalignment = alignment
