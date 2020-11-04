@@ -1,3 +1,5 @@
+* Version 4.3.15:
+	* some py3.8 changes and some java changes  from pgrt
 * Version 4.3.14:
 	* Added option `-R "Nmin Nmax"` to specify the range of full length sequences to UPP
 * Version 4.3.13:
