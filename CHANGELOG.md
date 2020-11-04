@@ -1,3 +1,5 @@
+* Version 4.3.16:
+	* Refactor code slightly. Reduces warnings
 * Version 4.3.15:
 	* some py3.8 changes and some java changes  from pgrt
 * Version 4.3.14:

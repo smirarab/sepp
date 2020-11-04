@@ -1,4 +1,4 @@
-'''
+"""
 This module provides options(), which returns a argparse.Namespace object
 containing all configurations required by sepp. config.options() reads and
 saves the configurations the first time it is called. Subsequent calls simply
@@ -29,7 +29,7 @@ In addition, each client of this module (e.g. a new algorithm)) can add new
 commandline options by getting the parser object using get_parser() and then
 adding extra options. This has to happen *before* the first call to options()
 module. For an example see exhaustive_upp.
-'''
+"""
 
 from argparse import ArgumentParser, Namespace
 from sepp.filemgr import get_default_temp_dir, check_or_make_dir_path
@@ -362,10 +362,10 @@ _options_singelton = None
 
 
 def options():
-    '''
+    """
     Returns the configurations read from main configuration file,
     commandline and the user input configuration file.
-    '''
+    """
     global _options_singelton
     if _options_singelton is None:
         _options_singelton = _parse_options()
