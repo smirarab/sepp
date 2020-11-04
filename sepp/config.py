@@ -62,7 +62,7 @@ def _read_config_file(filename, opts, expand=None):
     config_defaults = []
     cparser = configparser.ConfigParser()
     cparser.optionxform = str
-    cparser.readfp(filename)
+    cparser.read_file(filename)
 
     if cparser.has_section('commandline'):
         for (k, v) in cparser.items('commandline'):
@@ -321,13 +321,14 @@ def _parse_options():
     ''' First read the main configuration file '''
     _LOG.debug("Main configuration file at %s" % main_config_path)
     if not os.path.exists(main_config_path):
-        _LOG.warn(
+        _LOG.warning(
             "Main configuration file was not found at: %s\n" %
             main_config_path + "Proceeding without the main configuration...")
         main_cmd_defaults = []
     else:
-        main_cmd_defaults = _read_config_file(
-            open(main_config_path, 'r'), opts)
+        with open(main_config_path, 'r') as cfile:
+            main_cmd_defaults = _read_config_file(
+                cfile, opts)
 
     input_args = main_cmd_defaults + (sys.argv[1:])
 
