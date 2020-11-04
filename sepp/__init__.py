@@ -67,7 +67,7 @@ def reset_loggers():
     __set_loggers = set()
     import pkgutil
     import sepp
-    for l, name, _ in pkgutil.iter_modules(['sepp']):
+    for modl, name, _ in pkgutil.iter_modules(['sepp']):
         logger = (getattr(getattr(sepp, name, None), "_LOG", None))
         if logger:
             setattr(getattr(sepp, name, None), "_LOG", get_logger(

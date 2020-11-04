@@ -229,7 +229,7 @@ def distribution(classification_files, output_dir):
                 assert frag_info['phylum']['unclassified'] != 1
                 for clade, cladeval in frag_info.items():
                     for clade_name, cnc in cladeval.items():
-                        if (clade_name, cnc not in distribution[clade]):
+                        if cnc not in distribution[clade]:
                             distribution[clade][clade_name] = 0
                         distribution[clade][clade_name] += cnc
                 frag_info = {"species": {'unclassified': 1},
@@ -432,7 +432,7 @@ def hmmer_to_markers(input, temp_dir):
             frag_file,
             os.path.join(
                 options().__getattribute__('reference').path,
-                'refpkg/%s.refpkg/%.profile' % (gene, align_name)),
+                'refpkg/%s.refpkg/%s.profile' % (gene, align_name)),
             temp_dir + "/%s.out" % gene)
         results = read_hmmsearch_results(temp_dir + "/%s.out" % gene)
 
