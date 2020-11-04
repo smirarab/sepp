@@ -114,28 +114,28 @@ class AbstractAlgorithm(object):
 
     @abstractmethod
     def enqueue_firstlevel_job(self):
-        '''
+        """
         This is called after the DAG is created (see buld_job_dag) to enqueue
         the first level of jobs (those with no dependency). These jobs should
         automatically enqueue the rest of the DAG upon completion.
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def merge_results(self):
-        '''
+        """
         This method should read results and prepare all the final results
         for output. Resutls should be saved in the problem hierarchy, and
         by setting ?? attribute
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def output_results(self):
-        '''
+        """
         This method should output the final results. Final results can be found
         in the problem hierarchy
-        '''
+        """
         raise NotImplementedError()
 
     def run(self):
@@ -172,7 +172,7 @@ class AbstractAlgorithm(object):
         checkpoint_manager.start_checkpointing(self.root_problem)
 
         '''Wait for all jobs to finish'''
-        if (not JobPool().wait_for_all_jobs()):
+        if not JobPool().wait_for_all_jobs():
             _LOG.exception(
                 "There have been errors in executed jobs. Terminating.")
             sys.exit(1)
@@ -218,12 +218,12 @@ class AbstractAlgorithm(object):
             raise Exception(("The max diameter option can be used only with "
                              "the midpoint or the centroid decomposition "
                              "specified using -S"))
-        if (options.alignment_size is None):
+        if options.alignment_size is None:
             if options.placement_size is None:
                 options.alignment_size = int(total*.10)
             else:
                 options.alignment_size = options.placement_size
-        if (options.placement_size is None):
+        if options.placement_size is None:
             options.placement_size = max(int(total * .10),
                                          options.alignment_size)
         if options.placement_size is not None and \
@@ -277,7 +277,7 @@ class AbstractAlgorithm(object):
                                           schema="newick",
                                           preserve_underscores=True))
 
-        return (alignment, tree)
+        return alignment, tree
 
     def read_and_divide_fragments(self, chunks, extra_frags={}):
         max_chunk_size = self.options.max_chunk_size
@@ -333,7 +333,7 @@ class AbstractAlgorithm(object):
         return ret
 
     def _create_root_problem(self, tree, alignment):
-        ''' Create the root problem'''
+        """ Create the root problem"""
         self.root_problem = SeppProblem(tree.leaf_node_names())
         self.root_problem.label = "root"
         self.root_problem.subalignment = alignment
