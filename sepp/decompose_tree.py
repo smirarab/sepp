@@ -18,20 +18,20 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
                           max_diam=None):
     def __ini_record__():
         for node in a_tree.postorder_node_iter():
-            __updateNode__(node)
+            __update_node__(node)
 
-    def __find_midpoint_edge__(t):
-        u = t.seed_node.bestLCA.anchor
+    def __find_midpoint_edge__(tre):
+        u = tre.seed_node.bestLCA.anchor
         uel = u.edge_length if u.edge_length else 0
         d = 0
-        while (d+uel < t.seed_node.diameter/2):
+        while d + uel < tre.seed_node.diameter / 2:
             d += uel
             u = u.parent_node
             uel = u.edge_length if u.edge_length else 0
         return u.edge
 
-    def __find_centroid_edge__(t):
-        u = t.seed_node
+    def __find_centroid_edge__(tre):
+        u = tre.seed_node
         product = 0
         acc_nleaf = 0
 
@@ -51,14 +51,14 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
 
         return u.edge
 
-    def __bisect__(t, e):
+    def __bisect__(tre, edg):
         # e = __find_centroid_edge__(t)
 
-        u = e.tail_node
-        v = e.head_node
+        u = edg.tail_node
+        v = edg.head_node
 
         u.remove_child(v)
-        t1 = Tree(seed_node=v)
+        tr1 = Tree(seed_node=v)
 
         if u.num_child_nodes() == 1:
             p = u.parent_node
@@ -68,8 +68,8 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
             # u is the seed_node; this means the tree runs out of all but one
             # side
             if p is None:
-                t.seed_node = v
-                return t, t1
+                tre.seed_node = v
+                return tre, tr1
             l_u = u.edge_length if u.edge_length else 0
             p.remove_child(u)
             p.add_child(v)
@@ -77,13 +77,13 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
             u = p
 
         while u is not None:
-            __updateNode__(u)
+            __update_node__(u)
             u = u.parent_node
 
-        return t, t1
+        return tre, tr1
 
-    def __clean_up__(t):
-        for node in t.postorder_node_iter():
+    def __clean_up__(tre):
+        for node in tre.postorder_node_iter():
             delattr(node, "nleaf")
             delattr(node, "anchor")
             # delattr(node,"maxheight")
@@ -92,7 +92,7 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
             # delattr(node,"topo_diam")
             delattr(node, "bestLCA")
 
-    def __updateNode__(node):
+    def __update_node__(node):
         if node.is_leaf():
             node.anchor = node
             # node.maxheight = 0
@@ -144,42 +144,43 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
             node.diameter = d1+d2
             node.bestLCA = node
 
-    def __get_breaking_edge__(t, edge_type):
-        if t.seed_node.nleaf <= max_size and t.seed_node.diameter <= max_diam:
+    def __get_breaking_edge__(tre, edge_type):
+        if tre.seed_node.nleaf <= max_size and \
+                tre.seed_node.diameter <= max_diam:
             return None
         if edge_type == 'midpoint':
-            e = __find_midpoint_edge__(t)
+            ed = __find_midpoint_edge__(tre)
         elif edge_type == 'centroid':
-            e = __find_centroid_edge__(t)
+            ed = __find_centroid_edge__(tre)
         else:
             _LOG.warning(("Invalid decomposition type! Please use either "
                           "'midpoint' or 'centroid'"))
             return None
 
-        n = e.head_node.nleaf
-        if (n < min_size) or (t.seed_node.nleaf - n) < min_size:
+        n = ed.head_node.nleaf
+        if (n < min_size) or (tre.seed_node.nleaf - n) < min_size:
             return None
-        return e
+        return ed
 
-    def __check_stop__(t):
-        return ((t.seed_node.nleaf <= max_size and
-                 t.seed_node.diameter <= max_diam) or
-                (t.seed_node.nleaf//2 < min_size))
+    def __check_stop__(tre):
+        return ((tre.seed_node.nleaf <= max_size and
+                 tre.seed_node.diameter <= max_diam) or
+                (tre.seed_node.nleaf // 2 < min_size))
 
-    def __break_by_MP_centroid__(t):
-        e = __get_breaking_edge__(t, 'midpoint')
-        if e is None:
+    def __break_by_MP_centroid__(tre):
+        ed = __get_breaking_edge__(tre, 'midpoint')
+        if ed is None:
             # print("Midpoint failed. Trying centroid decomposition...")
-            e = __get_breaking_edge__(t, 'centroid')
+            ed = __get_breaking_edge__(tre, 'centroid')
         # else:
         #    print("Successfully splitted by midpoint")
-        return e
+        return ed
 
-    def __break(t):
+    def __break(tre):
         if strategy == "centroid":
-            return __get_breaking_edge__(t, 'centroid')
+            return __get_breaking_edge__(tre, 'centroid')
         elif strategy == "midpoint":
-            return __break_by_MP_centroid__(t)
+            return __break_by_MP_centroid__(tre)
         else:
             raise Exception("strategy not valid: %s" % strategy)
 
@@ -201,7 +202,7 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
         __clean_up__(a_tree)
         return [a_tree]
 
-    treeMap = []
+    tree_map = []
     tqueue.put((a_tree, e))
     while not tqueue.empty():
         t, e = tqueue.get()
@@ -209,14 +210,14 @@ def decompose_by_diameter(a_tree, strategy, max_size=None, min_size=None,
         e1 = __break(t1)
         if e1 is None:
             __clean_up__(t1)
-            treeMap.append(t1)
+            tree_map.append(t1)
         else:
             tqueue.put((t1, e1))
         e2 = __break(t2)
         if e2 is None:
             __clean_up__(t2)
-            treeMap.append(t2)
+            tree_map.append(t2)
         else:
             tqueue.put((t2, e2))
 
-    return treeMap
+    return tree_map

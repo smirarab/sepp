@@ -1,8 +1,8 @@
-'''
+"""
 Created on May 31, 2015
 
 @author: namphuon
-'''
+"""
 import argparse
 import os
 from sepp import get_logger
@@ -18,12 +18,13 @@ _LOG = get_logger(__name__)
 
 
 class EnsembleJoinSearchJobs(Join):
-    '''
+    """
     After all search jobs have finished on tips, we need return the
     distribution of the bitscores for the search.  This join accomplishes this
-    '''
+    """
     def __init__(self):
         Join.__init__(self)
+        self.root_problem = None
 
     def setup_with_root_problem(self, root_problem):
         self.root_problem = root_problem
@@ -31,9 +32,9 @@ class EnsembleJoinSearchJobs(Join):
             self.add_job(p.jobs["hmmsearch"])
 
     def perform(self):
-        '''
+        """
         A dummy join that waits for all the search results to complete
-        '''
+        """
         print("")
 
     def __str__(self):
@@ -41,12 +42,12 @@ class EnsembleJoinSearchJobs(Join):
 
 
 class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
-    '''
+    """
     This implements the exhaustive algorithm where all alignments subsets
     are searched for every fragment. This is for UPP, meaning that no placement
     is performed, and that there is always only one placement subset
     (currently).
-    '''
+    """
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)
         self.symfrac = False
@@ -73,7 +74,7 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
         self.options.placement_size = total
 
     def merge_results(self):
-        ''' merges search results'''
+        """ merges search results"""
         if "fragments.distribution.done" in self.root_problem.annotations:
             return
         sequence_scores = dict([(name, [])
@@ -95,10 +96,10 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
 
         # TODO: is the following efficient enough? Do we need to make lists
         # and then turn them to sets?
-        notScored = []
+        not_scored = []
         for key, v in sequence_scores.items():
             if len(v) == 0:
-                notScored.append(key)
+                not_scored.append(key)
 
         self.root_problem.annotations["fragments.distribution.done"] = 1
 
@@ -107,13 +108,13 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
         warning message'''
         # notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
         _LOG.warning("Fragments %s are not scored against any subset" %
-                     str(notScored))
+                     str(not_scored))
         # assert len(notScored) == 0,
         # "Fragments %s are not scored against any subset" %str(notScored)
         self.results = sequence_scores
 
     def connect_jobs(self):
-        ''' a callback function called after hmmbuild jobs are finished'''
+        """ a callback function called after hmmbuild jobs are finished"""
         def enq_job_searchfragment(result, search_job):
             search_job.hmmmodel = result
             JobPool().enqueue_job(search_job)
