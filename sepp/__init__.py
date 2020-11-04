@@ -25,9 +25,9 @@ __all__ = ['algorithm', 'alignment', 'backtranslate',
            'checkpointing', 'config', 'decompose_tree', 'ensemble',
            'exhaustive', 'exhaustive_tipp', 'exhaustive_upp', 'filemgr',
            'jobs', 'math_utils', 'metagenomics', 'problem', 'scheduler',
-           'scratch', 'tree']
+           'scratch', 'tree', 'get_logger', 'is_temp_kept', 'version']
 
-version = "4.3.15"
+version = "4.3.16"
 _DEBUG = ("SEPP_DEBUG" in os.environ) and \
     (os.environ["SEPP_DEBUG"].lower() == "true")
 

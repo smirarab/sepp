@@ -1,8 +1,8 @@
-'''
+"""
 Created on Nov 26, 2012
 
 @author: smirarab
-'''
+"""
 import os
 import pickle
 import sys
@@ -21,52 +21,52 @@ _LOG = get_logger(__name__)
 
 
 class CheckPointState(object):
-    '''
+    """
     The current state as relevant to the checkpointign feature
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         self.root_problem = None
         self.temp_root = None
         self.cumulative_time = 0
 
 
 def save_checkpoint(checkpoint_manager):
-    '''
+    """
     This is the callback function that is called periodically to save the
     current state of the system.
-    '''
+    """
     # Note: this module is not bullet proof in terms of race conditions.
     # Most importantly, it is possible (though extremely unlikely) that
     # while the new temp path is being written (f.write...)
     if checkpoint_manager.is_checkpointing:
         # checkpoint_manager.lock.acquire()
         checkpoint_manager.saving = True
-        newTmpDest = get_temp_file("dump", "checkpoints")
-        _LOG.info("Checkpoint is being updated: %s" % newTmpDest)
-        oldTmpFile = open(checkpoint_manager.checkpoint_path).readlines()
-        oldTmpFile = None if len(oldTmpFile) == 0 else oldTmpFile[-1].split(
-            ",")[0]
+        new_tmp_dest = get_temp_file("dump", "checkpoints")
+        _LOG.info("Checkpoint is being updated: %s" % new_tmp_dest)
+        old_tmp_file = open(checkpoint_manager.checkpoint_path).readlines()
+        old_tmp_file = None if len(old_tmp_file) == 0 \
+            else old_tmp_file[-1].split(",")[0]
 
         checkpoint_manager.update_time()
 
         currenlimit = sys.getrecursionlimit()
         sys.setrecursionlimit(100000)
-        picklefile = gzip.GzipFile(newTmpDest, 'wb')
+        picklefile = gzip.GzipFile(new_tmp_dest, 'wb')
         pickle.dump(checkpoint_manager.checkpoint_state, picklefile, 2)
         picklefile.close()
         sys.setrecursionlimit(currenlimit)
 
         f = open(checkpoint_manager.checkpoint_path, "a")
-        f.write("%s, %s\n" % (newTmpDest, datetime.datetime.now()))
+        f.write("%s, %s\n" % (new_tmp_dest, datetime.datetime.now()))
         f.close()
-        if oldTmpFile is not None:
-            os.remove(oldTmpFile)
+        if old_tmp_file is not None:
+            os.remove(old_tmp_file)
         _LOG.info("Checkpoint Saved to: %s and linked in %s." % (
-            newTmpDest, checkpoint_manager.checkpoint_path))
+            new_tmp_dest, checkpoint_manager.checkpoint_path))
         checkpoint_manager.saving = False
         # checkpoint_manager.lock.release()
         checkpoint_manager.timer = threading.Timer(
@@ -104,12 +104,12 @@ class CheckPointManager:
         _LOG.info("Checkpoint is being restored: %s" %
                   str(self.checkpoint_path))
         assert os.path.exists(self.checkpoint_path)
-        lastPath = open(self.checkpoint_path).readlines()[-1].split(",")[0]
-        picklefile = gzip.GzipFile(lastPath, 'rb')
+        last_path = open(self.checkpoint_path).readlines()[-1].split(",")[0]
+        picklefile = gzip.GzipFile(last_path, 'rb')
         self.checkpoint_state = pickle.load(picklefile)
         picklefile.close()
         set_root_temp_dir(self.checkpoint_state.temp_root)
-        _LOG.info("Checkpoint restore finished: %s" % lastPath)
+        _LOG.info("Checkpoint restore finished: %s" % last_path)
 
     def remove_checkpoint_file(self):
         if (self.checkpoint_path is not None and

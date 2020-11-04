@@ -1,14 +1,14 @@
-'''
+"""
 Created on Oct 10, 2012
 
 @author: smirarab
-'''
+"""
 from sepp.algorithm import AbstractAlgorithm
 from sepp.config import options
 from sepp.tree import PhylogeneticTree
 from sepp.alignment import MutableAlignment, ExtendedAlignment,\
     hamming_distance
-from sepp.problem import SeppProblem
+from sepp.problem import SeppProblem, RootProblem
 from dendropy.datamodel.treemodel import Tree
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
     MergeJsonJob
@@ -23,13 +23,14 @@ def get_placement_job_name(chunk_number):
 
 
 class JoinSearchJobs(Join):
-    '''
+    """
     After all search jobs have finished on tips, we need to figure out which
     fragment goes  to which subset and start aligning fragments.
     This join takes care of that step.
-    '''
+    """
     def __init__(self):
         Join.__init__(self)
+        self.root_problem = None
 
     def setup_with_root_problem(self, root_problem):
         self.root_problem = root_problem
@@ -37,7 +38,7 @@ class JoinSearchJobs(Join):
             self.add_job(p.jobs["hmmsearch"])
 
     def figureout_fragment_subset(self):
-        ''' Figure out which fragment should go to which subproblem'''
+        """ Figure out which fragment should go to which subproblem"""
         if "fragments.distribution.done" in self.root_problem.annotations:
             return
         max_evalues = dict(
@@ -64,10 +65,10 @@ class JoinSearchJobs(Join):
 
         # TODO: is the following efficient enough? Do we need to make lists
         # and then turn them to sets?
-        notScored = []
+        not_scored = []
         for key, v in max_evalues.items():
             if v[1] is None:
-                notScored.append(key)
+                not_scored.append(key)
             else:
                 v[1].fragments.seq_names.add(key)
 
@@ -78,16 +79,16 @@ class JoinSearchJobs(Join):
         warning message'''
         # notScored = [k for k, v in max_evalues.iteritems() if v[1] is None]
         _LOG.warning(
-            "Fragments %s are not scored against any subset" % str(notScored))
+            "Fragments %s are not scored against any subset" % str(not_scored))
         # assert len(notScored) == 0, "Fragments %s are not scored against
         # any subset" %str(notScored)
 
     def perform(self):
-        '''
+        """
         Distributes fragments to alignments subsets with best score,
         and runs align jobs on those. Also, creates new chunks of fragments
         for better parallelism.
-        '''
+        """
 
         ''' Figure out which fragment should go to which subproblem'''
         self.figureout_fragment_subset()
@@ -128,11 +129,11 @@ class JoinSearchJobs(Join):
 
 
 class JoinAlignJobs(Join):
-    '''
+    """
     After all alignments jobs for a placement subset have finished,
     we need to build those extended alignments and start placing fragments.
     This join takes care of that step.
-    '''
+    """
     def __init__(self):
         Join.__init__(self)
 
@@ -143,10 +144,10 @@ class JoinAlignJobs(Join):
             self.add_job(p.jobs["hmmalign"])
 
     def merge_subalignments(self):
-        '''
+        """
         Merge alignment subset extended alignments to get one extended
         alignment for current placement subset.
-        '''
+        """
         pp = self.placement_problem
         _LOG.info("Merging sub-alignments for placement problem : %s." %
                   (pp.label))
@@ -222,10 +223,10 @@ class JoinAlignJobs(Join):
 
 
 class ExhaustiveAlgorithm(AbstractAlgorithm):
-    '''
+    """
     This implements the exhaustive algorithm where all alignments subsets
     are searched for every fragment.
-    '''
+    """
     def __init__(self):
         AbstractAlgorithm.__init__(self)
         self.place_nomatch_fragments = False
@@ -250,7 +251,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                         self.distances["".join([seq1, seq2])]
 
     def merge_results(self):
-        assert isinstance(self.root_problem, SeppProblem)
+        assert isinstance(self.root_problem, RootProblem)
 
         '''Generate single extended alignment'''
         fullExtendedAlignment = ExtendedAlignment(
@@ -290,9 +291,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
         mergeJsonJob.run()
 
     def output_results(self):
-        ''' Merged json file is already saved in merge_results function and
+        """ Merged json file is already saved in merge_results function and
             full extended alignment already created in merge_results function
-        '''
+        """
         outfilename = self.get_output_filename("alignment.fasta")
         self.results .write_to_path(outfilename)
         self.results.remove_insertion_columns()
@@ -457,7 +458,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                         fc_problem, molecule=self.molecule)
 
     def connect_jobs(self):
-        ''' a callback function called after hmmbuild jobs are finished'''
+        """ a callback function called after hmmbuild jobs are finished"""
         def enq_job_searchfragment(result, search_job):
             search_job.hmmmodel = result
             JobPool().enqueue_job(search_job)
