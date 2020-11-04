@@ -1,8 +1,8 @@
-'''
+"""
 Created on Oct 2, 2012
 
 @author: smirarab
-'''
+"""
 from sepp.config import options
 from abc import abstractmethod
 from sepp.scheduler import JobPool
@@ -22,25 +22,25 @@ _LOG = get_logger(__name__)
 
 
 class AbstractAlgorithm(object):
-    '''
+    """
     This class provides the interface for an abstract algorithm. All different
     ways of implementing SEPP are considered to be different 'algorithms'.
 
     New algorithms should be implemented by extending AbastractAlgorithm and
     implementing its abstract methods.
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         self.root_problem = None
         self.results = None
         self.options = options()
         self.outchecked = False  # for ease of access
 
     def check_options(self, supply=[]):
-        '''
+        """
         This method should check the input values stored in config.option to
         make sure every necessary argument is provided, and that the provided
         values are all fine.
@@ -50,14 +50,14 @@ class AbstractAlgorithm(object):
 
         By default expects tree_file, raxml_file, and fragment_file. Overwrite
         if required.
-        '''
-        if (options().tree_file is None):
+        """
+        if options().tree_file is None:
             supply = supply + ["tree file"]
-        if (options().alignment_file is None):
+        if options().alignment_file is None:
             supply = supply + ["alignment file"]
-        if (options().fragment_file is None):
+        if options().fragment_file is None:
             supply = supply + ["fragment file"]
-        if (len(supply) != 0):
+        if len(supply) != 0:
             raise ValueError(
                 ("Failed to supply: %s\nRun with -h option to see a list of"
                  " options.")
@@ -66,17 +66,17 @@ class AbstractAlgorithm(object):
 
     @abstractmethod
     def build_subproblems(self):
-        '''
+        """
         This method should read the config.options() and build a hierarchy of
         subproblems (see sepp.problem). This hierarchy will be used by
         build_job_dag to create a DAG of jobs (see sepp.jobs and
         sepp.scheduler)
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def connect_jobs(self):
-        '''
+        """
         Join Jobs are joined together to form a DAG using Joins (see
         sepp.scheduler)
         and call_back functions (see sepp.scheduler.Job).
@@ -98,18 +98,18 @@ class AbstractAlgorithm(object):
         subproblem hierarchy. This function only connects those jobs.
         This is called after recovery from a checkpoint, because joins and
         callbacks are not checkpointed.
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def build_jobs(self):
-        '''
+        """
         Builds separate jobs for different tasks that need to be done.
         This just creates jobs, without connecting them. connect_jobs is used
         to create jobs.
         build_job is not called after checkpoints are recovered, because the
         jobs are checkpointed (their connections are not).
-        '''
+        """
         raise NotImplementedError()
 
     @abstractmethod

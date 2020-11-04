@@ -24,7 +24,7 @@ from dendropy import Tree, Taxon, treecalc
 from dendropy import DataSet as Dataset
 from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as \
     convert_node_to_root_polytomy
-from sepp import get_logger, sortByValue
+from sepp import get_logger, sort_by_value
 from sepp.alignment import get_pdistance
 from sepp.decompose_tree import decompose_by_diameter
 
@@ -423,7 +423,7 @@ for l2 in sys.stdin.readlines():
                 if not kwargs["filterTaxon"](s):
                     continue
             dist[s.label] = pdm(centerTaxon, s)
-        incircle = sortByValue(dist)[0:subsetSize]
+        incircle = sort_by_value(dist)[0:subsetSize]
         return [node[0] for node in incircle]
 
 
