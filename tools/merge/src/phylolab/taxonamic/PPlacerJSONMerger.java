@@ -317,7 +317,9 @@ public class PPlacerJSONMerger {
 						return name1.compareTo(name2);
 					}
 				});
-			    sortedPlacements.addAll(resultsPlacements);
+                            for (int i=0 ; i<resultsPlacements.size() ; i++) {
+                              sortedPlacements.add(resultsPlacements.getJSONObject(i));
+                            }
 			    resultsPlacements = new JSONArray();
 			    resultsPlacements.addAll(sortedPlacements);
 			}

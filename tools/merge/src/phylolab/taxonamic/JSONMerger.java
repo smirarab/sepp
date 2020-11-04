@@ -394,7 +394,9 @@ public class JSONMerger {
             return (int) o;
           }
         });
-        sortedPlacements.addAll(placements);
+        for (Iterator<JSONArray> it=placements.iterator() ; it.hasNext() ;) {
+          sortedPlacements.add(it.next());
+        }
         double total = 0;
         ArrayList < JSONArray > list = new ArrayList < JSONArray > ();
         for (Iterator < JSONArray > itp = sortedPlacements.iterator(); threshold > total && itp.hasNext();) {          
@@ -565,7 +567,9 @@ public class JSONMerger {
           return name1.compareTo(name2);
         }
       });
-      sortedPlacements.addAll(resultsPlacements);
+      for (int i=0 ; i<resultsPlacements.size() ; i++) {
+        sortedPlacements.add(resultsPlacements.getJSONObject(i));
+      }
       resultsPlacements = new JSONArray();
       resultsPlacements.addAll(sortedPlacements);
     }

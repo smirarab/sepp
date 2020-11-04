@@ -1,5 +1,9 @@
+* Version 4.3.15:
+	* some py3.8 changes and some java changes  from pgrt
+* Version 4.3.14:
+	* Added option `-R "Nmin Nmax"` to specify the range of full length sequences to UPP
 * Version 4.3.13:
-	* Added backtranslation functionality to UPP for amino acid sequences.
+    * Added backtranslation functionality to UPP for amino acid sequences.
 * Version 4.3.12:
 	* Added `-rt` to remove temp files	
 * Version 4.3.11:
