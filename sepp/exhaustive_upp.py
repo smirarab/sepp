@@ -350,7 +350,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             for e in tr.leaf_edge_iter():
                 elen[e] = e.length
             elensort = sorted(elen.values())
-            mid = elensort[len(elensort) / 2]
+            mid = elensort[len(elensort) // 2]
             torem = []
             for k, v in list(elen.items()):
                 if v > mid * self.options.long_branch_filter:

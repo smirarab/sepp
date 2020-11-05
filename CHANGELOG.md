@@ -1,3 +1,6 @@
+* Version 4.3.17:
+    * Attempt to make tests python 3.8 friendly
+    * Add UPP test
 * Version 4.3.16:
 	* Refactor code slightly. Reduces warnings
 * Version 4.3.15:
