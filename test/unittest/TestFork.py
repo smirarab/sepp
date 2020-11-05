@@ -13,6 +13,7 @@ import unittest
 
 set_start_method('fork')
 
+
 class TestJob(Job):
     def __init__(self, jobname):
         Job.__init__(self)
