@@ -332,22 +332,21 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             self[name] = ''.join((
                 char for idx, char in enumerate(seq) if idx not in indexes))
 
+    def get_all_gap_cols(self):
+        all_gaps = list(range(0, self.get_length()))
+        for seq in self.values():
+            all_gaps[:] = [i for i in all_gaps if seq[i] == '-']
+        return all_gaps
+
     def delete_all_gap(self):
         """
         Delete all sites that consists of nothing but gaps
         """
         # pdb.set_trace()
-        pos = 0
-        i = 0
-        subset = []
-        while pos < self.get_length():
-            if self.is_all_gap(pos):
-                self.remove_column(pos)
-            else:
-                subset.append(i)
-                pos = pos + 1
-            i += 1
 
+        rem = set(self.get_all_gap_cols())
+        subset = [x for x in range(0, self.get_length()) if x not in rem]
+        self.remove_columns(set(rem))
         _LOG.debug("Alignment length reduced to %d" % len(subset))
         return subset
 
