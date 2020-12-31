@@ -219,7 +219,9 @@ class SeppProblem(Problem):
         (see read_extendend_alignment_and_relabel_columns)
         """
         mut_subalg = self.subalignment.get_mutable_alignment()
+        _LOG.debug("Removing all gaps ...")
         remaining_cols = mut_subalg.delete_all_gap()
+        _LOG.debug("Writing to: %s" % str(path))
         mut_subalg.write_to_path(path)
         self.annotations["ref.alignment.columns"] = remaining_cols
         _LOG.debug(

@@ -1,3 +1,6 @@
+* Version 4.3.18:
+    * UPP speed improvement for cases with super gappy backbone alignment (more can be done)
+    * Slightly better logging
 * Version 4.3.17:
     * Attempt to make tests python 3.8 friendly
     * Add UPP test
