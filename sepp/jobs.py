@@ -383,8 +383,6 @@ class HMMSearchJob(ExternalSeppJob):
             self.pipe = True
         # _LOG.info("Pipe: %s" %str(self.pipe ))
         self.results_on_temp = not self.pipe
-        _LOG.debug("HmmSearch: Piped?: %s and keep on temp?: %s" % (
-            str(self.pipe), str(self.results_on_temp)))
 
     def setup(self, hmmmodel, fragments, output_file, elim=None,
               filters=True, **kwargs):
