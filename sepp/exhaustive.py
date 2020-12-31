@@ -424,8 +424,21 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     def _get_new_Join_Align_Job(self):
         return JoinAlignJobs()
 
+    def _log_pipe(self):
+        if hasattr(self.options.hmmsearch, "piped"):
+            pipe = self.options.hmmsearch.piped.\
+                strip().lower() == "true"
+        else:
+            pipe = True
+        results_on_temp = not pipe
+        _LOG.debug("HmmSearch: Piped?: %s and keep on temp?: %s" % (
+            str(pipe), str(results_on_temp)))
+
     def build_jobs(self):
         assert isinstance(self.root_problem, SeppProblem)
+
+        self._log_pipe()
+
         for placement_problem in self.root_problem.get_children():
             ''' Create placer jobs'''
             for i in range(0, self.root_problem.fragment_chunks):
@@ -439,6 +452,7 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 assert isinstance(alg_problem, SeppProblem)
                 ''' create the build model job'''
                 bj = HMMBuildJob()
+                _LOG.debug("Alignment subproblem: %s" % str(alg_problem))
                 bj.setup_for_subproblem(
                     alg_problem, symfrac=self.symfrac,
                     molecule=self.molecule,
