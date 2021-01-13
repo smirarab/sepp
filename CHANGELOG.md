@@ -1,4 +1,7 @@
 * Version 4.3.18:
+    * Enable `--symfrac` from config file
+    * Enable config files that overwrite the default values only when provided
+* Version 4.3.18:
     * UPP speed improvement for cases with super gappy backbone alignment (more can be done)
     * Slightly better logging
 * Version 4.3.17:
