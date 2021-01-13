@@ -294,12 +294,19 @@ class AbstractAlgorithm(object):
         ids_reference = set(self.root_problem.subalignment.keys())
         ids_inputfragments = set(self.root_problem.fragments.keys())
         ids_overlap = ids_reference & ids_inputfragments
-        if len(ids_overlap) > 0:
+        if len(ids_overlap) > 0 and not self.options.ignore_overlap:
             raise ValueError((
                 "Your input fragment file contains %i sequences, whose names "
                 "overlap with names in your reference. Please rename your inp"
                 "ut fragments and re-start. Duplicate names are:\n  '%s'") %
                 (len(ids_overlap), "'\n  '".join(ids_overlap)))
+        elif len(ids_overlap) > 0:
+            _LOG.debug("Ignoring following %i query sequences present "
+                       "in the backbone: \n '%s'"
+                       % (len(ids_overlap), "' , '".join(ids_overlap)))
+
+            self.root_problem.fragments = self.root_problem.fragments.\
+                get_soft_sub_alignment(ids_inputfragments - ids_reference)
 
         # test if input fragment names contain whitespaces / tabs which would
         # cause hmmsearch to fail.
