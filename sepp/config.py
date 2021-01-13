@@ -59,7 +59,7 @@ def set_main_config_path(filename):
 
 
 def _read_config_file(filename, opts, expand=None):
-    _LOG.debug("Reading config %s" %filename)
+    _LOG.debug("Reading config %s" % filename)
     config_defaults = []
     cparser = configparser.ConfigParser()
     cparser.optionxform = str
