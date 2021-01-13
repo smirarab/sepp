@@ -1,3 +1,5 @@
+* Version 4.3.21:
+    * one more small bug fix
 * Version 4.3.20:
     * Added `--ignore-overlap` option to ignore overlap. 
 * Version 4.3.19:
