@@ -275,6 +275,13 @@ def _init_parser():
         default="dna",
         help=("Molecule type of sequences. Can be amino, dna, or rna "
               "[default: %(default)s]"))
+    inputGroup.add_argument(
+        "--ignore-overlap",
+        dest="ignore_overlap",
+        default=False, action='store_true',
+        help=("When some query sequences are present both in the backbone, "
+              "ignore the query sequences and keep the backbone "
+              "[default: %(default)s]"))
 
     otherGroup = _parser.add_argument_group(
         "Other options".upper(), "These options control how SEPP is run")

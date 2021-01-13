@@ -1,4 +1,6 @@
-* Version 4.3.18:
+* Version 4.3.20:
+    * Added `--ignore-overlap` option to ignore overlap. 
+* Version 4.3.19:
     * Enable `--symfrac` from config file
     * Enable config files that overwrite the default values only when provided
 * Version 4.3.18:
