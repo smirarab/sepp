@@ -255,8 +255,6 @@ class ReadOnlyAlignment(Mapping, object):
         ret = []
         if max_chunk_size and len(names) / chunks > max_chunk_size:
             chunks = len(names) // max_chunk_size + 1
-        _LOG.debug("Dividing %i sequences into %d chunks max size %d"
-                   % (len(self), chunks, max_chunk_size))
         for i in range(0, chunks):
             subset = names[i:len(names):chunks]
             if subset:
