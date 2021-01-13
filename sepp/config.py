@@ -279,8 +279,9 @@ def _init_parser():
         "--ignore-overlap",
         dest="ignore_overlap",
         default=False, action='store_true',
-        help=("When some query sequences are present both in the backbone, "
-              "ignore the query sequences and keep the backbone "
+        help=("When a query sequence has the same name as a "
+              "backbone sequence, ignore the query "
+              "sequences and keep the backbone sequence"
               "[default: %(default)s]"))
 
     otherGroup = _parser.add_argument_group(
