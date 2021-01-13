@@ -265,12 +265,15 @@ class HMMBuildJob(ExternalSeppJob):
             self.options = kwargs['options']
 
     def get_invocation(self):
-        invoc = [self.path, '--ere', '0.59', "--cpu", "1",
+        useroptions = self.options.split()
+        invoc = [self.path,  "--cpu", "1",
                  "--%s" % self.molecule]
-        if self.symfrac is True:
+        if "--ere" not in useroptions:
+            invoc.extend(['--ere', '0.59'])
+        if self.symfrac is True and "--symfrac" not in useroptions:
             invoc.extend(["--symfrac", "0.0"])
-        if self.options != "":
-            invoc.extend(self.options.split())
+        if useroptions:
+            invoc.extend(useroptions)
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
         invoc.extend([self.outfile, self.infile])

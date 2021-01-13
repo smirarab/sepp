@@ -332,11 +332,22 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
             self[name] = ''.join((
                 char for idx, char in enumerate(seq) if idx not in indexes))
 
+    def keep_columns(self, indexes):
+        for name, seq in self.items():
+            self[name] = ''.join((
+                char for idx, char in enumerate(seq) if idx in indexes))
+
     def get_all_gap_cols(self):
         all_gaps = list(range(0, self.get_length()))
         for seq in self.values():
             all_gaps[:] = [i for i in all_gaps if seq[i] == '-']
         return all_gaps
+
+    def get_all_nongap_cols(self):
+        all_gaps = list(range(0, self.get_length()))
+        for seq in self.values():
+            all_gaps[:] = [i for i in all_gaps if seq[i] == '-']
+        return [x for x in range(0, self.get_length()) if x not in all_gaps]
 
     def delete_all_gap(self):
         """
