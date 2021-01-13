@@ -224,6 +224,29 @@ run_upp.py -c sample.config -o config_example
 ```
 
 ---------
+
+
+
+Hints for scalability
+---
+If UPP is too slow or takes too much memory, consider the following options:
+
+* Use `-A` to increase alignment subset size. The default, 10, is too small for very large alignments. 
+  For example, for 10,000 species, consider using `-A 100` instead of the default `-A 10`. 
+* If your backbone alignment (either what you provide or the pasta alignment that UPP internally estimates) become 
+  too long and gappy (e.g., more than 100,000 sites), you can try the following option. 
+  * Make a config file (e.g., `upp.conf`) and put the following in it:
+  ~~~
+  [hmmbuild]
+  options = --symfrac 0.05
+  ~~~
+  * The `0.05` tells HMMBuild to treat sites that are 90% or more gaps as insertion sites rather than match sites.
+  This can make the HMMs smaller. Choose a value that makes sense for your data, based on how gappy it is. 
+  * Run up with `-c upp.conf` option provided. 
+* If you have set `-B` to a very large value (say more than 10,000), consider lowering it. 
+  Very large numbers of species in the backbone can make the PASTA alignment very gappy and memory intensive. 
+
+
 Contact
 ===
 

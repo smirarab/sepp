@@ -59,6 +59,7 @@ def set_main_config_path(filename):
 
 
 def _read_config_file(filename, opts, expand=None):
+    _LOG.debug("Reading config %s" %filename)
     config_defaults = []
     cparser = configparser.ConfigParser()
     cparser.optionxform = str
@@ -72,7 +73,10 @@ def _read_config_file(filename, opts, expand=None):
     for section in cparser.sections():
         if section == "commandline":
             continue
-        section_name_space = Namespace()
+        if getattr(opts, section, None):
+            section_name_space = getattr(opts, section)
+        else:
+            section_name_space = Namespace()
         for (k, v) in cparser.items(section):
             if expand and k == "path":
                 v = os.path.join(expand, v)
@@ -351,6 +355,7 @@ def _parse_options():
 
         parser.error = error_callback
 
+        _LOG.debug(str(input_args))
         ''' Read commandline options again to overwrite config file values'''
         opts = parser.parse_args(input_args, namespace=opts)
     random.seed(opts.seed)
