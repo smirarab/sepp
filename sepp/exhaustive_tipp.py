@@ -351,7 +351,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             self.load_reference(
                 os.path.join(
                     options().reference.path,
-                    'refpkg/%s.refpkg/' % options().reference_pkg))
+                    '%s.refpkg/' % options().reference_pkg))
         if (options().taxonomy_file is None):
             supply = supply + ["taxonomy file"]
         if (options().taxonomy_name_mapping_file is None):
