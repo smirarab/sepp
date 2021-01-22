@@ -46,11 +46,10 @@ Installation Steps:
 TIPP is a part of the SEPP distribution package. First install SEPP. Once done, do the following. 
 
 1. Download and decompress the reference dataset available at [https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz](https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz).
-2. Set the environment variables (`REFERENCE` and `BLAST`) that will be used to create the configuration file. The environmental variable can be set using the following command (shell-dependent):
+2. Set the environment variables (`REFERENCE` and `BLAST`) that will be used to create the configuration file. The `REFERENCE` environment variable should point to the location of the reference dataset (i.e. it should point to the `tipp2-refpkg` directory with its full path). The `BLAST` environment variable should to point to the location of the binary: `blastn`. Environment variables can be set using the following (shell-dependent) commands:
 	- `export VARIABLE_NAME=/path/to/file` (bash shell)
-	- `setenv VARIABLE_NAME /path/to/file` (tcsh shell)  
-    The `REFERENCE` environment variable should point to the location of the reference dataset downloaded in Step 1 (i.e., the location of the `TIPP_reference_package` repository). The `BLAST` environment variable should to point to the location of the binary: `blastn`.
-3. Configure: run `python setup.py tipp` or `python setup.py tipp -c`. This  creates a `tipp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
+	- `setenv VARIABLE_NAME /path/to/file` (tcsh shell)
+3. Create the TIPP configuration file by running the command: `python setup.py tipp` or `python setup.py tipp -c`. This  creates a `tipp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
 
 
 Common Problems:
