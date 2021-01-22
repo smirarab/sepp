@@ -205,7 +205,7 @@ run_tipp_tool.py -g markers-v1/pyrg \
                  -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `pyrg.classification`
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `pyrg.classification` in `profile/markers-v1`.
 
 ```
 fragment        species genus   family  order   class   phylum
