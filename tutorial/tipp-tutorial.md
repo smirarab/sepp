@@ -168,13 +168,16 @@ This command runs TIPP on the fragmentary sequences that have been binned to the
 The main output of TIPP is a `output_classification.txt` file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
 
 ```
-EAS25_26_1_15_381_1761_0_1,2157,Archaea,superkingdom,1.0000
-EAS25_26_1_15_381_1761_0_1,1,root,root,1.0000
-EAS25_26_1_15_381_1761_0_1,183925,Methanobacteria,class,1.0000
-EAS25_26_1_15_381_1761_0_1,2172,Methanobrevibacter,genus,1.0000
-EAS25_26_1_15_381_1761_0_1,28890,Euryarchaeota,phylum,1.0000
+EAS25_26_1_15_381_1761_0_1,2159,Methanobacteriaceae,family,1.0000
+EAS25_26_1_15_381_1761_0_1,131567,cellular organisms,below_root,1.0000
 EAS25_26_1_15_381_1761_0_1,2158,Methanobacteriales,order,1.0000
+EAS25_26_1_15_381_1761_0_1,28890,Euryarchaeota,phylum,1.0000
+EAS25_26_1_15_381_1761_0_1,1,root,root,1.0000
+EAS25_26_1_15_381_1761_0_1,2157,Archaea,superkingdom,1.0000
+EAS25_26_1_15_381_1761_0_1,2172,Methanobrevibacter,genus,1.0000
+EAS25_26_1_15_381_1761_0_1,183925,Methanobacteria,class,1.0000
 EAS25_26_1_15_381_1761_0_1,2173,Methanobrevibacter smithii,species,1.0000
+EAS25_26_1_15_381_1761_0_2,131567,cellular organisms,below_root,1.0000
 ```
 
 For example, the `EAS25_26_1_15_381_1761_0_1` is classified as the species Methanobrevibacter smithii with 100% support. By default, TIPP requires 95% placement support to classify a sequence. If we lower the classification threshold to 0 (using the `-pt` flag), we can see all possible classifications for a sequence.
@@ -200,29 +203,33 @@ mkdir profile
 run_tipp_tool.py -g markers-v1/pyrg \
                  -a profile \
                  -o profile \
-                 -p markers-v1/pyrg \
+                 -p markers-v1_pyrg \
                  -i output_classification.txt \
                  -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `pyrg.classification` in `profile/markers-v1`.
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `profile/markers-v1_pyrg.classification`.
 
 ```
-fragment        species genus   family  order   class   phylum
-EAS25_26_1_100_940_776_0_1      2173    2172    2159    2158    183925  28890
-EAS25_26_1_11_733_1260_0_2      2173    2172    2159    2158    183925  28890
-EAS25_26_1_15_381_1761_0_1      2173    2172    2159    2158    183925  28890
-EAS25_26_1_15_381_1761_0_2      NA      NA      2206    94695   224756  28890
+fragment	species	genus	family	order	class	phylum
+EAS25_26_1_100_940_776_0_1	2173	2172	2159	2158	183925	28890
+EAS25_26_1_100_940_776_0_2	NA	NA	NA	NA	NA	28890
+EAS25_26_1_11_733_1260_0_1	NA	NA	NA	NA	NA	28890
+EAS25_26_1_11_733_1260_0_2	2173	2172	2159	2158	183925	28890
+EAS25_26_1_15_381_1761_0_1	2173	2172	2159	2158	183925	28890
+EAS25_26_1_15_656_459_0_1	2173	2172	2159	2158	183925	28890
+EAS25_26_1_15_656_459_0_2	NA	NA	2236	2235	183963	28890
+EAS25_26_1_16_1241_1747_0_1	2173	2172	2159	2158	183925	28890
+EAS25_26_1_16_1241_1747_0_2	NA	NA	NA	NA	NA	28890
 ```
 
 This file lists the classification (shown as NCBI taxonomic ids) of each fragment at each of the taxonomic rankings.  If a fragment does not meet the support threshold (95% in this case), it will be left as unclassified (NA).  
 
-Let's look at `abundance.species.csv`.  The file shows the abundance profiles for the species level.  The file shows that 80% of the reads belong to the species Methanobrevibacter smithii and 19% of the fragments were unclassified at the species level.
+Let's look at `abundance.species.csv`.  The file shows the abundance profiles for the species level.  The file shows that 65% of the reads belong to the species Methanobrevibacter smithii and 35% of the fragments were unclassified at the species level.
 ```
-taxa    abundance
-Methanobrevibacter smithii      0.7969
-Methanococcus maripaludis       0.0156
-unclassified    0.1875
+taxa	abundance
+Methanobrevibacter smithii	0.6456
+unclassified	0.3544
 ```
 
 Task 3: Running TIPP for abundance profiling.
@@ -339,9 +346,9 @@ run_tipp.py -R 16S-bacteria-v1/16S_bacteria \
 As in the previous example, you can convert the classification results into a more easily digestible format using the `run_tipp_tool.py` script.
 ```
 run_tipp_tool.py -g 16S-bacteria-v1/16S_bacteria \
-                 -a profile_16s \
+                 -a profile \
                  -o profile_16s \
-                 -p 16S-bacteria-v1_16S_bacteria \
+                 -p 16S_bacteria \
                  -i 16s_classification.txt \
                  -t 0.95
 ```
