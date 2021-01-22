@@ -341,7 +341,7 @@ As in the previous example, you can convert the classification results into a mo
 run_tipp_tool.py -g 16S-bacteria-v1/16S_bacteria \
                  -a profile_16s \
                  -o profile_16s \
-                 -p 16S-bacteria-v1/16S_bacteria \
+                 -p 16S-bacteria-v1_16S_bacteria \
                  -i 16s_classification.txt \
                  -t 0.95
 ```
