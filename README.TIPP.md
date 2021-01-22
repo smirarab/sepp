@@ -4,21 +4,20 @@ TIPP is a method for the following problems:
 
 Taxonomic identification:
 + Input: A query sequence *q*
-+ Output: The taxonomic lineage of *q*.
++ Output: The taxonomic lineage of *q*
 
 Abundance profiling:
 + Input: A set *Q* of query sequences
 + Output: An abundance profile estimated on *Q*
 
-TIPP is a modification of SEPP for classifying query sequences using phylogenetic placement. TIPP inserts the query sequences into a taxonomic tree and uses the insertion location to identify the reads. The novel idea behind TIPP is that rather than using the single best alignment and placement for taxonomic identification, we use a collection of alignments and placements and consider statistical support for each alignment and placement. Our study shows that TIPP provides improved classification accuracy on novel sequences and on sequences with evolutionarily divergent datasets. TIPP can also be used for abundance estimation by computing an abundance profile on the reads binned to marker genes in a reference dataset. TIPP2 provides an updated version of this reference data set with 40 marker genes (as described [here](https://github.com/shahnidhi/TIPP_reference_package) and modifies how query sequences (i.e. reads) are mapped to marker genes. This repository corresponds to TIPP2, and henceforth we use the terms TIPP and TIPP2 interchangeably.
+TIPP is a modification of SEPP for classifying query sequences (i.e. reads) using phylogenetic placement. TIPP inserts each read into a taxonomic tree and uses the insertion location to identify the taxonomic lineage of the read. The novel idea behind TIPP is that rather than using the single best alignment and placement for taxonomic identification, we use a collection of alignments and placements and consider statistical support for each alignment and placement. Our study shows that TIPP provides improved classification accuracy on novel sequences and on sequences with evolutionarily divergent datasets. TIPP can also be used for abundance estimation by computing an abundance profile on the reads binned to marker genes in a reference dataset. TIPP2 provides an new reference dataset with 40 marker genes, assembled from the NCBI RefSeq database (learn more [here](https://github.com/shahnidhi/TIPP_reference_package)). In addition, TIPP2 updates how query sequences (i.e. reads) are mapped to marker genes. This repository corresponds to TIPP2, and henceforth we use the terms TIPP and TIPP2 interchangeably.
 
 Developers of TIPP: Nam Nguyen, Siavash Mirarab, Nidhi Shah, Erin Molloy, and Tandy Warnow.
 
 ### Publications:
 Nguyen, Nam, Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow, "TIPP: Taxonomic identification and phylogenetic profiling," *Bioinformatics*, 2014. [doi:10.1093/bioinformatics/btu721](http://bioinformatics.oxfordjournals.org/content/30/24/3548.full.pdf).
-Shah, Nidhi, Erin K. Molloy, Mihai Pop, and Tandy Warnow, "TIPP2: metagenomic taxonomic profiling using phylogenetic markers," *Bioinformatics*, 2020. [https://doi.org/10.1093/bioinformatics/btab023](https://doi.org/10.1093/bioinformatics/btab023)
 
-
+Shah, Nidhi, Erin K. Molloy, Mihai Pop, and Tandy Warnow, "TIPP2: metagenomic taxonomic profiling using phylogenetic markers," *Bioinformatics*, 2020. [doi:10.1093/bioinformatics/btab023](https://doi.org/10.1093/bioinformatics/btab023)
 
 ### Note and Acknowledgment: 
 - TIPP bundles the following two programs into its distribution:
@@ -46,7 +45,7 @@ Installation Steps:
 -------------------
 TIPP is a part of the SEPP distribution package. First install SEPP. Once done, do the following. 
 
-1. Clone (or download and unzip) the reference dataset available at [https://github.com/shahnidhi/TIPP_reference_package](https://github.com/shahnidhi/TIPP_reference_package).
+1. Download and decompress the reference dataset available at [https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz](https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz).
 2. Set the environment variables (`REFERENCE` and `BLAST`) that will be used to create the configuration file. The environmental variable can be set using the following command (shell-dependent):
     `export VARIABLE_NAME=/path/to/file` (bash shell)
     `setenv VARIABLE_NAME /path/to/file` (tcsh shell)  
@@ -60,7 +59,7 @@ Common Problems:
 
 2. TIPP relies on `blastn` for the binning of metagenomic reads, so BLAST needs to be downloaded and installed separately (learn more [here](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)). Then, point the `BLAST` environment variable to your installation of `blastn`. Alternatively, you can manually point TIPP to the `blastn` installation by modifying the `tipp.config` file. 
 
-3. TIPP performs abundance profiling uses a set of 40 marker genes.  This reference dataset needs to be downloaded separately from [this repository](https://github.com/shahnidhi/TIPP_reference_package). Then, point the `REFERENCE` environment variable to this directory before installing TIPP. Alternatively, you can manually point TIPP to the reference directory by modifying the `tipp.config` file. 
+3. TIPP performs abundance profiling uses a set of 40 marker genes. This reference dataset needs to be downloaded separately from [here](https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz). Then, point the `REFERENCE` environment variable to the decompressed directory before installing TIPP. Alternatively, you can manually point TIPP to the reference dataset by modifying the `tipp.config` file. 
 
 ---------------------------------------------
 
@@ -82,8 +81,11 @@ In addition to the `.json` file, TIPP outputs alignments of fragments to referen
 
 By setting `SEPP_DEBUG` environment variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
+This [tutorial](tutorial/tipp-tutorial.md) contains examples of running TIPP for read classification as well as abundance profiling.
+
 ---------------------------------------------
+
 Bugs and Errors
----------------------------------------------
-TIPP is under active research development at UIUC by the Warnow Lab (and especially with her former PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (ndn006@eng.ucsd.edu).
+===============
+TIPP is under active research development at UIUC by the Warnow Lab. Please report any errors to Tandy Warnow (warnow@illinois.edu) and Siavash Mirarab (smirarab@ucsd.edu).
 
