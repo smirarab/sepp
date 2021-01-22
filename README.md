@@ -21,4 +21,4 @@ Each of these related tools has its own README file.
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP, TIPP, UPP, HIPPI are under active research development at UIUC by the Warnow Lab (and especially with her PhD student Mike Nute and former students Siavash Mirarab and Nam-phuong Nguyen). Please report any errors to Siavash Mirarab (smirarab@ucsd.edu), Nam Nguyen (ndn006@eng.ucsd.edu), or Mike Nute (nute2@illinois.edu).
+SEPP, TIPP, UPP, HIPPI are under active research development at UIUC by the Warnow Lab and former student Siavash Mirarab (now at UCSD). Please report any errors to Siavash Mirarab (smirarab@ucsd.edu).
