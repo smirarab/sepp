@@ -596,7 +596,7 @@ def blast_to_markers(input, temp_dir):
 
     if input.lower().endswith((".fastq", ".fq")):
         fiter = fastq_iter(input)
-    elif input.lower().endswith((".fasta", ".fa", ".fna")):
+    elif input.lower().endswith((".fasta", ".fas", ".fa", ".fna")):
         fiter = fasta_iter(input)
 
     for ff in fiter:
