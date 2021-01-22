@@ -46,7 +46,7 @@ Windows does not work currently, and future versions may or may not support Wind
 Before installing the software you need to make sure the following programs are installed on your machine.
 
 - Python (version 2.7 or later, including python 3)
-- Blast (version 2.2.2 or later)
+- Blast (version 2.10.1 or later)
 - Java (version > 1.5 or later)
 
 #### Step 1: Install SEPP
@@ -240,22 +240,25 @@ run_abundance.py -f <fragment file> \
                  -d <output directory>
 ```
 
-The output will be tab delimited files that estimate the abundance at a given taxonomic level. For example, go to the `test/unittest/data/mock/mixed` directory 
+The input fragment files must be in FASTA or FASTQ formats with the following extenstions:
+- `.fastq` or `.fq` for FASTQ files
+- `.fasta`, `.fas`, `.fa`, `.fna` for FASTA files
+The output will be tab delimited files that estimate the abundance at a given taxonomic level. 
+
+By default, this command will use the reference dataset benchmarked in the 2020 paper. This is equivalent to specifying the option `-g markers-v3`; you can use the markers benchmarked in the 2014 paper by adding the `-G markers-v1` option.
+
+For example, go to the `test/unittest/data/mock/mixed` directory 
 ```
 cd test/unittest/data/mock/mixed
 ```
 and run 
 ```
-run_abundance.py -f facs_simhc.short.fas \
+run_abundance.py -G markers-v1 \
+                 -f facs_simhc.short.fas \
                  -c ~/.sepp/tipp.config \
                  -d out
 ```
-**NOTE 1:** If you used the `-c` option when installing TIPP and SEPP, then instead of `~/.sepp/tipp.config`, you would use `/PATH_TO_SEPP_INSTALLATION/.sepp/tipp.config`.
-**NOTE 2:** Fragment files must be in FASTA or FASTQ formats with the following extenstions:
-- `.fastq` or `.fq` for FASTQ files
-- `.fasta`, `.fas`, `.fa`, `.fna` for FASTA files
-
-Update to discuss -G markers-v1  -P 20000  (need to increase)
+**NOTE:** If you used the `-c` option when installing TIPP and SEPP, then instead of `~/.sepp/tipp.config`, you would use `/PATH_TO_SEPP_INSTALLATION/.sepp/tipp.config`.
 
 Running this command creates an abundance profile by 
 1. assigning the fragments to the marker genes using BLAST (while orienting and trimming reads as discussed in the TIPP2 paper),
@@ -267,53 +270,32 @@ The `markers` directory contains the individual results for each marker.
 Below is an example of the `abundance.species.csv` output from the run.
 
 ```
-taxa    abundance
-Actinomyces sp. oral taxon 848  0.0064
-Agrobacterium tumefaciens       0.0382
-Alcanivorax borkumensis 0.0382
-Alcanivorax sp. DG881   0.0064
-Anabaena variabilis     0.0446
-Archaeoglobus fulgidus  0.0446
-Bacillus cereus 0.0064
-Bdellovibrio bacteriovorus      0.0255
-Bifidobacterium bifidum 0.0064
-Burkholderia cenocepacia        0.0064
-Campylobacter jejuni    0.0892
-Candidatus Blochmannia floridanus       0.0446
-Candidatus Phytoplasma australiense     0.0064
-Clostridium acetobutylicum      0.0446
-Clostridium botulinum   0.0064
-Desulfuromonas acetoxidans      0.0064
-Escherichia coli        0.0382
-Flavobacterium psychrophilum    0.0064
-Francisella tularensis  0.0318
-Fulvimarina pelagi      0.0064
-Lactococcus lactis      0.0255
-Marvinbryantia formatexigens    0.0064
-Methanocaldococcus fervens      0.0064
-Methanoculleus marisnigri       0.0191
-Nitrosomonas europaea   0.0382
-Pasteurella multocida   0.0637
-Polynucleobacter necessarius    0.0064
-Pseudomonas aeruginosa  0.0382
-Pseudomonas entomophila 0.0446
-Pseudomonas fluorescens 0.0764
-Pseudomonas putida      0.0064
-Rickettsiella grylli    0.0064
-Roseobacter denitrificans       0.0064
-Streptococcus pneumoniae        0.0064
-Streptomyces coelicolor 0.0446
-Streptomyces ghanaensis 0.0064
-Streptomyces griseoflavus       0.0064
-Streptomyces lividans   0.0064
-Streptomyces scabiei    0.0127
-Sulfolobus tokodaii     0.0382
-Xanthomonas oryzae      0.0064
-Yersinia pestis 0.0064
-unclassified    0.0191
+taxa	abundance
+Agrobacterium tumefaciens	0.0400
+Alcanivorax borkumensis	0.0467
+Alcanivorax sp. DG881	0.0067
+Anabaena variabilis	0.0400
+Archaeoglobus fulgidus	0.0533
+Bdellovibrio bacteriovorus	0.0333
+Campylobacter jejuni	0.0733
+Candidatus Blochmannia floridanus	0.0600
+Clostridium acetobutylicum	0.0600
+Escherichia coli	0.0333
+Francisella tularensis	0.0267
+Haemophilus influenzae	0.0067
+Lactococcus lactis	0.0200
+Methanoculleus marisnigri	0.0267
+Nitrosomonas europaea	0.0400
+Pasteurella multocida	0.0533
+Pseudomonas aeruginosa	0.0400
+Pseudomonas entomophila	0.0267
+Pseudomonas fluorescens	0.0533
+Streptomyces coelicolor	0.0333
+Sulfolobus tokodaii	0.0400
+unclassified	0.1867
 ```
 
-This profile estimates that `Pseudomonas fluorescens` make up 7.6% of the species abundance and that 1.9% of the fragments could not be classified even though they are classified at other levels.
+This profile estimates that `Pseudomonas fluorescens` make up 5.3% of the species abundance and that 18.7% of the fragments could not be classified even though they may be classified at other levels.
 
 Task 4: Looking a reference dataset.
 ------------------------------------
@@ -348,7 +330,7 @@ Task 5: Running a 16S amplicon analysis.
 Finally, we have included a 16S reference marker gene that can be used to analyze 16S amplicon data. Below is an example of running TIPP on 16S amplicon data.
 ```
 run_tipp.py -R 16S-bacteria-v1/16S_bacteria \
-            -f test/unittest/data/mock/16s_bacteria/human_gut_16S.fas \
+            -f test/unittest/data/mock/16S_bacteria/human_gut_16S.fas \
             -o 16s \
             -A 1000 \
             -P 1000
@@ -356,10 +338,10 @@ run_tipp.py -R 16S-bacteria-v1/16S_bacteria \
 
 As in the previous example, you can convert the classification results into a more easily digestible format using the `run_tipp_tool.py` script.
 ```
-run_tipp_tool.py -g 16_bacteria \
-                 -a profile \
-                 -o \
-                 -p 16_bacteria \
+run_tipp_tool.py -g 16S-bacteria-v1/16S_bacteria \
+                 -a profile_16s \
+                 -o profile_16s \
+                 -p 16S-bacteria-v1/16S_bacteria \
                  -i 16s_classification.txt \
                  -t 0.95
 ```
