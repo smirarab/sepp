@@ -199,16 +199,16 @@ Task 2: Converting the result into an abundance profile.
 The classification file lists all possible classifications for a fragment, even if it has very low support.  In some situations, we only want the most highly supported classifications.  We can use a helper tool to convert the classification file into a profile.  
 
 ```
-mkdir profile
+mkdir output_profile
 run_tipp_tool.py -g markers-v1/pyrg \
                  -a profile \
-                 -o profile \
+                 -o output_profile \
                  -p markers-v1_pyrg \
                  -i output_classification.txt \
                  -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `profile/markers-v1_pyrg.classification`.
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `output_profile/markers-v1_pyrg.classification`.
 
 ```
 fragment	species	genus	family	order	class	phylum
@@ -347,8 +347,8 @@ As in the previous example, you can convert the classification results into a mo
 ```
 run_tipp_tool.py -g 16S-bacteria-v1/16S_bacteria \
                  -a profile \
-                 -o profile_16s \
-                 -p 16S_bacteria \
+                 -o 16s_profile \
+                 -p 16S-bacteria-v1_16S_bacteria \
                  -i 16s_classification.txt \
                  -t 0.95
 ```
