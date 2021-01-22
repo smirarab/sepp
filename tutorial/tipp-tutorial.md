@@ -74,7 +74,7 @@ and decompress it into your desired directory.
 3. Set the environment variable `BLAST` to point to the `blastn` binary.  This can be performed using the command:
   ```   
      export BLAST=/PATH_TO_BLAST/blastn
-    ```
+  ```
 4. Lastly, configure TIPP by running the following command from the SEPP directory:
    ```
    python setup.py tipp 
