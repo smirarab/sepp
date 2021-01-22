@@ -152,7 +152,8 @@ def build_profile(input, output_directory):
                 alignment_size = placement_size
 
         if placement_size is None:
-            placement_size = max(default_subset_size, alignment_size)
+            #placement_size = max(default_subset_size, alignment_size)
+            placement_size = 10000  # Needs to be large
 
         if alignment_size > total_taxa:
             alignment_size = total_taxa
@@ -160,6 +161,9 @@ def build_profile(input, output_directory):
         if placement_size > total_taxa:
             placement_size = total_taxa
 
+        if alignment_size != placement_size:
+            if placement_size < total_taxa:
+                sys.exit("Alignment decomposition tree can be different from placement tree only if the placement subset size is set to the number of taxa")
         if (refpkg[gene]["alignment-decomposition-tree"] ==
                 refpkg[gene]["placement-tree"]) or \
                 (placement_size == total_taxa):
