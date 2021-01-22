@@ -51,9 +51,10 @@ tipp_config_path = os.path.join(root_p, "tipp.config")
 def profile(input, gene, output, prefix, threshold):
     sepp.config.set_main_config_path(tipp_config_path)
     opts = Namespace()
+    os.mkdir(os.path.join(output, os.path.split(prefix)[0]))
     sepp.config._read_config_file(open(tipp_config_path, 'r'), opts)
     (taxon_map, level_map, key_map) = sepp.metagenomics.load_taxonomy(
-        "%s/refpkg/%s.refpkg/all_taxon.taxonomy" % (opts.reference.path, gene))
+        "%s/%s.refpkg/all_taxon.taxonomy" % (opts.reference.path, gene))
     gene_classification = sepp.metagenomics.generate_classification(
         input, threshold)
     sepp.metagenomics.remove_unclassified_level(gene_classification)
