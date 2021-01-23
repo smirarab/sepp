@@ -11,7 +11,7 @@ from sepp.algorithm import AbstractAlgorithm
 from sepp.alignment import MutableAlignment, ExtendedAlignment
 from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
     ExternalSeppJob
-from sepp.problem import SeppProblem
+from sepp.problem import SeppProblem, RootProblem
 from sepp.scheduler import JobPool, Join
 from sepp.tree import PhylogeneticTree
 from dendropy.datamodel.treemodel import Tree
@@ -24,14 +24,15 @@ _LOG = get_logger(__name__)
 
 
 class TIPPJoinSearchJobs(Join):
-    '''
+    """
     After all search jobs have finished on tips, we need to figure out which
     fragment goes to which subset and start aligning fragments.
     This join takes care of that step.
-    '''
+    """
     def __init__(self, alignment_threshold):
         Join.__init__(self)
         self.alignment_threshold = alignment_threshold
+        self.root_problem = None
 
     def setup_with_root_problem(self, root_problem):
         self.root_problem = root_problem
@@ -39,7 +40,7 @@ class TIPPJoinSearchJobs(Join):
             self.add_job(p.jobs["hmmsearch"])
 
     def figureout_fragment_subset(self):
-        ''' Figure out which fragment should go to which subproblem'''
+        """ Figure out which fragment should go to which subproblem"""
         # We need to keep and check the following flag because of
         # checkpoining scenarios (join already done before!)
         if "fragments.distribution.done" in self.root_problem.annotations:
@@ -109,11 +110,11 @@ class TIPPJoinSearchJobs(Join):
         self.root_problem.annotations["fragments.distribution.done"] = 1
 
     def perform(self):
-        '''
+        """
         Distributes fragments to alignments subsets with best score,
         and runs align jobs on those. Also, creates new chunks of fragments
         for better parallelism.
-        '''
+        """
 
         ''' Figure out which fragment should go to which subproblem'''
         self.figureout_fragment_subset()
@@ -143,8 +144,8 @@ class TIPPJoinSearchJobs(Join):
                    or fragment_chunk_problem.fragments.is_empty():
                     aj.fake_run = True
                 else:
-                    fragment_chunk_problem.fragments.write_to_path(
-                        aj.fragments)
+                    fragment_chunk_problem.fragments.\
+                        write_to_path(aj.fragments)
                 ''' Now the align job can be put on the queue '''
                 JobPool().enqueue_job(aj)
 
@@ -153,11 +154,11 @@ class TIPPJoinSearchJobs(Join):
 
 
 class TIPPJoinAlignJobs(JoinAlignJobs):
-    '''
+    """
     After all alignments jobs for a placement subset have finished,
     we need to build those extended alignments and start placing fragments.
     This join takes care of that step.
-    '''
+    """
     def __init__(self, placer):
         Join.__init__(self)
         self.placer = placer
@@ -172,10 +173,11 @@ class TIPPJoinAlignJobs(JoinAlignJobs):
             # separate files
             queryExtendedAlignment = \
                 fullExtendedAlignment.get_fragments_readonly_alignment()
-            baseAlignment = fullExtendedAlignment.get_base_readonly_alignment()
+            base_alignment = fullExtendedAlignment.\
+                get_base_readonly_alignment()
             pj = pp.jobs[get_placement_job_name(i)]
 
-            if (queryExtendedAlignment.is_empty()):
+            if queryExtendedAlignment.is_empty():
                 pj.fake_run = True
 
             if self.placer == "pplacer":
@@ -185,15 +187,15 @@ class TIPPJoinAlignJobs(JoinAlignJobs):
                 # full-length for pplacer
                 queryExtendedAlignment.write_to_path(
                     pj.extended_alignment_file)
-                baseAlignment.write_to_path(pj.backbone_alignment_file)
+                base_alignment.write_to_path(pj.backbone_alignment_file)
 
             elif self.placer == "epa":
                 # assert isinstance(pj, EPAJob)
                 raise ValueError("EPA Currently not supported")
 
                 # Write out the extended alignments in phylip for EPA
-                fullExtendedAlignment.write_to_path(
-                    pj.extended_alignment_file, schema="PHYLIP")
+                # fullExtendedAlignment.write_to_path(
+                #    pj.extended_alignment_file, schema="PHYLIP")
 
             # keep the extended alignment on everything
             # pj.set_attribute("full_extended_alignment_object",
@@ -238,16 +240,17 @@ class TIPPMergeJsonJob(ExternalSeppJob):
         self.molecule = options().molecule
         self.placer = options().exhaustive.__dict__['placer'].lower()
         self.cutoff = 0
+        self.push_down = False
 
-    def setup(self, inString, output_file, **kwargs):
-        self.stdindata = inString
+    def setup(self, in_string, output_file, **kwargs):
+        self.stdindata = in_string
         self.out_file = output_file
         self._kwargs = kwargs
 
-    def setup_for_tipp(self, inString, output_file, taxonomy, mapping,
+    def setup_for_tipp(self, in_string, output_file, taxonomy, mapping,
                        threshold, classification_file, push_down,
                        distribution=False, cutoff=0, **kwargs):
-        self.stdindata = inString
+        self.stdindata = in_string
         self.out_file = output_file
         self.taxonomy = taxonomy.name
         self.mapping = mapping.name
@@ -281,23 +284,23 @@ class TIPPMergeJsonJob(ExternalSeppJob):
             self.out_file, self.stdindata)
 
     def read_results(self):
-        '''
+        """
         Since the output file can be huge, we don't want to read it here,
         because it will need to get pickled and unpickled. Instead, we just
         send back the file name, and will let the caller figure out what to do
         with it.
-        '''
+        """
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0
-        return (self.out_file, self.stdoutdata)
+        return self.out_file, self.stdoutdata
 
 
 class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
-    '''
+    """
     This implements the exhaustive algorithm where all alignments subsets
     are searched for every fragment. This is for TIPP, meaning that we also
     perform classification based on a given taxonomy.
-    '''
+    """
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)
         self.alignment_threshold = self.options.alignment_threshold
@@ -307,7 +310,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             "down" if self.push_down else "up"))
 
     def merge_results(self):
-        assert isinstance(self.root_problem, SeppProblem)
+        assert isinstance(self.root_problem, RootProblem)
 
         '''Generate single extended alignment'''
         fullExtendedAlignment = ExtendedAlignment(
@@ -343,18 +346,16 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         mergeinput.append("")
         mergeinput.append("")
         meregeinputstring = "\n".join(mergeinput)
-        mergeJsonJob = self.get_merge_job(meregeinputstring)
-        mergeJsonJob.run()
+        merge_json_job = self.get_merge_job(meregeinputstring)
+        merge_json_job.run()
 
     def check_options(self, supply=[]):
-        if (options().reference_pkg is not None):
+        if options().reference_pkg is not None:
             self.load_reference(
-                os.path.join(
-                    options().reference.path,
-                    '%s.refpkg/' % options().reference_pkg))
+                os.path.join(options().reference.path, '%s.refpkg/' % options().reference_pkg))
         if (options().taxonomy_file is None):
             supply = supply + ["taxonomy file"]
-        if (options().taxonomy_name_mapping_file is None):
+        if options().taxonomy_name_mapping_file is None:
             supply = supply + ["taxonomy name mapping file"]
         ExhaustiveAlgorithm.check_options(self, supply)
 
@@ -362,10 +363,11 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         return TIPPJoinAlignJobs(self.placer)
 
     def build_jobs(self):
-        assert isinstance(self.root_problem, SeppProblem)
+        assert isinstance(self.root_problem, RootProblem)
         for placement_problem in self.root_problem.get_children():
             ''' Create placer jobs'''
             for i in range(0, self.root_problem.fragment_chunks):
+                pj = None
                 if self.placer == "pplacer":
                     pj = PplacerJob()
                     pj.partial_setup_for_subproblem(
@@ -399,7 +401,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                         fc_problem, molecule=self.molecule)
 
     def connect_jobs(self):
-        ''' a callback function called after hmmbuild jobs are finished'''
+        """ a callback function called after hmmbuild jobs are finished"""
         def enq_job_searchfragment(result, search_job):
             search_job.hmmmodel = result
             JobPool().enqueue_job(search_job)
@@ -444,11 +446,11 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         # if not tree.is_rooted:
         #    raise Exception ("For TIPP, backbone tree should be correctly
         # rooted according to the taxonomy.")
-        return (alignment, tree)
+        return alignment, tree
 
     def get_merge_job(self, meregeinputstring):
-        mergeJsonJob = TIPPMergeJsonJob()
-        mergeJsonJob.setup_for_tipp(
+        merge_json_job = TIPPMergeJsonJob()
+        merge_json_job.setup_for_tipp(
             meregeinputstring,
             self.get_output_filename("placement.json"),
             self.options.taxonomy_file,
@@ -458,7 +460,7 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             self.push_down,
             self.options.distribution,
             self.options.cutoff)
-        return mergeJsonJob
+        return merge_json_job
 
     def get_alignment_decomposition_tree(self, p_tree):
         assert isinstance(p_tree, PhylogeneticTree)
@@ -507,7 +509,7 @@ def augment_parser():
         "-at", "--alignmentThreshold", type=float,
         dest="alignment_threshold", metavar="N",
         default=0.95,
-        help="Enough alignment subsets are selected to reach a commulative "
+        help="Enough alignment subsets are selected to reach a cumulative "
              "probability of N. "
              "This should be a number between 0 and 1 [default: 0.95]")
     tippGroup.add_argument(
@@ -520,7 +522,7 @@ def augment_parser():
         "-pt", "--placementThreshold", type=float,
         dest="placement_threshold", metavar="N",
         default=0.95,
-        help="Enough placements are selected to reach a commulative "
+        help="Enough placements are selected to reach a cumulative "
              "probability of N. "
              "This should be a number between 0 and 1 [default: 0.95]")
 

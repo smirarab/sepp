@@ -1,9 +1,9 @@
-'''
+"""
 Collection of functions for metagenomic pipeline for taxonomic classification
 Created on June 3, 2014
 
 @author: namphuon
-'''
+"""
 
 from sepp.scheduler import Join, JobPool
 from sepp.problem import SeppProblem
@@ -13,11 +13,11 @@ _LOG = get_logger(__name__)
 
 
 class JoinBlastJobs(Join):
-    '''
+    """
     After all blast search jobs have finished on markers, we need to figure out
     which fragment goes to which marker.
     This join takes care of that step.
-    '''
+    """
     def __init__(self):
         Join.__init__(self)
 
@@ -27,7 +27,7 @@ class JoinBlastJobs(Join):
             self.add_job(p.jobs["blastsearch"])
 
     def figureout_fragment_marker(self):
-        ''' Figure out which fragment should go to which marker'''
+        """ Figure out which fragment should go to which marker"""
         if "fragments.distribution.done" in self.root_problem.annotations:
             return
         max_evalues = dict([(name, (None, None))
@@ -72,11 +72,11 @@ class JoinBlastJobs(Join):
         # subset" %str(notScored)
 
     def perform(self):
-        '''
+        """
         Distributes fragments to alignments subsets with best score,
         and runs align jobs on those. Also, creates new chunks of fragments
         for better parallelism.
-        '''
+        """
 
         ''' Figure out which fragment should go to which subproblem'''
         self.figureout_fragment_subset()
@@ -114,22 +114,22 @@ class JoinBlastJobs(Join):
 
 
 def blast_fragments(config, input, output):
-    '''Blast the fragments against all marker genes+16S sequences'''
+    """Blast the fragments against all marker genes+16S sequences"""
 
 
 def fix_direction(config, input, output):
-    '''Fixes the direction of all the reads by searching the
-       sequences against each HMM and finding out which one works the best'''
+    """Fixes the direction of all the reads by searching the
+       sequences against each HMM and finding out which one works the best"""
 
 
 def reverse_sequence(sequence):
-    '''Reverse a sequence to be in the same direction as marker sequences
-    '''
+    """Reverse a sequence to be in the same direction as marker sequences
+    """
 
 
 def read_blast_results(input):
-    '''Reads the results for blast
-    '''
+    """Reads the results for blast
+    """
 
     # def read_results(self):
     #     '''

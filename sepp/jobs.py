@@ -1,8 +1,8 @@
-'''
+"""
 Created on Sep 19, 2012
 
 @author: smirarab
-'''
+"""
 from sepp.scheduler import Job, JobError
 from sepp import get_logger
 from abc import abstractmethod
@@ -27,11 +27,11 @@ _LOG = get_logger(__name__)
 
 
 class ExternalSeppJob(Job):
-    '''
+    """
     All Sepp jobs that run external programs
     should extend this abstract class.
     This class handles executing external jobs, error handling, and more.
-    '''
+    """
     def __init__(self, jobtype, path=None, **kwargs):
         Job.__init__(self)
         self.job_type = jobtype
@@ -48,7 +48,7 @@ class ExternalSeppJob(Job):
         '''
         self.stdindata = None
         # setting this variable tell JobPoll that errors in this job can be
-        # ignored when waiting for reults of all jobs to finish
+        # ignored when waiting for results of all jobs to finish
         self.ignore_error = False
         self.fake_run = False
         self.attributes = dict()
@@ -68,9 +68,9 @@ class ExternalSeppJob(Job):
     process = property(get_process)
 
     def run(self):
-        ''' Runs the external job, and handles errors, piping, checkpointing,
+        """ Runs the external job, and handles errors, piping, checkpointing,
         etc. get_invocation() needs to be implemented in child classes.
-        '''
+        """
         # Allow re-execution of finished jobs, useful in checkpointing
         if self.result_set:
             return self.result
@@ -82,7 +82,7 @@ class ExternalSeppJob(Job):
 
             assert self.result_set is False, "Job is already run."
 
-            # By default discard standard otuput and error from external
+            # By default discard standard output and error from external
             # programs
             if 'stdout' not in self._kwargs:
                 self._kwargs['stdout'] = subprocess.PIPE
@@ -159,9 +159,9 @@ class ExternalSeppJob(Job):
             raise
 
     def read_stderr(self):
-        '''
+        """
         Used for reading standard error when an error is detected.
-        '''
+        """
         if self.stderrdata is not None:
             return self.stderrdata
         elif ("stderr" in self._kwargs and
@@ -172,49 +172,49 @@ class ExternalSeppJob(Job):
 
     @abstractmethod
     def get_invocation(self):
-        '''
+        """
         The method needs to return a list with the first argument giving
         the executable, and the rest giving the arguments.
-        '''
+        """
         raise NotImplementedError(
             "get_invocation should be implemented by subclasses")
 
     @abstractmethod
     def characterize_input(self):
-        '''
+        """
         Need to implement this method to help with automatic logging.
         Output a string characterizing the input to this job
-        '''
+        """
         return ""
 
     @abstractmethod
     def read_results(self):
-        '''
+        """
         This method should read the results of an external execution, and turn
         the results into a python object (could be simply the path to an output
         file) and return that python object. This is the result that will be
         ultimately pickled and sent to the main process, and will be accessible
         to the other jobs, joins, etc. Better not to pass around large files.
         This results should be picklable.
-        '''
+        """
         raise NotImplementedError(
             "read_results should be implemented by subclasses")
 
     def get_attribute(self, key):
-        ''' each job maintains a dictionary of free form attributes.
-        '''
+        """ each job maintains a dictionary of free form attributes.
+        """
         return self.attributes[key]
 
     def set_attribute(self, key, val):
-        ''' each job maintains a dictionary of free form attributes.
-        '''
+        """ each job maintains a dictionary of free form attributes.
+        """
         self.attributes[key] = val
 
 
 class HMMBuildJob(ExternalSeppJob):
-    '''
+    """
     The Job class that executes a HMM build
-    '''
+    """
 
     def __init__(self, **kwargs):
         self.job_type = "hmmbuild"
@@ -228,24 +228,24 @@ class HMMBuildJob(ExternalSeppJob):
 
     def setup(self, infile, outfile, symfrac=True, informat="fasta",
               molecule="dna", **kwargs):
-        '''
+        """
         Use this to setup the job if you already have input file written to a
         file. Use setup_for_subproblem when possible.
-        '''
+        """
         self.infile = infile
         self.informat = informat
         self.outfile = outfile
         self.molecule = molecule
         self.symfrac = symfrac
-        if ('options' in kwargs):
+        if 'options' in kwargs:
             self.options = kwargs['options']
 
     def setup_for_subproblem(self, subproblem, symfrac=True,
                              molecule="dna", **kwargs):
-        '''
+        """
         Automatically sets up a job given a subproblem object. It outputs the
         right alignment subset to a temporary file.
-        '''
+        """
         assert isinstance(subproblem, sepp.problem.SeppProblem)
         assert isinstance(
             subproblem.subalignment, sepp.problem.ReadonlySubalignment)
@@ -261,16 +261,19 @@ class HMMBuildJob(ExternalSeppJob):
         self.outfile = sepp.filemgr.tempfile_for_subproblem(
             "hmmbuild.model.", subproblem)
         self.molecule = molecule
-        if ('options' in kwargs):
+        if 'options' in kwargs:
             self.options = kwargs['options']
 
     def get_invocation(self):
-        invoc = [self.path, '--ere', '0.59', "--cpu", "1",
+        useroptions = self.options.split()
+        invoc = [self.path,  "--cpu", "1",
                  "--%s" % self.molecule]
-        if self.symfrac is True:
+        if "--ere" not in useroptions:
+            invoc.extend(['--ere', '0.59'])
+        if self.symfrac is True and "--symfrac" not in useroptions:
             invoc.extend(["--symfrac", "0.0"])
-        if self.options != "":
-            invoc.extend(self.options.split())
+        if useroptions:
+            invoc.extend(useroptions)
         if self.informat == "fasta":
             invoc.extend(['--informat', 'afa'])
         invoc.extend([self.outfile, self.infile])
@@ -281,11 +284,11 @@ class HMMBuildJob(ExternalSeppJob):
         return self.infile
 
     def read_results(self):
-        '''
+        """
         Simply make sure the file exists and is not empty. Don't need to load
         the file into memory or anything else. Just return the location of the
         file.
-        '''
+        """
         assert os.path.exists(self.outfile)
         assert os.stat(self.outfile)[stat.ST_SIZE] != 0
         return self.outfile
@@ -304,10 +307,10 @@ class HMMAlignJob(ExternalSeppJob):
 
     def setup(self, hmmmodel, fragments, output_file, base_alignment=None,
               trim=True, molecule="dna", **kwargs):
-        '''
+        """
         Setup job parameters when those are externally decided.
         Use setup_for_subproblem when possible.
-        '''
+        """
         self.hmmmodel = hmmmodel
         self.fragments = fragments
         self.outfile = output_file
@@ -318,10 +321,10 @@ class HMMAlignJob(ExternalSeppJob):
 
     def partial_setup_for_subproblem(self, subproblem,
                                      trim=False, molecule="dna", **kwargs):
-        '''Automatically sets up a job given a subproblem object. Note that
+        """Automatically sets up a job given a subproblem object. Note that
         hmmmodel is not set and fragments is just a filename that needs to be
         created later. base_alignment is not set either.
-        '''
+        """
         assert isinstance(subproblem, sepp.problem.SeppProblem)
 
         self.outfile = sepp.filemgr.tempfile_for_subproblem(
@@ -351,12 +354,12 @@ class HMMAlignJob(ExternalSeppJob):
             self.hmmmodel, self.fragments, self.trim, self.base_alignment)
 
     def read_results(self):
-        '''
+        """
         Since the output file can be huge, we don't want to read it here,
         because it will need to get pickled and unpickled. Instead, we just
         send back the file name, and will let the caller figure out what to do
         with it.
-        '''
+        """
         if self.fake_run:
             return None
         if os.path.exists(self.outfile):
@@ -383,8 +386,6 @@ class HMMSearchJob(ExternalSeppJob):
             self.pipe = True
         # _LOG.info("Pipe: %s" %str(self.pipe ))
         self.results_on_temp = not self.pipe
-        _LOG.debug("HmmSearch: Piped?: %s and keep on temp?: %s" % (
-            str(self.pipe), str(self.results_on_temp)))
 
     def setup(self, hmmmodel, fragments, output_file, elim=None,
               filters=True, **kwargs):
@@ -397,10 +398,10 @@ class HMMSearchJob(ExternalSeppJob):
 
     def partial_setup_for_subproblem(self, fragments_file, subproblem,
                                      elim=None, filters=True, **kwargs):
-        '''
+        """
         Automatically sets up a job given a subproblem object.
         Note that hmmmodel is not setup and needs to be set separately.
-        '''
+        """
         assert isinstance(subproblem, sepp.problem.SeppProblem)
 
         self.outfile = sepp.filemgr.tempfile_for_subproblem(
@@ -431,10 +432,10 @@ class HMMSearchJob(ExternalSeppJob):
             "Piped" if self.pipe else self.outfile)
 
     def read_results(self):
-        '''
+        """
            Reads the search output file and returns a dictionary that contains
            the e-values of the searched fragments
-        '''
+        """
         if self.results_on_temp:
             if self.fake_run:
                 res = {}
@@ -471,14 +472,14 @@ class HMMSearchJob(ExternalSeppJob):
         start_reading = False
         for line in outfile:
             line = line.strip()
-            if (not start_reading and line.startswith("E-value") is True):
+            if not start_reading and line.startswith("E-value") is True:
                 start_reading = True
-            elif (start_reading and line == ""):
+            elif start_reading and line == "":
                 start_reading = False
                 break
-            elif (start_reading):
+            elif start_reading:
                 matches = pattern.search(line)
-                if (matches is not None and matches.group(0).find("--") == -1):
+                if matches is not None and matches.group(0).find("--") == -1:
                     results[matches.group(9).strip()] = (
                         float(matches.group(1).strip()),
                         float(matches.group(2).strip()))
@@ -521,11 +522,11 @@ class PplacerJob(ExternalSeppJob):
         self.setup_setting = "File:TrInEx"
 
     def partial_setup_for_subproblem(self, subproblem, info_file, i, **kwargs):
-        ''' Automatically sets up a job given a subproblem object.
+        """ Automatically sets up a job given a subproblem object.
         Note that extended alignment and the backbone_alignment_file are just
         file names, referring to empty files at this point. These files needs
         to be created before the job is queued.
-        '''
+        """
         # pdb.set_trace()
         assert isinstance(subproblem, sepp.problem.SeppProblem)
         self.backbone_alignment_file = sepp.filemgr.tempfile_for_subproblem(
@@ -575,15 +576,15 @@ class PplacerJob(ExternalSeppJob):
             return "Not setup properly"
 
     def read_results(self):
-        '''
+        """
         Since the output file can be huge, we don't want to read it here,
         because it will need to get pickled and unpickled. Instead, we just
         send back the file name, and will let the caller figure out what to do
         with it.
 
         But if it is a fake job, then return nothing
-        '''
-        if (self.fake_run):
+        """
+        if self.fake_run:
             return None
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0
@@ -597,8 +598,8 @@ class MergeJsonJob(ExternalSeppJob):
         self.input_string = None
         self.out_file = None
 
-    def setup(self, inString, output_file, **kwargs):
-        self.stdindata = inString
+    def setup(self, in_string, output_file, **kwargs):
+        self.stdindata = in_string
         self.out_file = output_file
         self._kwargs = kwargs
 
@@ -608,24 +609,24 @@ class MergeJsonJob(ExternalSeppJob):
         return invoc
 
     def characterize_input(self):
-        return "input:pipe output:%s" % (self.out_file)
+        return "input:pipe output:%s" % self.out_file
 
     def read_results(self):
-        '''
+        """
         Since the output file can be huge, we don't want to read it here,
         because it will need to get pickled and unpickled. Instead, we just
         send back the file name, and will let the caller figure out what to do
         with it.
-        '''
+        """
         assert os.path.exists(self.out_file)
         assert os.stat(self.out_file)[stat.ST_SIZE] != 0
         return self.out_file
 
 
 class MafftAlignJob(ExternalSeppJob):
-    '''
+    """
     The Job class that generates a Mafft alignment
-    '''
+    """
 
     def __init__(self, **kwargs):
         self.job_type = "mafft"
@@ -636,10 +637,10 @@ class MafftAlignJob(ExternalSeppJob):
         self.threads = 1  # number of threads
 
     def setup(self, sequences, size, output, threads, **kwargs):
-        '''
+        """
         Use this to setup the job if you already have input file written to a
         file. Use setup_for_subproblem when possible.
-        '''
+        """
         self.sequences = sequences
         self.output = output
         self.size = size
@@ -647,14 +648,14 @@ class MafftAlignJob(ExternalSeppJob):
         self._kwargs = kwargs
 
     def setup_for_subproblem(self):
-        '''
+        """
         Use setup for generating backbone alignment
-        '''
+        """
         return
 
     def get_invocation(self):
         invoc = [self.path]
-        if (self.size > 200):
+        if self.size > 200:
             invoc.extend(['--parttree', '--retree', '2', '--partsize', '1000'])
         else:
             invoc.extend(['--localpair', '--maxiterate', '1000'])
@@ -666,10 +667,10 @@ class MafftAlignJob(ExternalSeppJob):
         return "mafftalign %s %s" % (self.sequences, self.output)
 
     def read_results(self):
-        '''
+        """
         Read from standard out, write to file
-        '''
-        output = (self.stdoutdata)
+        """
+        output = self.stdoutdata
         outfile = open(self.output, 'w')
         outfile.write(output)
         outfile.close()
@@ -677,9 +678,9 @@ class MafftAlignJob(ExternalSeppJob):
 
 
 class FastTreeJob(ExternalSeppJob):
-    '''
+    """
     The Job class that generates a fasttree tree from an alignment
-    '''
+    """
     def __init__(self, **kwargs):
         self.job_type = "fasttree"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
@@ -688,24 +689,24 @@ class FastTreeJob(ExternalSeppJob):
         self.molecule = None  # type of molecule
 
     def setup(self, alignment_file, output_file, molecule, **kwargs):
-        '''
+        """
         Use this to setup the job if you already have input file written to a
         file. Use setup_for_subproblem when possible.
-        '''
+        """
         self.alignment_file = alignment_file
         self.output_file = output_file
         self.molecule = molecule
         self._kwargs = kwargs
 
     def setup_for_subproblem(self):
-        '''
+        """
         Use setup for generating backbone tree
-        '''
+        """
         return
 
     def get_invocation(self):
         invoc = [self.path, '-gtr']
-        if (self.molecule != 'protein'):
+        if self.molecule != 'protein':
             invoc.extend(['-nt'])
         invoc.extend(['-quiet', '-nosupport', '-out', self.output_file,
                       self.alignment_file])
@@ -716,18 +717,18 @@ class FastTreeJob(ExternalSeppJob):
             self.alignment_file, self.output_file, self.molecule)
 
     def read_results(self):
-        '''
+        """
         Check and return file
-        '''
+        """
         assert os.path.exists(self.output_file)
         assert os.stat(self.output_file)[stat.ST_SIZE] != 0
         return self.output_file
 
 
 class PastaAlignJob(ExternalSeppJob):
-    '''
+    """
     The Job class that generates a Pasta alignment and tree
-    '''
+    """
     def __init__(self, **kwargs):
         self.job_type = "pasta"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
@@ -737,24 +738,27 @@ class PastaAlignJob(ExternalSeppJob):
         self.output = None
         self.config = None
         self.threads = None
+        self.user_options = None
 
     def setup(self, alignment, size, molecule, threads, **kwargs):
-        '''
+        """
         Use this to setup the job if you already have input file written to
         a file. Use setup_for_subproblem when possible.
-        '''
+        """
         self.alignment = alignment
         self.size = size
         self.molecule = molecule
-        if (molecule == 'aa'):
+        if molecule == 'aa':
             self.molecule == 'protein'
         self.threads = threads
         self._kwargs = kwargs
+        self._kwargs.pop('path')
+        self.user_options = self._kwargs.pop('user_options')
 
     def setup_for_subproblem(self, subproblem, molecule="dna", **kwargs):
-        '''
+        """
         Use setup for generating backbone tree
-        '''
+        """
         return
 
     def get_invocation(self):
@@ -764,15 +768,17 @@ class PastaAlignJob(ExternalSeppJob):
                  sepp.filemgr.get_root_temp_dir(),
                  '-j', 'pastajob', '--output-directory=%s/pastaout/' %
                  sepp.filemgr.get_root_temp_dir()]
+        if self.user_options:
+            invoc.extend(self.user_options.split(" "))
         return invoc
 
     def characterize_input(self):
         return " ".join(self.get_invocation())
 
     def read_results(self):
-        '''
+        """
         Read the PASTA log file and get the alignment and tree from file
-        '''
+        """
         assert os.path.exists(
             '%s/pastaout/pastajob.out.txt' % sepp.filemgr.get_root_temp_dir())
         assert os.stat(
@@ -788,18 +794,18 @@ class PastaAlignJob(ExternalSeppJob):
         for line in outfile:
             line = line.strip()
             result = alignment_pattern.findall(line)
-            if (len(result) != 0):
+            if len(result) != 0:
                 alignment_file = result[0]
             result = tree_pattern.findall(line)
-            if (len(result) != 0):
+            if len(result) != 0:
                 tree_file = result[0]
-        return (alignment_file, tree_file)
+        return alignment_file, tree_file
 
 
 class SateAlignJob(ExternalSeppJob):
-    '''
+    """
     The Job class that generates a Sate alignment and tree
-    '''
+    """
     def __init__(self, **kwargs):
         self.job_type = "sate"
         ExternalSeppJob.__init__(self, self.job_type, **kwargs)
@@ -811,33 +817,33 @@ class SateAlignJob(ExternalSeppJob):
         self.threads = None
 
     def setup(self, alignment, size, output, molecule, threads, **kwargs):
-        '''
+        """
         Use this to setup the job if you already have input file written to
         a file. Use setup_for_subproblem when possible.
-        '''
+        """
         self.alignment = alignment
         self.size = size
         self.output = output
         self.molecule = molecule
-        if (molecule == 'aa'):
+        if molecule == 'aa':
             self.molecule == 'protein'
         self.threads = threads
         self._kwargs = kwargs
 
     def setup_for_subproblem(self, subproblem, molecule="dna", **kwargs):
-        '''
+        """
         Use setup for generating backbone tree
-        '''
+        """
         return
 
     def get_invocation(self):
         size_str = '--max-subproblem-size=200'
-        if (self.size <= 200):
+        if self.size <= 200:
             size_str = '--max-subproblem-frac=0.50'
-        mergerType = 'opal'
-        if (self.molecule == 'amino'):
-            mergerType = 'muscle'
-        invoc = [self.path, '-i', self.alignment, '--merger=%s' % mergerType,
+        merger_type = 'opal'
+        if self.molecule == 'amino':
+            merger_type = 'muscle'
+        invoc = [self.path, '-i', self.alignment, '--merger=%s' % merger_type,
                  '--aligner=mafft', '--tree-estimator=fasttree',
                  '--num-cpus=%d' % self.threads,
                  "--datatype=%s" % self.molecule,
@@ -853,10 +859,10 @@ class SateAlignJob(ExternalSeppJob):
         return " ".join(self.get_invocation())
 
     def read_results(self):
-        '''
+        """
         Read the Sate log file and get the alignment and tree from file,
         copy to output directory
-        '''
+        """
         assert os.path.exists(
             '%s/sateout/satejob.out.txt' % sepp.filemgr.get_root_temp_dir())
         assert os.stat(
@@ -872,11 +878,11 @@ class SateAlignJob(ExternalSeppJob):
         for line in outfile:
             line = line.strip()
             result = alignment_pattern.findall(line)
-            if (len(result) != 0):
+            if len(result) != 0:
                 alignment_file = result[0]
             result = tree_pattern.findall(line)
-            if (len(result) != 0):
+            if len(result) != 0:
                 tree_file = result[0]
         shutil.copyfile(tree_file, "%s/sate.fasttree" % self.output)
         shutil.copyfile(alignment_file, "%s/sate.fasta" % self.output)
-        return (tree_file, alignment_file)
+        return tree_file, alignment_file

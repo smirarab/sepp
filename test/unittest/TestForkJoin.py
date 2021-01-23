@@ -1,4 +1,4 @@
-'''
+"""
 Created on Aug 22, 2012
 
 This is meant to emulate a Hierarchical SEPP. We have four types of jobs that
@@ -7,7 +7,7 @@ structurally identical to the hierarchical SEPP and can map to that problem
 directly.
 
 @author: smirarab
-'''
+"""
 from sepp.scheduler import Job, JobPool, Join
 from random import random
 import sys
@@ -42,9 +42,9 @@ class TestProblem(Problem):
 
 
 class GenericJob(Job):
-    '''
+    """
     Base class of all other job types
-    '''
+    """
     def __init__(self, problem):
         Job.__init__(self)
         problem.add_job(self.type, self)
@@ -58,9 +58,9 @@ class GenericJob(Job):
 
 
 class BuildModelJob(GenericJob):
-    '''
+    """
     Build a Model (equivalent of HMMERBUILD)
-    '''
+    """
     def __init__(self, problem):
         self.type = "buildmodel"
         GenericJob.__init__(self, problem)
@@ -68,10 +68,10 @@ class BuildModelJob(GenericJob):
         # self.someclass
 
     def run(self):
-        '''
+        """
         The model is going to be a random number calculated in an unnecessarily
         lengthy fashion.
-        '''
+        """
         print("Process [%s]: buildmodel running %s" % (
             os.getpid(), self.problem_name), file=sys.stderr)
         h = 0
@@ -85,12 +85,12 @@ class BuildModelJob(GenericJob):
 
 class SearchJob(GenericJob):
     def __init__(self, problem):
-        '''
+        """
         Search fragments against a Model (equivalent of HMMERSEARCH).
 
         This jobs depend on BuildModel job of the same subproblem, and also
         Search job __parent problems (if any)
-        '''
+        """
         self.type = "searchfragment"
         GenericJob.__init__(self, problem)
         '''
@@ -104,10 +104,10 @@ class SearchJob(GenericJob):
         self.fragments = None
 
     def run(self):
-        '''
+        """
         Simply find the difference between each fragment value and the model
         associated with this job. Do this in an inefficient way.
-        '''
+        """
         print("Process [%s]: %s running %s with model %d" % (
             os.getpid(), self.type, self.problem_name, self.model),
             file=sys.stderr)
@@ -121,7 +121,7 @@ class SearchJob(GenericJob):
 
 class ApplyModelJob(GenericJob):
     def __init__(self, problem):
-        '''
+        """
         Apply the model to fragments associated with each subproblem
         (equivalent of HMMERALIGN)
 
@@ -129,16 +129,16 @@ class ApplyModelJob(GenericJob):
         jobs. Input again is a model and a set of fragments. These are both
         available only after Search job is run. These values should be set
         before an ApplyModel job is enqueued.
-        '''
+        """
         self.type = "applymodel"
         GenericJob.__init__(self, problem)
         self.fragments = None
         self.model = None
 
     def run(self):
-        '''
+        """
         Do some mathematical calculation involving each fragment and the model.
-        '''
+        """
         print("Process [%s]: %s running %s with model %d" % (
             os.getpid(), self.type, self.problem_name, self.model),
             file=sys.stderr)
@@ -153,20 +153,20 @@ class ApplyModelJob(GenericJob):
 
 class SummarizeJob(GenericJob):
     def __init__(self, problem):
-        '''
+        """
         Use model-applied fragment values (equivalent of extended alignments)
         to compute some new results (equivalent of pplacer)
 
         This jobs
-        '''
+        """
         self.type = "summarize"
         GenericJob.__init__(self, problem)
         self.resultsPerTipSubproblem = None
 
     def run(self):
-        '''
+        """
         Simply normalize the model-applied fragments across
-        '''
+        """
         print("Process [%s]: %s running %s with results from tips %s" % (
                 os.getpid(), self.type, self.problem_name,
                 trimstr(self.resultsPerTipSubproblem)), file=sys.stderr)
@@ -182,12 +182,12 @@ class SummarizeJob(GenericJob):
 
 
 class Join_BuildModel_SearchFragment(Join):
-    '''
+    """
     A join object used to join buildmodel jobs with their __parent
     searchfragments jobs. The input to the constructor is the
     grandparent problem; i.e., the problem two level above buildmodel jobs,
     and one level above searchfragment jobs to be joined together
-    '''
+    """
     def __init__(self, problem):
         Join.__init__(self)
         self.grandparent_problem = problem
@@ -238,9 +238,9 @@ class Join_BuildModel_SearchFragment(Join):
 
 
 class Join_ApplyModel_Summarize(Join):
-    '''
+    """
     This joins applymodel jobs with summirze jobs
-    '''
+    """
     def __init__(self, problem):
         Join.__init__(self)
         self.summarylevel_problem = problem
@@ -249,10 +249,10 @@ class Join_ApplyModel_Summarize(Join):
             self.add_job(tip.jobs["applymodel"])
 
     def perform(self):
-        '''
+        """
         Aggregate fragments from tips to the SUMMERIZE_LEVEL level problem,
         and enqueue a summarize job
-        '''
+        """
         print("Process [%s]: Join_ApplyModel_Summarize joining %s" % (
             os.getpid(), self.summarylevel_problem), file=sys.stderr)
         resultsPerTipSubproblem = []
@@ -265,11 +265,11 @@ class Join_ApplyModel_Summarize(Join):
 
 
 class Join_tip_searchfragment(Join):
-    '''
+    """
     After all search jobs have finished on tips, we need to start applying
     the model of each tip subproblem to its fragments. This join takes care of
     that.
-    '''
+    """
     def __init__(self, root_problem):
         Join.__init__(self)
         self.root_problem = root_problem
@@ -277,11 +277,11 @@ class Join_tip_searchfragment(Join):
             self.add_job(p.jobs["searchfragment"])
 
     def perform(self):
-        '''
+        """
         First print out some summary of everything up to here.
         Then update applymodel jobs with correct fragment and model, and
         then enqueue them.
-        '''
+        """
         print("Process [%s]: Join_tip_searchfragment joining %s" % (
             os.getpid(), self.root_problem), file=sys.stderr)
 
@@ -305,7 +305,7 @@ class Join_tip_searchfragment(Join):
 
 
 def build_subproblems(problem=None):
-    ''' Makes a fully balanced problem (binary) tree upto level DEPTH'''
+    """ Makes a fully balanced problem (binary) tree upto level DEPTH"""
     if problem is None:
         problem = TestProblem(None)
         ''' Root problem needs to have fragments assigned to it'''
@@ -323,8 +323,8 @@ def build_subproblems(problem=None):
 
 def build_job_dag(root_problem):
     def recursive_add_buildmodel_and_searchfragment_job(problem):
-        '''build a search job and a buildmodel job for each problem in
-        the problem tree.'''
+        """build a search job and a buildmodel job for each problem in
+        the problem tree."""
         if problem.parent is not None:
             BuildModelJob(problem)
             SearchJob(problem)
@@ -332,11 +332,11 @@ def build_job_dag(root_problem):
             recursive_add_buildmodel_and_searchfragment_job(subp)
 
     def connect_buildmodel_and_searchfragment_jobs(problem):
-        '''
+        """
         Connect all searchfragment jobs for nodes under a certain node
         ("grandparent") with all the buildmodels jobs under all those nodes
         (grandchildren).
-        '''
+        """
         # and sum((len(c.children) for c in problem.children)) > 0:
         if len(problem.children) > 0:
             Join_BuildModel_SearchFragment(problem)

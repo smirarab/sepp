@@ -1,8 +1,8 @@
-'''
+"""
 Created on Aug 22, 2012
 
-@author: smirarab
-'''
+@author: Siavash Mirarab
+"""
 from multiprocessing import cpu_count, Pool, Lock
 import copy
 import traceback
@@ -12,7 +12,7 @@ _LOG = get_logger(__name__)
 
 
 class Job(object):
-    '''
+    """
     The base class for a job that can be added to and executed form our
     JobPool. Subclasses of Job need to overwrite the 'run' method to perform
     their tasks. A correct parallel way of running the job is by adding it to
@@ -58,32 +58,32 @@ class Job(object):
 
     In cases when multiple jobs need to finish before another task can start
     the concept of a Join (see below) is useful.
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Constructor
-        '''
+        """
         self.result = None
         self.result_set = False
         self.errors = []
         self.ignore_error = False
 
     def __call__(self):
-        ''' This method makes this class a callable object'''
+        """ This method makes this class a callable object"""
         return self.run()
 
     def run(self):
-        '''
+        """
         This is the method that does the actual job. It should be overridden
         in subclasses. The return value is what gets set as self.result, and
         is passed from child process to the parent process (and should be
         therefore picklable)
-        '''
+        """
         raise NotImplementedError
 
     def add_call_Back(self, function):
-        ''' Adds a callback function to this job. The callback function should
+        """ Adds a callback function to this job. The callback function should
         accept one parameter, which is going to be set to self.result.
 
         Callback functions should be thread-safe. If the access global state,
@@ -92,7 +92,7 @@ class Job(object):
 
         It is safe (to the best of our effort/knowledge) for a callback
         function to enqueue more jobs.
-        '''
+        """
         if not hasattr(function, "__call__"):
             raise TypeError(
                 "Expecting a callable object. Instead getting a %s" %
@@ -100,17 +100,17 @@ class Job(object):
         JobPool()._add_callback_for_job(self, function)
 
     def _finished(self, results):
-        '''
+        """
         This is a default callback function automatically added for all jobs.
         It is the first function called when job finishes, and simply sets
         the result of the job.
-        '''
+        """
         self.result = results
         self.result_set = True
 
 
 def check_object(job):
-    ''' Check to make sure an object is a legitimate Job object'''
+    """ Check to make sure an object is a legitimate Job object"""
     if not isinstance(job, Job):
         raise TypeError("Expecting a Job object, instead getting a %s" %
                         type(job))
@@ -118,7 +118,7 @@ def check_object(job):
 
 
 class Join(object):
-    '''
+    """
     This class allows synchronization between multiple jobs. If a collection of
     jobs needs to finish before we can perform another task (such as enqueuing
     more jobs), using callbacks is not sufficient. A Join is helpful in these
@@ -156,22 +156,22 @@ class Join(object):
        no more jobs in the queue before this job is run)
     3) It needs to be relatively fast. In particular, it should not perform
        heavy duty tasks, and it should not block or wait on other events.
-    '''
+    """
     def __init__(self):
         self._jobs = set()
         self._lock = Lock()
         self._joined = False
 
     def perform(self):
-        '''
+        """
         Perform the main task of the Join. This method needs to be implemented
         by subclasses.
-        '''
+        """
         raise NotImplementedError
 
     def depends_on(self, job):
-        '''returns true if this join depends on a given job; false
-           otherwise'''
+        """returns true if this join depends on a given job; false
+           otherwise"""
         check_object(job)
         self._lock.acquire()
         ret = job in self._jobs
@@ -185,9 +185,9 @@ class Join(object):
                 "Adding a job to a Join object that has already joined.")
 
     def add_job(self, job):
-        '''
+        """
         Add a new job to this join. The job is ideally not queued yet.
-        '''
+        """
         check_object(job)
         self._lock.acquire()
         self._assert_has_not_finished()
@@ -257,13 +257,13 @@ _jobPool = None
 
 
 def JobPool(cpus=None):
-    ''' The JobPool singelton instance is returned.
+    """ The JobPool singelton instance is returned.
     If the function is called for the first time, a new instance is created
     with the given number of cpus. Subsequent calls return the existing
     instances, if the number of requested cpus match the existing instance, or
     is None. If the number of requested cpus in subsequent calls is different
     from that of the original call, an error is raised.
-    '''
+    """
     global _jobPool
     global default_cpus
     if cpus is None:
@@ -284,7 +284,7 @@ class JobError(Exception):
 
 
 class _JobPool:
-    '''
+    """
     A singelton class, managing all Jobs.
     Use JobPool() function to get the instance.
     Can be initialized only once, with a given number of cpus.
@@ -293,7 +293,7 @@ class _JobPool:
     job finishes, its callback functions are called.
     One can choose to wait for all jobs in the queue to stop.
     Scheduling and managing jobs
-    '''
+    """
 
     def __init__(self, cpunum):
         self.cpus = cpunum if cpunum is not None else cpu_count()
@@ -306,33 +306,33 @@ class _JobPool:
     def enqueue_job(self, job):
         check_object(job)
 
-        def call_back(job, result, callBackCopy):
+        def call_back(job_in, result_in, call_back_copy):
             try:
-                job._finished(result)
+                job_in._finished(result_in)
                 '''Then run all the callback in order, passing result
                    as parameter'''
-                for callback in callBackCopy:
-                    callback(*[result])
+                for callback in call_back_copy:
+                    callback(*[result_in])
                 self._lock.acquire()
-                jobJoins = copy.copy(self._joins.get(job, []))
+                job_joins = copy.copy(self._joins.get(job_in, []))
                 self._lock.release()
-                for join in jobJoins:
+                for join in job_joins:
                     # print "ticking, ", join
-                    join._tick(job)
+                    join._tick(job_in)
             except Exception as e:
                 # TODO: currently callback exceptions are simply ignored.
                 # Is there a better solution?
-                job.errors.append(e)
+                job_in.errors.append(e)
                 traceback.print_exc()
 
         ''' We need to backup callbacks of a Job.
         The following line ensures that pickling issues do not arise'''
-        callBackCopy = self._callBack_lists.get(job, [])
+        callback_copy = self._callBack_lists.get(job, [])
         ''' Add jobs to the _pool, and save resulting AsyncResult function in a
         safe manner'''
         self._lock.acquire()
         result = self._pool.apply_async(
-            job, callback=lambda res: call_back(job, res, callBackCopy))
+            job, callback=lambda res: call_back(job, res, callback_copy))
         self._async_restults[job] = result
         self._lock.release()
 
@@ -344,7 +344,7 @@ class _JobPool:
         self._lock.release()
 
     def wait_for_all_jobs(self, ignore_error=False):
-        '''
+        """
         waits for all jobs in the queue to finish running. Makes attempt to
         wait for newly added jobs as well.
 
@@ -357,8 +357,9 @@ class _JobPool:
         ignore_error parameter is set, this method does not raise those
         exceptions, but still the return value tells you whether there are any
         jobs with error.
-        '''
+        """
         more = True
+        has_failed = False
         while more:
             for job, result in list(self._async_restults.items()):
                 try:
@@ -373,29 +374,29 @@ class _JobPool:
             callbacks)'''
             self._lock.acquire()
             more = False
-            hasFailed = False
+            has_failed = False
             for (job, result) in self._async_restults.items():
                 if not result.ready():
                     more = True
                 elif (not result.successful()) or (len(job.errors) != 0):
                     if not ignore_error and not job.ignore_error:
                         result.get()
-                    hasFailed = True
+                    has_failed = True
             self._lock.release()
 
-        return not hasFailed
+        return not has_failed
 
     def is_job_running(self, job):
-        '''Check to see if a given job has finished running'''
+        """Check to see if a given job has finished running"""
         return not self.get_asynch_result_object(job).ready()
 
     def is_job_queued(self, job):
         return job in self._async_restults
 
     def get_asynch_result_object(self, job):
-        ''' returns an instance of multiprocessing.pool.AsyncResult class,
+        """ returns an instance of multiprocessing.pool.AsyncResult class,
         corresponding to the execution of the given job. This object can
-        be used to check status of a job'''
+        be used to check status of a job"""
         self._lock.acquire()
         if job not in self._async_restults.keys():
             raise KeyError(
@@ -408,8 +409,8 @@ class _JobPool:
         return (res.ready() and not res.successful()) or (len(job.errors) != 0)
 
     def get_failed_jobs(self):
-        ''' Returns a list of files that have failed (i.e. their run method has
-        finished with an exception raised)'''
+        """ Returns a list of files that have failed (i.e. their run method has
+        finished with an exception raised)"""
         ret = []
         self._lock.acquire()
         for job, res in self._async_restults.items():
@@ -419,10 +420,10 @@ class _JobPool:
         return ret
 
     def get_job_error(self, job):
-        '''
+        """
         If the given job has finished successfully, this method simply returns
         None. Otherwise, it returns the exception that terminated the given job
-        '''
+        """
         res = self.get_asynch_result_object(job)
         if not self._is_job_failed(job, res):
             return None
@@ -435,8 +436,8 @@ class _JobPool:
                 return e
 
     def get_all_job_errors(self):
-        ''' Returns a list of all exceptions raised in all jobs executed in
-        this _pool. An empty list means no exceptions '''
+        """ Returns a list of all exceptions raised in all jobs executed in
+        this _pool. An empty list means no exceptions """
         self._lock.acquire()
         jobs = set(self._async_restults.keys())
         self._lock.release()
@@ -451,14 +452,14 @@ class _JobPool:
             self._joins[job] = self._joins.get(job, []) + [join]
         self._lock.release()
 
-    def _del_jobs_from_join(self, jobs, join):
-        self._lock.acquire()
-        for job in jobs:
-            self._joins.get(job).remove(job)
-        self._lock.release()
+    # def _del_jobs_from_join(self, jobs, join):
+    #     self._lock.acquire()
+    #     for job in jobs:
+    #         self._joins.get(job).remove(job)
+    #     self._lock.release()
 
     def terminate(self):
-        ''' Terminate all jobs in a queue'''
+        """ Terminate all jobs in a queue"""
         self._lock.acquire()
         self._pool.close()
         self._pool.terminate()

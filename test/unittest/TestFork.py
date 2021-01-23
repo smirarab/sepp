@@ -1,14 +1,17 @@
-'''
+"""
 Created on Aug 22, 2012
 
 @author: smirarab
-'''
+"""
+
 from sepp.scheduler import Job, JobPool
-from multiprocessing import cpu_count
+from multiprocessing import cpu_count, set_start_method
 from random import random
 from multiprocessing import Lock
 import time
 import unittest
+
+set_start_method('fork')
 
 
 class TestJob(Job):

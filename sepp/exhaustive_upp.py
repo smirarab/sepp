@@ -1,8 +1,8 @@
-'''
+"""
 Created on Oct 10, 2012
 
-@author: smirarab
-'''
+@author: Siavash Mirarab
+"""
 import sys
 import random
 import argparse
@@ -17,16 +17,18 @@ from sepp.config import options, valid_decomp_strategy
 import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
+from sepp.backtranslate import backtranslate
 
 _LOG = get_logger(__name__)
 
 
 class UPPJoinAlignJobs(JoinAlignJobs):
-    '''
+    """
     After all alignments jobs for a placement subset have finished,
     we need to build those extended alignments. This join takes care of that
     step.
-    '''
+    """
+
     def __init__(self):
         JoinAlignJobs.__init__(self)
 
@@ -35,6 +37,7 @@ class UPPJoinAlignJobs(JoinAlignJobs):
 
         assert isinstance(pp, SeppProblem)
         pp.annotations["search_join_object"] = self
+
 
 # Useful for multi-core merging if ever needed
 # def mergetwo(x):
@@ -49,52 +52,60 @@ class UPPJoinAlignJobs(JoinAlignJobs):
 
 
 class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
-    '''
+    """
     This implements the exhaustive algorithm where all alignments subsets
     are searched for every fragment. This is for UPP, meaning that no placement
     is performed, and that there is always only one placement subset
     (currently).
-    '''
+    """
+
     def __init__(self):
         ExhaustiveAlgorithm.__init__(self)
         self.pasta_only = False
+        self.filtered_taxa = []
 
     def generate_backbone(self):
-        _LOG.info("Reading input sequences: %s" % (self.options.sequence_file))
+        _LOG.info("Reading input sequences: %s" % self.options.sequence_file)
         sequences = MutableAlignment()
         sequences.read_file_object(self.options.sequence_file)
         sequences.degap()
         fragments = MutableAlignment()
-        if (options().median_full_length is not None):
-            if (options().median_full_length == -1):
+        if options().median_full_length is not None \
+                or options().full_length_range is not None:
+            if options().median_full_length == -1:
                 seq_lengths = sorted(
                     [len(seq) for seq in list(sequences.values())])
                 lengths = len(seq_lengths)
                 l2 = int(lengths / 2)
                 if lengths % 2:
-                    options().median_full_length = (
-                        seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
+                    options().median_full_length = \
+                        (seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
                 else:
                     options().median_full_length = seq_lengths[l2]
-
-            (min_length, max_length) = (
-                int(options().median_full_length * (
-                    1 - options().backbone_threshold)),
-                int(options().median_full_length*(
-                    1 + options().backbone_threshold)))
-            frag_names = [
-                name for name in sequences
-                if len(sequences[name]) > max_length or
-                len(sequences[name]) < min_length]
-            if (len(frag_names) > 0):
+            if options().full_length_range is not None:
+                L = sorted(int(x) for x in options().full_length_range.split())
+                min_length = L[0]
+                max_length = L[1]
+            else:
+                (min_length, max_length) = (
+                    int(options().median_full_length * (
+                            1 - options().backbone_threshold)),
+                    int(options().median_full_length * (
+                            1 + options().backbone_threshold)))
+            _LOG.info("Full length sequences are set to be from "
+                      "%d to %d character long" % (min_length, max_length))
+            frag_names = [name for name in sequences
+                          if len(sequences[name]) > max_length or
+                          len(sequences[name]) < min_length]
+            if len(frag_names) > 0:
                 _LOG.info(
                     "Detected %d fragmentary sequences" % len(frag_names))
                 fragments = sequences.get_hard_sub_alignment(frag_names)
                 [sequences.pop(i) for i in list(fragments.keys())]
-        if (options().backbone_size is None):
+        if options().backbone_size is None:
             options().backbone_size = min(1000, int(sequences.get_num_taxa()))
-            _LOG.info("Backbone size set to: %d" % (options().backbone_size))
-        if (options().backbone_size > len(list(sequences.keys()))):
+            _LOG.info("Backbone size set to: %d" % options().backbone_size)
+        if options().backbone_size > len(list(sequences.keys())):
             options().backbone_size = len(list(sequences.keys()))
         sample = sorted(random.sample(
             sorted(list(sequences.keys())), options().backbone_size))
@@ -107,14 +118,15 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         _write_fasta(backbone_sequences, backbone)
 
         _LOG.info("Generating pasta backbone alignment and tree. ")
-        pastaalignJob = PastaAlignJob()
-        moleculeType = options().molecule
-        if (options().molecule == 'amino'):
-            moleculeType = 'protein'
-        pastaalignJob.setup(backbone, options().backbone_size,
-                            moleculeType, options().cpu)
-        pastaalignJob.run()
-        (a_file, t_file) = pastaalignJob.read_results()
+        pastaalign_job = PastaAlignJob()
+        molecule_type = options().molecule
+        if options().molecule == 'amino':
+            molecule_type = 'protein'
+        pastaalign_job.setup(backbone, options().backbone_size,
+                             molecule_type, options().cpu,
+                             **vars(options().pasta))
+        pastaalign_job.run()
+        (a_file, t_file) = pastaalign_job.read_results()
 
         shutil.copyfile(t_file, self.get_output_filename("pasta.fasttree"))
         shutil.copyfile(a_file, self.get_output_filename("pasta.fasta"))
@@ -127,7 +139,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             "Backbone alignment written to %s.\nBackbone tree written to %s"
             % (options().alignment_file, options().tree_file))
         sequences.set_alignment(fragments)
-        if (len(sequences) == 0):
+        if len(sequences) == 0:
             sequences = MutableAlignment()
             sequences.read_file_object(open(self.options.alignment_file.name))
             self.results = ExtendedAlignment(fragment_names=[])
@@ -149,16 +161,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
         if (
-            (not options().tree_file is None) and
-            (not options().alignment_file is None) and
-            (not options().sequence_file is None)
-           ):
+                (not options().tree_file is None) and
+                (not options().alignment_file is None) and
+                (not options().sequence_file is None)
+        ):
             options().fragment_file = options().sequence_file
         elif (
-              (options().tree_file is None) and
-              (options().alignment_file is None) and
-              (not options().sequence_file is None)
-             ):
+                (options().tree_file is None) and
+                (options().alignment_file is None) and
+                (not options().sequence_file is None)
+        ):
             self.generate_backbone()
         else:
             _LOG.error(
@@ -172,11 +184,19 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if options().backbone_size is None:
             options().backbone_size = backbone_size
         assert options().backbone_size == backbone_size, (
-            ("Backbone parameter needs to match actual size of backbone; "
-             "backbone parameter:%s backbone_size:%s")
-            % (options().backbone_size, backbone_size))
+                ("Backbone parameter needs to match actual size of backbone; "
+                 "backbone parameter:%s backbone_size:%s")
+                % (options().backbone_size, backbone_size))
         if options().placement_size is None:
             options().placement_size = options().backbone_size
+
+        if options().backtranslation_sequence_file and \
+                options().molecule != "amino":
+            _LOG.error(
+                ("Backtranslation can be performed only when "
+                 "input sequences are amino acid. "))
+            exit(-1)
+
         return ExhaustiveAlgorithm.check_options(self)
 
     def merge_results(self):
@@ -189,7 +209,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         '''
         pp = self.root_problem.get_children()[0]
         _LOG.info(
-            "Merging sub-alignments for placement problem : %s." % (pp.label))
+            "Merging sub-alignments for placement problem : %s." % pp.label)
         ''' First assign fragments to the placement problem'''
         pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
         for ap in pp.get_children():
@@ -207,66 +227,67 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                              fp in ap.children if
                              fp.get_job_result_by_name('hmmalign') is not None]
             _LOG.debug(
-                "Merging fragment chunks for subalignment : %s." % (ap.label))
+                "Merging fragment chunks for subalignment : %s." % ap.label)
             ap_alg = ap.read_extendend_alignment_and_relabel_columns(
                 ap.jobs["hmmbuild"].infile, aligned_files)
             _LOG.debug(
                 "Merging alignment subset into placement subset: %s." %
-                (ap.label))
+                ap.label)
             extendedAlignment.merge_in(ap_alg, convert_to_string=False)
 
         extendedAlignment.from_bytearray_to_string()
         self.results = extendedAlignment
 
-# Useful for multi-core merging if ever needed
-#    def parallel_merge_results(self):
-#        assert len(self.root_problem.get_children()) == 1, "Currently UPP
-#        works with only one placement subset."
-#        '''
-#        Merge alignment subset extended alignments to get one extended
-#        alignment
-#        for current placement subset.
-#        '''
-#        pp = self.root_problem.get_children()[0]
-#        _LOG.info("Merging sub-alignments for placement problem : %s."
-#        %(pp.label))
-#        ''' Then Build an extended alignment by merging all hmmalign
-#            results'''
-#        manager = Manager()
-#        extendedAlignments = manager.list()
-#        for ap in pp.children:
-#            assert isinstance(ap, SeppProblem)
-#            ''' Get all fragment chunk alignments for this alignment subset'''
-#            aligned_files = [fp.get_job_result_by_name('hmmalign') for
-#                             fp in ap.children if
-#                             fp.get_job_result_by_name('hmmalign')
-#                               is not None]
-#            _LOG.info("Merging fragment chunks for subalignment : %s."
-#                       %(ap.label))
-#            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
-#                        (ap.jobs["hmmbuild"].infile , aligned_files)
-#            _LOG.info("Merging alignment subset into placement subset: %s."
-#                          %(ap.label))
-#            extendedAlignments.append(ap_alg)
-#
-#        while len(extendedAlignments)>1:
-#            a=range(0,len(extendedAlignments))
-#            #print [len(x) for x in extendedAlignments]
-#            x = zip(a[0::2],a[1::2])
-#            mapin = zip (x,[extendedAlignments]*len(x))
-#            _LOG.debug("One round of merging started. Currently have %d
-#                        alignments left. " %len(extendedAlignments))
-#            Pool(max(12,len(extendedAlignments))).map(mergetwo,mapin)
-#            #print [len(x) if x is not None else "None" for x in
-#                    extendedAlignments]
-#            extendedAlignments = manager.list([x for x in
-#                             extendedAlignments if x is not None])
-#            extendedAlignments.reverse()
-#            _LOG.debug("One round of merging finished. Still have %d
-#                       alignments left. " %len(extendedAlignments))
-#        extendedAlignment = extendedAlignments[0]
-#        extendedAlignment.from_bytearray_to_string()
-#        self.results = extendedAlignment
+    # Useful for multi-core merging if ever needed
+    #    def parallel_merge_results(self):
+    #        assert len(self.root_problem.get_children()) == 1, "Currently UPP
+    #        works with only one placement subset."
+    #        '''
+    #        Merge alignment subset extended alignments to get one extended
+    #        alignment
+    #        for current placement subset.
+    #        '''
+    #        pp = self.root_problem.get_children()[0]
+    #        _LOG.info("Merging sub-alignments for placement problem : %s."
+    #        %(pp.label))
+    #        ''' Then Build an extended alignment by merging all hmmalign
+    #            results'''
+    #        manager = Manager()
+    #        extendedAlignments = manager.list()
+    #        for ap in pp.children:
+    #            assert isinstance(ap, SeppProblem)
+    #            ''' Get all fragment chunk alignments
+    #                for this alignment subset'''
+    #            aligned_files = [fp.get_job_result_by_name('hmmalign') for
+    #                             fp in ap.children if
+    #                             fp.get_job_result_by_name('hmmalign')
+    #                               is not None]
+    #            _LOG.info("Merging fragment chunks for subalignment : %s."
+    #                       %(ap.label))
+    #            ap_alg = ap.read_extendend_alignment_and_relabel_columns\
+    #                        (ap.jobs["hmmbuild"].infile , aligned_files)
+    #            _LOG.info("Merging alignment subset into placement subset:%s."
+    #                          %(ap.label))
+    #            extendedAlignments.append(ap_alg)
+    #
+    #        while len(extendedAlignments)>1:
+    #            a=range(0,len(extendedAlignments))
+    #            #print [len(x) for x in extendedAlignments]
+    #            x = zip(a[0::2],a[1::2])
+    #            mapin = zip (x,[extendedAlignments]*len(x))
+    #            _LOG.debug("One round of merging started. Currently have %d
+    #                        alignments left. " %len(extendedAlignments))
+    #            Pool(max(12,len(extendedAlignments))).map(mergetwo,mapin)
+    #            #print [len(x) if x is not None else "None" for x in
+    #                    extendedAlignments]
+    #            extendedAlignments = manager.list([x for x in
+    #                             extendedAlignments if x is not None])
+    #            extendedAlignments.reverse()
+    #            _LOG.debug("One round of merging finished. Still have %d
+    #                       alignments left. " %len(extendedAlignments))
+    #        extendedAlignment = extendedAlignments[0]
+    #        extendedAlignment.from_bytearray_to_string()
+    #        self.results = extendedAlignment
 
     def output_results(self):
         extended_alignment = self.results
@@ -277,6 +298,33 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         outfilename = self.get_output_filename("insertion_columns.txt")
         extended_alignment.write_insertion_column_indexes(outfilename)
         _LOG.info("The index of insertion columns written to %s" % outfilename)
+        if self.options.backtranslation_sequence_file:
+            outfilename = self.get_output_filename(
+                "backtranslated_alignment.fasta")
+            backtranslation_seqs = MutableAlignment()
+            backtranslation_seqs.read_file_object(
+                self.options.backtranslation_sequence_file)
+            try:
+                extended_backtranslated_alignment = backtranslate(
+                    self.results, backtranslation_seqs)
+            except Exception as e:
+                _LOG.warning("Backtranslation failed due "
+                             "to following error: " + str(e) + ".\n"
+                             "No translated DNA sequence will be "
+                             "written to a file.")
+                pass
+            else:
+                extended_backtranslated_alignment.write_to_path(outfilename)
+                _LOG.info(
+                    "Backtranslated alignment written to %s" % outfilename)
+                extended_backtranslated_alignment.remove_insertion_columns()
+                outfilename = self.get_output_filename(
+                    "backtranslated_alignment_masked.fasta")
+                extended_backtranslated_alignment.write_to_path(outfilename)
+                _LOG.info(
+                    "Backtranslated masked alignment written "
+                    "to %s" % outfilename)
+
         extended_alignment.remove_insertion_columns()
         outfilename = self.get_output_filename("alignment_masked.fasta")
         extended_alignment.write_to_path(outfilename)
@@ -285,8 +333,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
                 self.options.placement_size >= total), \
-                ("currently UPP works with only one placement subset."
-                 " Please leave placement subset size option blank.")
+            ("currently UPP works with only one placement subset."
+             " Please leave placement subset size option blank.")
         ExhaustiveAlgorithm.check_and_set_sizes(self, total)
         self.options.placement_size = total
 
@@ -294,7 +342,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         return UPPJoinAlignJobs()
 
     def modify_tree(self, a_tree):
-        ''' Filter out taxa on long branches '''
+        """ Filter out taxa on long branches """
         self.filtered_taxa = []
         if self.options.long_branch_filter is not None:
             tr = a_tree.get_tree()
@@ -302,7 +350,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             for e in tr.leaf_edge_iter():
                 elen[e] = e.length
             elensort = sorted(elen.values())
-            mid = elensort[len(elensort) / 2]
+            mid = elensort[len(elensort) // 2]
             torem = []
             for k, v in list(elen.items()):
                 if v > mid * self.options.long_branch_filter:
@@ -347,6 +395,11 @@ def augment_parser():
         help="max alignment subset size of N "
              "[default: 10]")
     decompGroup.add_argument(
+        "-R", "--full_length_range", type=str,
+        dest="full_length_range", metavar="\"Nmin Nmax\"",
+        default=None,
+        help="Only consider sequences with lengths within Nmin and Nmax")
+    decompGroup.add_argument(
         "-M", "--median_full_length", type=int,
         dest="median_full_length", metavar="N",
         default=None,
@@ -380,7 +433,7 @@ def augment_parser():
              "[default: ensemble of HMMs (hierarchical)]")
 
     inputGroup = parser.groups['inputGroup']
-    inputGroup .add_argument(
+    inputGroup.add_argument(
         "-s", "--sequence_file", type=argparse.FileType('r'),
         dest="sequence_file", metavar="SEQ",
         default=None,
@@ -408,6 +461,15 @@ def augment_parser():
         type=argparse.FileType('r'),
         help="Aligned fasta file "
              "[default: %(default)s]")
+
+    inputGroup.add_argument(
+        "-b", "--backtranslation",
+        dest="backtranslation_sequence_file", metavar="SEQ",
+        type=argparse.FileType('r'),
+        default=None,
+        help="Fasta file containing unaligned DNA sequences "
+             "corresponding every reference and query sequence "
+             "[default: None]")
 
     uppGroup = parser.add_argument_group(
         "UPP Options".upper(),

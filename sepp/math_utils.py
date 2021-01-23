@@ -1,8 +1,8 @@
-'''
+"""
 Created on Nov 14, 2012
 
-@author: smirarab
-'''
+@author: Siavash Mirarab
+"""
 
 
 def gcd(a, b):

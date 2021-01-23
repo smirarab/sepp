@@ -21,9 +21,13 @@ import logging
 import os
 
 
-__all__ = ["alignment", "shortreadalignment", "taxonneighbourfinder",
-           "tools", "problem"]
-version = "4.3.10"
+__all__ = ['algorithm', 'alignment', 'backtranslate',
+           'checkpointing', 'config', 'decompose_tree', 'ensemble',
+           'exhaustive', 'exhaustive_tipp', 'exhaustive_upp', 'filemgr',
+           'jobs', 'math_utils', 'metagenomics', 'problem', 'scheduler',
+           'scratch', 'tree', 'get_logger', 'is_temp_kept', 'version']
+
+version = "4.3.21"
 _DEBUG = ("SEPP_DEBUG" in os.environ) and \
     (os.environ["SEPP_DEBUG"].lower() == "true")
 
@@ -67,15 +71,17 @@ def reset_loggers():
     __set_loggers = set()
     import pkgutil
     import sepp
-    for l, name, _ in pkgutil.iter_modules(['sepp']):
+    package = sepp
+    for modl, name, _ in pkgutil.iter_modules(package.__path__):
         logger = (getattr(getattr(sepp, name, None), "_LOG", None))
+        print("--- *", name, logger)
         if logger:
             setattr(getattr(sepp, name, None), "_LOG", get_logger(
                 "sepp.%s" % name))
 
 
 def log_exception(logger):
-    '''Logs the exception trace to the logObj as an error'''
+    """Logs the exception trace to the logObj as an error"""
     import traceback
     import io
     s = io.StringIO()
@@ -86,5 +92,5 @@ def log_exception(logger):
 os.sys.setrecursionlimit(1000000)
 
 
-def sortByValue(d, reverse=False):
+def sort_by_value(d, reverse=False):
     return sorted(iter(d.items()), key=itemgetter(1), reverse=reverse)

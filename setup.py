@@ -30,7 +30,7 @@ from distutils.core import setup, Command
 from distutils.spawn import find_executable
 
 use_setuptools(version="0.6.24")
-version = "4.3.10"
+version = "4.3.21"
 
 
 def get_tools_dir(where):
@@ -148,7 +148,8 @@ class ConfigUPP(ConfigSepp):
         for l2 in c:
             l2 = l2.replace("~", self.get_tools_dest())
             d.write(l2)
-        d.write('\n[pasta]\npath=run_pasta.py\n')
+        d.write(('\n[pasta]\n'
+                 'path=run_pasta.py\nuser_options= --max-mem-mb=2000'))
         d.close()
 
 
