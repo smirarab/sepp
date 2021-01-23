@@ -281,7 +281,7 @@ def distribution(classification_files, output_dir):
                 assert frag_info['phylum']['unclassified'] != 1
                 for clade, cladeval in frag_info.items():
                     for clade_name, cnc in cladeval.items():
-                        if (clade_name, cnc not in distribution[clade]):
+                        if clade_name not in distribution[clade]:
                             distribution[clade][clade_name] = 0
                         distribution[clade][clade_name] += cnc
                 frag_info = {"species": {'unclassified': 1},
@@ -487,10 +487,7 @@ def hmmer_to_markers(input, temp_dir):
     for gene in refpkg["genes"]:
         # Now run HMMER search
         hmmer_output = temp_dir + '/' + gene + ".out"
-        hmmer_search(
-            frag_file,
-            refpkg[gene]["hmm"],
-            hmmer_output)
+        hmmer_search(frag_file, refpkg[gene]["hmm"], hmmer_output)
         results = read_hmmsearch_results(hmmer_output)
 
         # Now select best direction for each frag

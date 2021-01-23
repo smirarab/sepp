@@ -1,4 +1,4 @@
-'''
+"""
 This module provides options(), which returns a argparse.Namespace object
 containing all configurations required by sepp. config.options() reads and
 saves the configurations the first time it is called. Subsequent calls simply
@@ -29,7 +29,7 @@ In addition, each client of this module (e.g. a new algorithm)) can add new
 commandline options by getting the parser object using get_parser() and then
 adding extra options. This has to happen *before* the first call to options()
 module. For an example see exhaustive_upp.
-'''
+"""
 
 from argparse import ArgumentParser, Namespace
 from sepp.filemgr import get_default_temp_dir, check_or_make_dir_path
@@ -59,10 +59,11 @@ def set_main_config_path(filename):
 
 
 def _read_config_file(filename, opts, expand=None):
+    _LOG.debug("Reading config %s" % filename)
     config_defaults = []
     cparser = configparser.ConfigParser()
     cparser.optionxform = str
-    cparser.readfp(filename)
+    cparser.read_file(filename)
 
     if cparser.has_section('commandline'):
         for (k, v) in cparser.items('commandline'):
@@ -72,7 +73,10 @@ def _read_config_file(filename, opts, expand=None):
     for section in cparser.sections():
         if section == "commandline":
             continue
-        section_name_space = Namespace()
+        if getattr(opts, section, None):
+            section_name_space = getattr(opts, section)
+        else:
+            section_name_space = Namespace()
         for (k, v) in cparser.items(section):
             if expand and k == "path":
                 v = os.path.join(expand, v)
@@ -203,6 +207,13 @@ def _init_parser():
         help=("Tempfile files will be written to DIR. Full-path required. "
               "[default: %(default)s]"))
     outputGroup.add_argument(
+        "-rt", "--remtemp",
+        dest="remtemp",
+        action="store_true",
+        help=("Remove tempfile directory.  "
+              "[default: disabled]"))
+    outputGroup.set_defaults(remtemp=False)
+    outputGroup.add_argument(
         "-o", "--output",
         dest="output", metavar="OUTPUT",
         default="output",
@@ -264,6 +275,14 @@ def _init_parser():
         default="dna",
         help=("Molecule type of sequences. Can be amino, dna, or rna "
               "[default: %(default)s]"))
+    inputGroup.add_argument(
+        "--ignore-overlap",
+        dest="ignore_overlap",
+        default=False, action='store_true',
+        help=("When a query sequence has the same name as a "
+              "backbone sequence, ignore the query "
+              "sequences and keep the backbone sequence"
+              "[default: %(default)s]"))
 
     otherGroup = _parser.add_argument_group(
         "Other options".upper(), "These options control how SEPP is run")
@@ -314,13 +333,14 @@ def _parse_options():
     ''' First read the main configuration file '''
     _LOG.debug("Main configuration file at %s" % main_config_path)
     if not os.path.exists(main_config_path):
-        _LOG.warn(
+        _LOG.warning(
             "Main configuration file was not found at: %s\n" %
             main_config_path + "Proceeding without the main configuration...")
         main_cmd_defaults = []
     else:
-        main_cmd_defaults = _read_config_file(
-            open(main_config_path, 'r'), opts)
+        with open(main_config_path, 'r') as cfile:
+            main_cmd_defaults = _read_config_file(
+                cfile, opts)
 
     input_args = main_cmd_defaults + (sys.argv[1:])
 
@@ -343,6 +363,7 @@ def _parse_options():
 
         parser.error = error_callback
 
+        _LOG.debug(str(input_args))
         ''' Read commandline options again to overwrite config file values'''
         opts = parser.parse_args(input_args, namespace=opts)
     random.seed(opts.seed)
@@ -354,10 +375,10 @@ _options_singelton = None
 
 
 def options():
-    '''
+    """
     Returns the configurations read from main configuration file,
     commandline and the user input configuration file.
-    '''
+    """
     global _options_singelton
     if _options_singelton is None:
         _options_singelton = _parse_options()

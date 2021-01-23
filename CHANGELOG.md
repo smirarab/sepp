@@ -1,19 +1,44 @@
+* Version 4.3.21:
+    * one more small bug fix
+* Version 4.3.20:
+    * Added `--ignore-overlap` option to ignore overlap. 
+* Version 4.3.19:
+    * Enable `--symfrac` from config file
+    * Enable config files that overwrite the default values only when provided
+* Version 4.3.18:
+    * UPP speed improvement for cases with super gappy backbone alignment (more can be done)
+    * Slightly better logging
+* Version 4.3.17:
+    * Attempt to make tests python 3.8 friendly
+    * Add UPP test
+* Version 4.3.16:
+	* Refactor code slightly. Reduces warnings
+* Version 4.3.15:
+	* some py3.8 changes and some java changes  from pgrt
+* Version 4.3.14:
+	* Added option `-R "Nmin Nmax"` to specify the range of full length sequences to UPP
+* Version 4.3.13:
+    * Added backtranslation functionality to UPP for amino acid sequences.
+* Version 4.3.12:
+	* Added `-rt` to remove temp files	
+* Version 4.3.11:
+	* Make sure PASTA user options can be passed
 * Version 4.3.10:
      * fix issue #70 a bug when hmmsearch fake jobs where not piped
 * Version 4.3.9:
      * fix info file path in `run_sepp.sh` script
 * Version 4.3.7:
-     * Clean up run-sepp.sh to expose more options
+     * Clean up `run-sepp.sh` to expose more options
      * Beginning steps for building more robust builds
 * Version 4.3.6:
-     * raise a ValueError if names of fragments to be inserted contain whitespace characters ' ' or '\t'.
+     * raise a ValueError if names of fragments to be inserted contain whitespace characters ` ` or `\t`.
 * Version 4.3.5:
      * raise a ValueError if names of fragments to be inserted collide with names of reference sequences.
 * Version 4.3.4:
      * Cleaning up the default (info) log  a bit
 * Version 4.3.3:
      * avoid pipes for hmmsearch to deal with memory issues
-     * Increase the default -F to 20000
+     * Increase the default `-F` to 20000
 * Version 4.3.2: more fixes to UPP
      * added a  seed number
      * Fixed PASTA alignment and tree file names
@@ -23,14 +48,14 @@
      * In the absence of fragments, outputs are generated in a consistent fashion
      * PASTA alignment and trees are given a name prefixed by the output prefix naem
 * Version 4.3.0:
-     * Added (Uyen Mai) an option -M and -S midpoint to break by midpoint and to stop by diameter
+     * Added (Uyen Mai) an option `-M` and `-S` midpoint to break by midpoint and to stop by diameter
 * Version 4.2.3:
      * Added a hard-coded --groups 10 to the pplacer runs to help with memory
 * Version 4.2.2:
      * Add max chunk size
      * Fix logging messages
      * Fix a bug for the `-D` option after python 3 transition
-     * Changed the pplacer step so that each run is on one fragment chunk (not all fragments), as specified using -F
+     * Changed the pplacer step so that each run is on one fragment chunk (not all fragments), as specified using `-F`
 * Version 4.2.1:
      * Fixed a bug with `run_tipp_tools.py` path
 * Version 4.2.0:

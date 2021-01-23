@@ -162,14 +162,19 @@ public class PPlacerJSONMerger {
 		HashMap<String, String> labelMap = mapTrees(jsonTree, baseTree);
 
 		JSONArray placements = json.getJSONArray("placements");
+		JSONArray fields = json.getJSONArray("fields");
+                int locEdgeNum=0;
+                while (! fields.getString(locEdgeNum).equals("edge_num")) {
+                        locEdgeNum++;
+                }
 		
 		for (Iterator<JSONObject> iterator = placements.iterator(); iterator.hasNext();) {
 			JSONObject placement = iterator.next();
 			JSONArray p = placement.getJSONArray("p");
 			for (Iterator<JSONArray> itp = p.iterator(); itp.hasNext();) {
 				JSONArray pr = itp.next();
-				String newLab = (String) labelMap.get(pr.getString(0));
-				pr.set(0, new Integer(newLab));
+				String newLab = (String) labelMap.get(pr.getString(locEdgeNum));
+				pr.set(locEdgeNum, new Integer(newLab));
 
 				if (pr.getDouble(3) > ((Double) mainEdgeLen.get(newLab))
 						.doubleValue())
@@ -312,7 +317,9 @@ public class PPlacerJSONMerger {
 						return name1.compareTo(name2);
 					}
 				});
-			    sortedPlacements.addAll(resultsPlacements);
+                            for (int i=0 ; i<resultsPlacements.size() ; i++) {
+                              sortedPlacements.add(resultsPlacements.getJSONObject(i));
+                            }
 			    resultsPlacements = new JSONArray();
 			    resultsPlacements.addAll(sortedPlacements);
 			}
