@@ -192,7 +192,7 @@ def build_profile(input, output_directory):
             extra = extra + " -C %f" % options().cutoff
 
         cmd = "run_tipp.py " \
-            + " -c " + options().config_file.name \
+            + " -c " + tipp_config_path \
             + " --cpu " + str("%d" % cpus) \
             + " -m " + options().molecule \
             + " -f " + binned_fragments[gene]["file"] \
@@ -550,7 +550,6 @@ def fasta_iter(fasta_name):
         for line in fp:
             if line[0] == '>':
                 header = nextheader[1:]
-                header = header.split()[0].replace(':', '_')
                 seq = "".join(nextseq)
                 nextheader = line.strip()
                 nextseq = []
@@ -569,7 +568,7 @@ def fastq_iter(fastq_name):
             if i % 4 == 2:
                 continue
             elif i % 4 == 0:
-                header = line[1:].strip()
+                header = line[1:]
             elif i % 4 == 1:
                 seq = line.strip()
             else:
@@ -583,6 +582,14 @@ def blast_to_markers(input, temp_dir):
     https://github.com/shahnidhi/tipp2_scripts/blob/master/get_marker_assignment.py
     """
     global refpkg
+
+    # Handle input
+    with open(input, 'r') as fp:
+        line = fp.readline()
+    if line[0] != '>':
+        sys.exit("%s is not a FASTA file; please reformat for BLAST." % input)
+    if len(line.split(" ")) > 1:
+        sys.exit("%s contains spaces; please reformat for BLAST." % input)
 
     # First blast sequences against all markers
     blast_results = temp_dir + "/blast.out"
@@ -607,10 +614,10 @@ def blast_to_markers(input, temp_dir):
     f = open(temp_dir + "/blast-binned.out", 'w')
     f.write("qseqid,sseqid,marker,trim_qstart,trim_qend,qlen\n")
 
-    if input.lower().endswith((".fastq", ".fq")):
-        fiter = fastq_iter(input)
-    elif input.lower().endswith((".fasta", ".fas", ".fa", ".fna")):
-        fiter = fasta_iter(input)
+    # if input.lower().endswith((".fastq", ".fq")):
+    #     fiter = fastq_iter(input)
+    # elif input.lower().endswith((".fasta", ".fas", ".fa", ".fna")):
+    fiter = fasta_iter(input)
 
     for ff in fiter:
         header = ff[0]
@@ -777,14 +784,15 @@ def blast_fragments(input, output):
     output'''
     global refpkg
 
-    cmd = options().__getattribute__('blast').path \
-        + " -db " + refpkg["blast"]["database"] \
-        + " -outfmt \"6" \
-        + " qseqid sseqid pident length mismatch gapopen" \
-        + " qstart qend qlen sstart send slen evalue bitscore\"" \
-        + " -query " + input \
-        + " -out " + output \
-        + " -num_threads " + str("%d" % options().cpu)
+    blastn = options().__getattribute__('blastn').path
+
+    cmd = blastn + " -db " + refpkg["blast"]["database"] \
+                 + " -outfmt \"6" \
+                 + " qseqid sseqid pident length mismatch gapopen" \
+                 + " qstart qend qlen sstart send slen evalue bitscore\"" \
+                 + " -query " + input \
+                 + " -out " + output \
+                 + " -num_threads " + str("%d" % options().cpu)
 
     print(cmd)
     os.system(cmd)
@@ -798,6 +806,15 @@ def reverse_sequence(sequence):
 
 
 def augment_parser():
+    global tipp_config_path
+
+    # Process TIPP config file
+    root_p = open(os.path.join(os.path.split(
+        os.path.split(__file__)[0])[0], "home.path")).readlines()[0].strip()
+    tipp_config_path = os.path.join(root_p, "tipp.config")
+    sepp.config.set_main_config_path(tipp_config_path)
+
+    # Process TIPP command line options
     parser = sepp.config.get_parser()
 
     tippGroup = parser.add_argument_group(
@@ -875,7 +892,7 @@ def augment_parser():
 def main():
     augment_parser()
 
-    sepp.config._options_singelton = sepp.config._parse_options()
+    # sepp.config._options_singelton = sepp.config._parse_options()
 
     input = options().fragment_file.name
 
