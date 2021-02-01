@@ -52,7 +52,7 @@ Before installing the software you need to make sure the following programs are 
 #### Step 1: Install SEPP
 TIPP is a part of the SEPP distribution package. First download and install SEPP:
 
-1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir ~/sepp-code`. Go to this directory. e.g. `cd ~/sepp-code`.
+1. Open a terminal and create a directory where you want to keep SEPP. e.g. `mkdir sepp-code`. Go to this directory. e.g. `cd sepp-code`.
 2. Clone the SEPP code repository from our [github repository](https://github.com/smirarab/sepp). For example you can use `git clone https://github.com/smirarab/sepp.git`.
 If you don't have git, you can directly download a [zip file from the repository](https://github.com/smirarab/sepp/archive/master.zip)
 and decompress it into your desired directory. 
@@ -199,16 +199,14 @@ Task 2: Converting the result into an abundance profile.
 The classification file lists all possible classifications for a fragment, even if it has very low support.  In some situations, we only want the most highly supported classifications.  We can use a helper tool to convert the classification file into a profile.  
 
 ```
-mkdir output_profile
 run_tipp_tool.py -g markers-v1/pyrg \
-                 -a profile \
-                 -o output_profile \
-                 -p markers-v1_pyrg \
+                 -d output_profile \
+                 -o markers-v1-pyrg \
                  -i output_classification.txt \
                  -t 0.95
 ```
 
-This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `output_profile/markers-v1_pyrg.classification`.
+This command will create taxonomic profiles (one for each taxonomic ranking) from the classification results.  Fragments will only be classified if they have at least 95% support for the classification.  Let's start by looking at the file labelled `output_profile/markers-v1-pyrg.classification_95.txt`.
 
 ```
 fragment	species	genus	family	order	class	phylum
