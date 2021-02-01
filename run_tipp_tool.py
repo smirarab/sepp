@@ -38,9 +38,7 @@ def parse_args():
         '-t', '--threshold', default=0.95, metavar='THRESHOLD',
         help='threshold for classification',
         type=float, dest='threshold')
-
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 root_p = open(os.path.join(os.path.split(
