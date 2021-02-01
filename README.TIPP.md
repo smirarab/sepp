@@ -79,9 +79,9 @@ To see options for running the script, use the command:
 
 `run_tipp.py -h`
 
-The main output of TIPP is a `_classification.txt` file that annotation for each read. In addition, TIPP outputs a `.json` file with the placements, created according to pplacer format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the `.json` file. Also note that pplacer package provides a program called guppy that can read `.json` files and perform downstream steps such as visualization.
-
-In addition to the `.json` file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+The main output of TIPP is a `_classification.txt` file that annotation for each read. 
+TIPP also outputs other information about the fragments, including the alignments (note that there could be multiple alignment files created, each corresponding to a different placement subset) as well as the phylogenetic placements.
+Placements are given in the `.json` file, created according to *pplacer* format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the form at of the `.json` file. Also note that *pplacer* package provides a program called *guppy* that can read `.json` files and  perform downstream steps such as visualization.
 
 By setting `SEPP_DEBUG` environment variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
