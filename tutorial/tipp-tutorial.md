@@ -240,15 +240,11 @@ TIPP comes with a collection of 30 single copy housekeeping genes which are used
 The general command for `run_abundance.py` is:
 
 ```
-run_abundance.py -f <fragment file> \
-                 -c <tipp config file> \
-                 -d <output directory>
+run_abundance.py -f <fragment file> -d <output directory>
 ```
 
-The input fragment files must be in FASTA or FASTQ formats with the following extenstions:
-- `.fastq` or `.fq` for FASTQ files
-- `.fasta`, `.fas`, `.fa`, `.fna` for FASTA files
-The output will be tab delimited files that estimate the abundance at a given taxonomic level. 
+The input fragment files must be in a format accepted by BLAST (i.e. a decompressed FASTA file with no spaces in the read names).
+The output are tab delimited files that estimate the abundance at a given taxonomic level. 
 
 By default, this command will use the reference dataset benchmarked in the 2020 paper. This is equivalent to specifying the option `-g markers-v3`; you can use the markers benchmarked in the 2014 paper by adding the `-G markers-v1` option.
 
@@ -258,10 +254,7 @@ cd test/unittest/data/mock/mixed
 ```
 and run 
 ```
-run_abundance.py -G markers-v1 \
-                 -f facs_simhc.short.fas \
-                 -c ~/.sepp/tipp.config \
-                 -d out
+run_abundance.py -G markers-v1 -f facs_simhc.short.fas -d out
 ```
 **NOTE:** If you used the `-c` option when installing TIPP and SEPP, then instead of `~/.sepp/tipp.config`, you would use `/PATH_TO_SEPP_INSTALLATION/.sepp/tipp.config`.
 
@@ -344,9 +337,8 @@ run_tipp.py -R 16S-bacteria-v1/16S_bacteria \
 As in the previous example, you can convert the classification results into a more easily digestible format using the `run_tipp_tool.py` script.
 ```
 run_tipp_tool.py -g 16S-bacteria-v1/16S_bacteria \
-                 -a profile \
-                 -o 16s_profile \
-                 -p 16S-bacteria-v1_16S_bacteria \
+                 -d 16S_profile \
+                 -o 16S-bacteria-v1 \
                  -i 16s_classification.txt \
                  -t 0.95
 ```
