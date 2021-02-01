@@ -784,7 +784,7 @@ def blast_fragments(input, output):
     output'''
     global refpkg
 
-    blastn = options().__getattribute__('blastn').path
+    blastn = options().__getattribute__('blast').path
 
     cmd = blastn + " -db " + refpkg["blast"]["database"] \
                  + " -outfmt \"6" \
