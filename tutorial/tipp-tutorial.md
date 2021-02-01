@@ -102,7 +102,7 @@ where `3.7` is replaced with the version of python that you are running.
 
 
 If the `BLAST` environment variable or the `REFERENCE` environmental variable cannot be read by TIPP during the configuration, you can manually edit the `tipp.config`
-file to point to the right location. If you did NOT use the `-c` flag, then this file is in `~/.sepp/tipp.config`; otherwise, this file is in `/PATH_TO_SEPP_INSTALLATION/.sepp/tipp.config`. To edit the configuration file, change:
+file to point to the right location. If you did NOT use the `-c` flag, then this file is in `~/.sepp/tipp.config`; otherwise, this file is in `/PATH_TO_SEPP_REPOSITORY/.sepp/tipp.config`. To edit the configuration file, change:
 ```
 [blast]
 path=None
