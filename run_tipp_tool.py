@@ -12,7 +12,6 @@ from argparse import Namespace
 import sepp.config
 import sepp.metagenomics
 import sepp
-import sys
 
 
 def parse_args():
@@ -74,9 +73,6 @@ def profile(inputf, gene, output, prefix, threshold):
 
 def main():
     args = parse_args()
-    if os.path.isdir(args.outdir):
-        sys.stdout.write("WARNING: %s already exists,"
-                         " may overwrite files\n" % args.outdir)
     profile(args.input, args.gene, args.outdir, args.output,
             args.threshold)
 
