@@ -1,3 +1,4 @@
+import gzip
 import os
 import sys
 import tempfile
@@ -19,6 +20,45 @@ character_map = {'A': 'T', 'a': 't', 'C': 'G', 'c': 'g', 'T': 'A',
                  't': 'a', 'G': 'C', 'g': 'c', '-': '-'}
 global levels
 levels = ["species", "genus", "family", "order", "class", "phylum"]
+
+
+def to_fasta(input, temp_dir):
+    iszipped = False
+    try:
+        fp = gzip.open(input, 'r')
+        line = fp.readline().decode('utf-8')
+        iszipped = True
+    except OSError:
+        fp = open(input, 'r')
+        line = fp.readline()
+    fp.close()
+
+    if line[0] == '>':
+        if iszipped:
+            print("Input is gzip'ed FASTA file, "
+                  "creating a decompressed version")
+            fiter = fastagz_iter(input)
+        else:
+            print("Input is FASTA file, proceeding to run BLAST")
+            return input
+    elif line[0] == '@':
+        if iszipped:
+            print("Input is gzip'ed FASTQ file, "
+                  "creating a decompressed FASTA-formatted version")
+            fiter = fastqgz_iter(input)
+        else:
+            print("Input is FASTQ file, "
+                  "creating a FASTA-formatted version")
+            fiter = fastq_iter(input)
+
+    # Create a new input file
+    new_input = temp_dir + '/' + input.split('.', 1)[0] + ".fasta"
+    with open(new_input, 'w') as fp:
+        for ff in fiter:
+            fp.write('>' + ff[0] + '\n')
+            fp.write(ff[1] + '\n')
+
+    return new_input
 
 
 def load_reference_package():
@@ -93,6 +133,9 @@ def build_profile(input, output_directory):
     global taxon_map, level_map, key_map, levels, refpkg
 
     temp_dir = tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
+
+    # New option to allow fastq files as input
+    input = to_fasta(input, temp_dir)
 
     if (options().bin == "hmmer"):
         binned_fragments = hmmer_to_markers(input, temp_dir)
@@ -540,22 +583,47 @@ def hmmer_to_markers(input, temp_dir):
 
 def fasta_iter(fasta_name):
     with open(fasta_name, 'r') as fp:
-        line = fp.readline()
-        if line[0] != '>':
-            raise("Unable to read %s" % fasta_name)
-
-        nextheader = line.strip()
+        xline = fp.readline().strip()
+        # if line[0] != '>':
+        #     raise("Unable to read %s" % fasta_name)
+        nextheader = xline
         nextseq = []
 
         for line in fp:
-            if line[0] == '>':
-                header = nextheader[1:]
+            xline = line.strip()
+            if xline[0] == '>':
+                header = nextheader[1:].split(' ')[0]
                 seq = "".join(nextseq)
-                nextheader = line.strip()
+                nextheader = xline
                 nextseq = []
                 yield header, seq
             else:
-                nextseq.append(line.strip())
+                nextseq.append(xline)
+
+        header = nextheader[1:]
+        seq = "".join(nextseq)
+        yield header, seq
+
+
+def fastagz_iter(fasta_name):
+    with gzip.open(fasta_name, 'r') as fp:
+        xline = fp.readline().decode('utf-8').strip()
+        # if line[0] != '>':
+        #     raise("Unable to read %s" % fasta_name)
+        nextheader = xline
+        nextseq = []
+
+        for line in fp:
+            xline = line.decode('utf-8').strip()
+            print(xline)
+            if xline[0] == '>':
+                header = nextheader[1:].split(' ')[0]
+                seq = "".join(nextseq)
+                nextheader = xline
+                nextseq = []
+                yield header, seq
+            else:
+                nextseq.append(xline)
 
         header = nextheader[1:]
         seq = "".join(nextseq)
@@ -569,14 +637,36 @@ def fastq_iter(fastq_name):
     """
     with open(fastq_name, 'r') as fp:
         for i, line in enumerate(fp):
-            if i % 4 == 2:
-                continue
-            elif i % 4 == 0:
-                header = line[1:]
+            xline = line.strip()
+            if i % 4 == 0:
+                # First line is name
+                header = xline[1:].split(' ')[0]
             elif i % 4 == 1:
-                seq = line.strip()
+                # Second line is sequence
+                seq = xline
+            elif i % 4 == 2:
+                # Third line is '+'
+                continue
             else:
-                # qual = line.strip()
+                # Fourth line is quality
+                yield header, seq
+
+
+def fastqgz_iter(fastq_name):
+    with gzip.open(fastq_name, 'r') as fp:
+        for i, line in enumerate(fp):
+            xline = line.decode('utf-8').strip()
+            if i % 4 == 0:
+                # First line is name
+                header = xline[1:].split(' ')[0]
+            elif i % 4 == 1:
+                # Second line is sequence
+                seq = xline
+            elif i % 4 == 2:
+                # Third line is '+'
+                continue
+            else:
+                # Fourth line is quality
                 yield header, seq
 
 

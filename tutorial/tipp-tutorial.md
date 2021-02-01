@@ -137,19 +137,25 @@ git pull
 Running TIPP
 ============
 
+The general command for running TIPP for a specific pre-computed marker is:
+```
+run_tipp.py -R <reference_marker> -f <fragment_file>
+```
+
 If your installation is successful, you should be able to run TIPP by running the following command from any location. Open up a terminal window and type: 
 
 ```
 run_tipp.py -h
 ``` 
-
-Running TIPP with the `-h` option produces the list of options available in TIPP. 
-
-The general command for running TIPP for a specific pre-computed marker is:
-
+and
 ```
-run_tipp.py -R <reference_marker> -f <fragment_file>
+run_abundance.py -h
 ```
+Running these scripts with the `-h` option produces the list of options available in TIPP. 
+There are two options that are generally helpful to know about: 
+1. `-x NCPU` allows you to set the number of CPUs used by TIPP to `NCPU` (note that by default TIPP uses all CPUs on the machine)
+2. `-p TMPDIR` allows you to specify the directory to which TIPP writes temporary files (note that by default TIPP writes temporary files to `/tmp/sepp/` and does *NOT* delete these temporary files)
+
 
 Task 1: Performing read classification.
 ---------------------------------------
@@ -168,7 +174,7 @@ NOTE: The TIPP2 reference package includes three reference data sets:
 - markers-v2 = additional markers distributed with the 2014 paper
 - markers-v3 = reference dataset created and benchmarked in the 2020 TIPP paper
 
-This command runs TIPP on the fragmentary sequences that have been binned to the pyrg gene from the reference dataset benchmarked in the 2014 paper. In other words, the TIPP classification algorithm will use the pre-computed alignment and tree that has been estimated on the known bacterial pyrg genes.
+This command runs TIPP on the fragmentary sequences that have *already been binned* to the pyrg gene from the reference dataset benchmarked in the 2014 paper. In other words, the TIPP classification algorithm will use the pre-computed alignment and tree that has been estimated on the known bacterial pyrg genes.
 
 The main output of TIPP is a `output_classification.txt` file that contains the classification of each read.  The classification consists of the name of the read, the NCBI taxonomic id of the classification,the rank of the classification, the name of the classification, and the support of the classification.
 
@@ -195,19 +201,18 @@ run_tipp.py -R markers-v1/pyrg \
             -pt 0.0
 ```
 
-In addition, TIPP outputs a `.json` file with the placements, created according to pplacer format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read `.json` files and perform downstream steps such as visualization.
- 
-In addition to the `.json` file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+Besides the classification file, TIPP outputs other information about the fragments, including the alignments (note that there could be multiple alignment files created, each corresponding to a different placement subset) as well as the phylogenetic placements.
+Placements are given in the `.json` file, created according to *pplacer* format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the `.json` file. Also note that *pplacer* package provides a program called *guppy* that can read `.json` files and perform downstream steps such as visualization.
 
 Task 2: Converting the result into an abundance profile.
 --------------------------------------------------------
-The classification file lists all possible classifications for a fragment, even if it has very low support.  In some situations, we only want the most highly supported classifications.  We can use a helper tool to convert the classification file into a profile.  
+The classification file lists all possible classifications for a fragment, even if it has very low support. In some situations, we only want the most highly supported classifications.  We can use a helper tool to convert the classification file into a profile.  
 
 ```
 run_tipp_tool.py -g markers-v1/pyrg \
                  -d output_profile \
                  -o markers-v1-pyrg \
-                 -i output_classification.txt \
+                 -i output_lower_threshold_classification.txt \
                  -t 0.95
 ```
 
@@ -228,7 +233,7 @@ EAS25_26_1_16_1241_1747_0_2	NA	NA	NA	NA	NA	28890
 
 This file lists the classification (shown as NCBI taxonomic ids) of each fragment at each of the taxonomic rankings.  If a fragment does not meet the support threshold (95% in this case), it will be left as unclassified (NA).  
 
-Let's look at `abundance.species.csv`.  The file shows the abundance profiles for the species level.  The file shows that 65% of the reads belong to the species Methanobrevibacter smithii and 35% of the fragments were unclassified at the species level.
+Let's look at `output_profile/abundance.species.csv`. The file shows the abundance profiles for the species level.  The file shows that 65% of the reads belong to the species Methanobrevibacter smithii and 35% of the fragments were unclassified at the species level.
 ```
 taxa	abundance
 Methanobrevibacter smithii	0.6456
@@ -248,10 +253,15 @@ The general command for `run_abundance.py` is:
 run_abundance.py -f <fragment file> -d <output directory>
 ```
 
-The input fragment files must be in a format accepted by BLAST (i.e. a decompressed FASTA file with no spaces in the read names).
-The output are tab delimited files that estimate the abundance at a given taxonomic level. 
+The input fragment files must be a decompressed FASTA file with no spaces in the read names and meet any other naming restrictions required by BLAST.
+The output are tab delimited files that estimate the abundance at a given taxonomic level.
 
-By default, this command will use the reference dataset benchmarked in the 2020 paper. This is equivalent to specifying the option `-g markers-v3`; you can use the markers benchmarked in the 2014 paper by adding the `-G markers-v1` option.
+Recently, we have tried to improve the user experience by allowing a (gzip'ed or decompressed) FASTQ file to be given as input.
+Note that this option 
++ has not be widely tested yet and
++ requires a lot of storage... because it operates by creating a temporary file (i.e. a decompressed FASTA file) to be given to BLAST as input (note that this implementation is the result of BLAST not allowing compressed files and the `blastall` tool not currently being supported).
+
+By default, `run_abundance.py` will use the reference dataset benchmarked in the 2020 paper. This is equivalent to specifying the option `-g markers-v3`; you can use the markers benchmarked in the 2014 paper by adding the `-G markers-v1` option.
 
 For example, go to the `test/unittest/data/mock/mixed` directory 
 ```
@@ -330,7 +340,8 @@ Thus, specialized marker datasets can be generated for any organisms, not just b
 Task 5: Running a 16S amplicon analysis.
 ----------------------------------------
 
-Finally, we have included a 16S reference marker gene that can be used to analyze 16S amplicon data. Below is an example of running TIPP on 16S amplicon data.
+The 16S reference package has not been updated since 2014, so we caution against using this reference package. For completeness, we include the commands in the original TIPP tutorial.
+Below is an example of running TIPP on 16S amplicon data.
 ```
 run_tipp.py -R 16S-bacteria-v1/16S_bacteria \
             -f test/unittest/data/mock/16S_bacteria/human_gut_16S.fas \
