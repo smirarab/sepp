@@ -1,5 +1,5 @@
-from itertools import groupby
 import os
+import sys
 import tempfile
 import re
 import sepp
@@ -152,7 +152,7 @@ def build_profile(input, output_directory):
                 alignment_size = placement_size
 
         if placement_size is None:
-            #placement_size = max(default_subset_size, alignment_size)
+            # placement_size = max(default_subset_size, alignment_size)
             placement_size = 10000  # Needs to be large
 
         if alignment_size > total_taxa:
@@ -163,7 +163,9 @@ def build_profile(input, output_directory):
 
         if alignment_size != placement_size:
             if placement_size < total_taxa:
-                sys.exit("Alignment decomposition tree can be different from placement tree only if the placement subset size is set to the number of taxa")
+                sys.exit("Alignment decomposition tree can be different from"
+                         " placement tree only if the placement subset size"
+                         " is set to the number of taxa")
         if (refpkg[gene]["alignment-decomposition-tree"] ==
                 refpkg[gene]["placement-tree"]) or \
                 (placement_size == total_taxa):
@@ -342,10 +344,17 @@ def write_classification(class_input, output):
         class_out.write("%s\n" % "\t".join(class_input[frag]))
     class_out.close()
 
-# Fix problem with NA being unclassified -- 
-## @shahnidhi: The havenot_classified_at_lower_level varibale  keeps track of whether the NA is because it is unclassified or if the lineage doesn't have any label defined at that level. This was earlier artificially inflating the unclassified counts at that level
+
 def write_abundance(classifications, output_dir, labels=True,
                     remove_unclassified=True):
+    """
+    Note from Nam: Fix problem with NA being unclassified
+
+    @shahnidhi: The havenot_classified_at_lower_level varibale keeps track of
+    whether the NA is because it is unclassified or if the lineage doesn't
+    have any label defined at that level. This was earlier artificially
+    inflating the unclassified counts at that level
+    """
     global taxon_map, level_map, key_map, levels
 
     level_abundance = {
@@ -392,12 +401,14 @@ def write_abundance(classifications, output_dir, labels=True,
         f.write(''.join(lines))
         f.close()
 
+
 def generate_classification(class_input, threshold):
     global taxon_map, level_map, key_map, levels
 
     class_in = open(class_input, 'r')
     level_map_hierarchy = {"species": 0, "genus": 1, "family": 2, "order": 3,
                            "class": 4, "phylum": 5, "root": 6}
+
     # Need to keep track of last line so we can determine when we switch to
     # new classification
     old_name = ""
@@ -539,6 +550,7 @@ def fasta_iter(fasta_name):
         for line in fp:
             if line[0] == '>':
                 header = nextheader[1:]
+                header = header.split()[0].replace(':', '_')
                 seq = "".join(nextseq)
                 nextheader = line.strip()
                 nextseq = []

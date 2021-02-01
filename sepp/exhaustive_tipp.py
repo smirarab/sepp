@@ -352,7 +352,8 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_options(self, supply=[]):
         if options().reference_pkg is not None:
             self.load_reference(
-                os.path.join(options().reference.path, '%s.refpkg/' % options().reference_pkg))
+                os.path.join(options().reference.path,
+                             '%s.refpkg/' % options().reference_pkg))
         if (options().taxonomy_file is None):
             supply = supply + ["taxonomy file"]
         if options().taxonomy_name_mapping_file is None:
@@ -475,13 +476,12 @@ class TIPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             _LOG.info(
                 "Reading alignment decomposition input tree: %s" % (
                     self.options.alignment_decomposition_tree))
-            d_tree = PhylogeneticTree(
+            return PhylogeneticTree(
                 dendropy.Tree.get_from_stream(
                     self.options.alignment_decomposition_tree,
                     schema="newick",
                     preserve_underscores=True,
                     taxon_set=self.root_problem.subtree.get_tree().taxon_set))
-            return d_tree
 
 
 def augment_parser():
