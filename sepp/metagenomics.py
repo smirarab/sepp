@@ -557,6 +557,10 @@ def fasta_iter(fasta_name):
             else:
                 nextseq.append(line.strip())
 
+        header = nextheader[1:]
+        seq = "".join(nextseq)
+        yield header, seq
+
 
 def fastq_iter(fastq_name):
     """
