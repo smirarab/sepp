@@ -1,93 +1,98 @@
-------------------------------------
-Summary
-------------------------------------
-
-TIPP stands for `Taxonomic identification and phylogenetic profiling`, and so is a method for the following problems:
+Taxonomic Identification and Phylogenetic Profiling (TIPP)
+==========================================================
+TIPP is a method for the following problems:
 
 Taxonomic identification:
-- Input: A query sequence `q`
-- Output: The taxonomic lineage of `q`.
++ Input: A query sequence *q*
++ Output: The taxonomic lineage of *q*
 
 Abundance profiling:
-- Input: A set of query sequences `Q`
-- Output: An abundance profile estimated on `Q`
++ Input: A set *Q* of query sequences
++ Output: An abundance profile estimated on *Q*
 
+TIPP is a modification of SEPP for classifying query sequences (i.e. reads) using phylogenetic placement. TIPP inserts each read into a taxonomic tree and uses the insertion location to identify the taxonomic lineage of the read. The novel idea behind TIPP is that rather than using the single best alignment and placement for taxonomic identification, we use a collection of alignments and placements and consider statistical support for each alignment and placement. Our study shows that TIPP provides improved classification accuracy on novel sequences and on sequences with evolutionarily divergent datasets. TIPP can also be used for abundance estimation by computing an abundance profile on the reads binned to marker genes in a reference dataset. TIPP2 provides an new reference dataset with 40 marker genes, assembled from the NCBI RefSeq database (learn more [here](https://github.com/shahnidhi/TIPP_reference_package)). In addition, TIPP2 updates how query sequences (i.e. reads) are mapped to marker genes. This repository corresponds to TIPP2, and henceforth we use the terms TIPP and TIPP2 interchangeably.
 
-TIPP is a modification of SEPP for classifying query sequences using phylogenetic placement.  TIPP inserts the query sequences into a taxonomic tree and uses the insertion location to identify the reads.  The novel idea behind TIPP is that rather than using the single best alignment and placement for taxonomic identification, we use a collection of alignments and placements and consider statistical support for each alignment and placement.  Our study shows that TIPP provides improved classification accuracy on novel sequences and on sequences with evolutionarily divergent datasets.  TIPP can also be used for abundance estimation by computing an abundance profile on the reads binned to the 30 gene reference dataset.
+Developers of TIPP: Nam Nguyen, Siavash Mirarab, Nidhi Shah, Erin Molloy, and Tandy Warnow.
 
-Developers: Nam Nguyen, Siavash Mirarab, and Tandy Warnow.
+### Publications:
+Nguyen, Nam, Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow, "TIPP: Taxonomic identification and phylogenetic profiling," *Bioinformatics*, 2014. [doi:10.1093/bioinformatics/btu721](http://bioinformatics.oxfordjournals.org/content/30/24/3548.full.pdf).
 
-###Publication:
-Nguyen, Nam , Siavash Mirarab, Bo Liu, Mihai Pop, and Tandy Warnow. `TIPP: Taxonomic identification and phylogenetic profiling`. Bioinformatics (2014). [doi:10.1093/bioinformatics/btu721](http://bioinformatics.oxfordjournals.org/content/30/24/3548.full.pdf).
-
+Shah, Nidhi, Erin K. Molloy, Mihai Pop, and Tandy Warnow, "TIPP2: metagenomic taxonomic profiling using phylogenetic markers," *Bioinformatics*, 2020. [doi:10.1093/bioinformatics/btab023](https://doi.org/10.1093/bioinformatics/btab023)
 
 ### Note and Acknowledgment: 
 - TIPP bundles the following two programs into its distribution:
-  1. pplacer: http://matsen.fhcrc.org/pplacer/
-  2. hmmer: http://hmmer.janelia.org/
-  3. EPA: http://sco.h-its.org/exelixis/software.html
+	- pplacer: http://matsen.fhcrc.org/pplacer/
+	- hmmer: http://hmmer.janelia.org/
+	- EPA: http://sco.h-its.org/exelixis/software.html
 - TIPP uses the [Dendropy](http://pythonhosted.org/DendroPy/) package. 
 - TIPP uses some code from [SATe](http://phylo.bio.ku.edu/software/sate/sate.html).
 
 -------------------------------------
-Installation
--------------------------------------
-This section details steps for installing and running TIPP. We have run TIPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow, Nam Nguyen, or Siavash Mirarab).
+
+Installing TIPP
+===============
+This section details steps for installing and running TIPP. We have run TIPP on Linux and MAC. If you experience difficulty installing or running the software, please contact one of us (Tandy Warnow or Siavash Mirarab).
 
 Requirements:
--------------------
+-------------
 Before installing the software you need to make sure the following programs are installed on your machine.
 
-1. Python: Version > 2.7. 
-2. Java: Version > 1.5
-3. Blast: Version > 2.2.2
+- Python: Version > 2.7 
+- Java: Version > 1.5
+- Blast: Version > 2.2.2
 
 Installation Steps:
 -------------------
-TIPP is a part of the SEPP distribution package.  First install SEPP.  Once done, do the following. 
+TIPP is a part of the SEPP distribution package. First install SEPP. Once done, do the following. 
 
-1. Download the reference dataset available at https://github.com/tandyw/tipp-reference/releases/download/v2.0.0/tipp.zip
-2. Unzip it to a directory
-3. Set the environmental variables that will be used to create the configuration file.  The environmental variable can be set using the following command (shell-dependent)
-    `export VARIABLE_NAME=/path/to/file`  (bash shell)
-    `setenv VARIABLE_NAME /path/to/file` (tcsh shell)  
-    3a. Set the environment variable REFERENCE to point to the location of the reference directory (i.e., the location of the tipp folder generated from unzipping the tipp.zip file)
-    3b. Set the environment variable BLAST to point to the location of blastn
-4. Configure: run `python setup.py tipp` or `python setup.py tipp -c` (you should use `-c` if you used `-c` when you installed SEPP). 
-  
+1. Download and decompress the reference dataset available at [https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz](https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz).
+2. Set the environment variables (`REFERENCE` and `BLAST`) that will be used to create the configuration file. The `REFERENCE` environment variable should point to the location of the reference dataset (i.e. it should point to the `tipp2-refpkg` directory with its full path). The `BLAST` environment variable should to point to the location of the binary: `blastn`. Environment variables can be set using the following (shell-dependent) commands:
+	- `export VARIABLE_NAME=/path/to/file` (bash shell)
+	- `setenv VARIABLE_NAME /path/to/file` (tcsh shell)
+3. Create the TIPP configuration file by running the command: `python setup.py tipp` or `python setup.py tipp -c`. This  creates a `tipp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
 
-The last step creates a `tipp.config` config file. It is important that you use `-c` here if you used `-c` when installing SEPP and otherwise, not use `-c`. 
 
 Common Problems:
--------------------
-1.  TIPP requires SEPP to be installed.  If TIPP is not running, first check to see if TIPP was installed correctly.
+----------------
+1. TIPP requires SEPP to be installed. If TIPP is not running, first check to see if SEPP was installed correctly by typing `run_sepp.py -h` to see it's user options.
+2. If you are installing sepp with the `--user` flag, then you may need to set your `PYTHONPATH` environmental variable. To run TIPP, you may also need to include your python bin directory in your `PATH` environmental variable. If you are having issues installing or running sepp, try adding the following lines to your bash profile file `~/.bash_profile`:
+```
+export PYTHONPATH="$HOME/.local/lib/python3.7/site-packages:$PYTHONPATH"
+export PATH="$HOME/.local/bin:$PATH"
+```
+where `3.7` is replaced with the version of python that you are running.
 
-2.  TIPP relies on blastn for the binning of metagenomic reads.  This needs to be installed separately.  To point BLAST to your installation of blastn, modify ~/.sepp/tipp.config. 
-   blast: http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download
+3. Several cluster systems that we have worked on have different commands to run different versions of python e.g. `python` runs python version 2.X and `python3` runs python version 3.Y. In this scenario, you need to be careful to be consistent with the python command (e.g. `python` or `python3`) when installing/configuring sepp and tipp.
 
-3.  TIPP performs abundance profiling uses a set of 30 marker genes.  This needs to be downloaded separately.  Download the reference dataset and unzip it to a directory.  Point the REFERENCE environment variable to this directory before installing TIPP.  You can manually point TIPP to the reference directory by modifying the ~/.sepp/tipp.config file. 
-   
+4. TIPP relies on `blastn` for the binning of metagenomic reads, so BLAST needs to be downloaded and installed separately (learn more [here](http://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)). Then, point the `BLAST` environment variable to your installation of `blastn`. Alternatively, you can manually point TIPP to the `blastn` installation by modifying the `tipp.config` file. 
+
+5. TIPP performs abundance profiling uses a set of 40 marker genes. This reference dataset needs to be downloaded separately from [here](https://obj.umiacs.umd.edu/tipp/tipp2-refpkg.tar.gz). Then, point the `REFERENCE` environment variable to the decompressed directory before installing TIPP. Alternatively, you can manually point TIPP to the reference dataset by modifying the `tipp.config` file. 
+
 ---------------------------------------------
+
 Running TIPP
----------------------------------------------
-To run TIPP, invoke the `run_tipp.py` script from the `bin` sub-directory of the location in which you installed the Python packages. To see options for running the script, use the command:
-
-`python <bin>/run_tipp.py -h`
-
+============
 TIPP is a general pipeline for classifying reads belonging to a specific marker gene.  We provide precomputed marker gene datasets for a collection of genes found in the tipp.zip archive.  
 
 The general command for running TIPP for a specific marker is:
 
-`python <bin>/run_tipp.py -R <reference_marker> -f <fragment_file>`
+`run_tipp.py -R <reference_marker> -f <fragment_file>`
 
-The main output of TIPP is a _classification.txt file that annotation for each read.  In addition, TIPP outputs a .json file with the placements, created according to pplacer format. Please refer to pplacer website (currently http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the format of the josn file. Also note that pplacer package provides a program called guppy that can read .json files and perform downstream steps such as visualization.
+To see options for running the script, use the command:
 
-In addition to the .json file, TIPP outputs alignments of fragments to reference sets. There could be multiple alignment files created, each corresponding to a different placement subset. 
+`run_tipp.py -h`
 
-By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
+The main output of TIPP is a `_classification.txt` file that annotation for each read. 
+TIPP also outputs other information about the fragments, including the alignments (note that there could be multiple alignment files created, each corresponding to a different placement subset) as well as the phylogenetic placements.
+Placements are given in the `.json` file, created according to *pplacer* format. Please refer to [pplacer website](http://matsen.github.com/pplacer/generated_rst/pplacer.html#json-format-specification) for more information on the form at of the `.json` file. Also note that *pplacer* package provides a program called *guppy* that can read `.json` files and  perform downstream steps such as visualization.
+
+By setting `SEPP_DEBUG` environment variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
+
+This [tutorial](tutorial/tipp-tutorial.md) contains examples of running TIPP for read classification as well as abundance profiling using the script `run_abundance.py`.
 
 ---------------------------------------------
+
 Bugs and Errors
----------------------------------------------
-TIPP is under active research development at UIUC by the Warnow Lab (and especially with her former PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (ndn006@eng.ucsd.edu).
+===============
+TIPP is under active research development at UIUC by the Warnow Lab. Please report any errors to Tandy Warnow (warnow@illinois.edu) and Siavash Mirarab (smirarab@ucsd.edu).
 
