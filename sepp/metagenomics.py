@@ -1,4 +1,6 @@
+import gzip
 import os
+import sys
 import tempfile
 import re
 import sepp
@@ -10,31 +12,90 @@ Collection of functions for metagenomic pipeline for taxonomic classification
 Created on June 3, 2014
 
 @author: namphuon
+
+Edited on June 9, 2020 by ekmolloy and shahnidhi
 '''
-global character_map, taxon_map, level_map, key_map, marker_genes, cog_genes
+global character_map, taxon_map, level_map, key_map, refpkg
 character_map = {'A': 'T', 'a': 't', 'C': 'G', 'c': 'g', 'T': 'A',
                  't': 'a', 'G': 'C', 'g': 'c', '-': '-'}
 global levels
 levels = ["species", "genus", "family", "order", "class", "phylum"]
-marker_genes = [
-    "nusA", "rplB", "rplK", "rplS", "rpsE", "rpsS",  "pgk", "rplC", "rplL",
-    "rplT", "rpsI", "smpB", "dnaG", "pyrg",  "rplD", "rplM", "rpmA", "rpsJ",
-    "frr", "pyrG1", "rplE", "rplN",  "rpsB", "rpsK", "infC", "rplA", "rplF",
-    "rplP", "rpsC", "rpsM"]
-cog_genes = [
-    "COG0049", "COG0088", "COG0094", "COG0100", "COG0184", "COG0201",
-    "COG0522", "COG0012", "COG0052", "COG0090", "COG0096", "COG0102",
-    "COG0185", "COG0202", "COG0525", "COG0016", "COG0080", "COG0091",
-    "COG0097", "COG0103", "COG0186", "COG0215", "COG0533", "COG0018",
-    "COG0081", "COG0092", "COG0098", "COG0124", "COG0197", "COG0256",
-    "COG0541", "COG0048", "COG0087", "COG0093", "COG0099", "COG0172",
-    "COG0200", "COG0495", "COG0552"]
+
+
+def to_fasta(input, temp_dir):
+    iszipped = False
+    try:
+        fp = gzip.open(input, 'r')
+        line = fp.readline().decode('utf-8')
+        iszipped = True
+    except OSError:
+        fp = open(input, 'r')
+        line = fp.readline()
+    fp.close()
+
+    if line[0] == '>':
+        if iszipped:
+            print("Input is gzip'ed FASTA file, "
+                  "creating a decompressed version")
+            fiter = fastagz_iter(input)
+        else:
+            print("Input is FASTA file, proceeding to run BLAST")
+            return input
+    elif line[0] == '@':
+        if iszipped:
+            print("Input is gzip'ed FASTQ file, "
+                  "creating a decompressed FASTA-formatted version")
+            fiter = fastqgz_iter(input)
+        else:
+            print("Input is FASTQ file, "
+                  "creating a FASTA-formatted version")
+            fiter = fastq_iter(input)
+
+    # Create a new input file
+    new_input = temp_dir + '/' + input.split('.', 1)[0] + ".fasta"
+    with open(new_input, 'w') as fp:
+        for ff in fiter:
+            fp.write('>' + ff[0] + '\n')
+            fp.write(ff[1] + '\n')
+
+    return new_input
+
+
+def load_reference_package():
+    global refpkg
+
+    refpkg = {}
+
+    path = os.path.join(options().__getattribute__('reference').path,
+                        options().genes)
+    input = os.path.join(path, "file-map-for-tipp.txt")
+
+    refpkg["genes"] = []
+    with open(input) as f:
+        for line in f.readlines():
+            [key, val] = line.split('=')
+
+            [key1, key2] = key.strip().split(':')
+            val = os.path.join(path, val.strip())
+
+            try:
+                refpkg[key1][key2] = val
+            except KeyError:
+                refpkg[key1] = {}
+                refpkg[key1][key2] = val
+
+            if (key1 != "blast") and (key1 != "taxonomy"):
+                refpkg["genes"].append(key1)
+
+    refpkg["genes"] = set(refpkg["genes"])
+    refpkg["genes"] = list(refpkg["genes"])
 
 
 # TODO Fix parameter passing
 # TODO Make taxonomy loading a class
 def load_taxonomy(taxonomy_file, lower=True):
     global taxon_map, level_map, key_map
+
     f = open(taxonomy_file, 'r')
 
     # First line is the keywords for the taxonomy, need to map the keyword to
@@ -69,130 +130,165 @@ def load_taxonomy(taxonomy_file, lower=True):
 
 
 def build_profile(input, output_directory):
-    global taxon_map, level_map, key_map, levels
+    global taxon_map, level_map, key_map, levels, refpkg
+
     temp_dir = tempfile.mkdtemp(dir=options().__getattribute__('tempdir'))
-    if (options().bin == 'blast'):
-        binned_fragments = blast_to_markers(input, temp_dir)
-    else:
+
+    # New option to allow fastq files as input
+    input = to_fasta(input, temp_dir)
+
+    if (options().bin == "hmmer"):
         binned_fragments = hmmer_to_markers(input, temp_dir)
+    else:
+        binned_fragments = blast_to_markers(input, temp_dir)
+
+    for gene in refpkg["genes"]:
+        try:
+            if binned_fragments[gene]["nfrags"] == 0:
+                del binned_fragments[gene]
+        except KeyError:
+            pass
+
+    if options().gene is not None:
+        keep = set(options().gene.split(','))
+        for gene in refpkg["genes"]:
+            if gene not in keep:
+                try:
+                    del binned_fragments[gene]
+                    print("Removed reads that hit %s" % gene)
+                except KeyError:
+                    pass
 
     if binned_fragments:
         print("Finished binning")
     else:
         print("Unable to bin any fragments!\n")
+        with open(output_directory + "/abundance.phylum.csv", 'w') as f:
+            f.write("Unable to create an abundance profile, because"
+                    " none of the input sequences mapped to the"
+                    " marker gene(s).")
         return
 
-    # load up taxonomy for 30 marker genes
-    if (options().genes == 'markers'):
-        (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(
-            options().reference.path, 'refpkg/rpsB.refpkg/all_taxon.taxonomy'))
-    else:
-        (taxon_map, level_map, key_map) = load_taxonomy(os.path.join(
-            options().reference.path,
-            'refpkg/COG0012.refpkg/all_taxon.taxonomy'))
+    # Load up taxonomy for marker genes
+    (taxon_map, level_map, key_map) = \
+        load_taxonomy(refpkg["taxonomy"]["taxonomy"])
 
-    # all classifications stored here
+    # Store all classifications here
     classifications = {}
     classification_files = []
-    # Now run TIPP on each fragment
-    gene_name = 'sate'
-    if (options().genes == 'cogs'):
-        gene_name = 'pasta'
-    for (gene, frags) in binned_fragments.items():
-        # Get size of each marker
-        total_taxa = 0
-        with open(os.path.join(options().__getattribute__('reference').path,
-                  'refpkg/%s.refpkg/%s.size' % (gene, gene_name)), 'r') as f:
+
+    # Run TIPP on each fragment
+    for gene in binned_fragments.keys():
+        # Set placement subset size to equal the size of each marker
+        with open(refpkg[gene]["size"], 'r') as f:
             total_taxa = int(f.readline().strip())
-        decomp_size = options().alignment_size
-        if (decomp_size > total_taxa):
-            decomp_size = int(total_taxa / 2)
+        default_subset_size = int(total_taxa * 0.10)
+
+        # Set alignment size and placement size
+        alignment_size = options().alignment_size
+        placement_size = options().placement_size
+
+        if alignment_size is None:
+            if placement_size is None:
+                alignment_size = default_subset_size
+            else:
+                alignment_size = placement_size
+
+        if placement_size is None:
+            # placement_size = max(default_subset_size, alignment_size)
+            placement_size = 10000  # Needs to be large
+
+        if alignment_size > total_taxa:
+            alignment_size = total_taxa
+
+        if placement_size > total_taxa:
+            placement_size = total_taxa
+
+        if alignment_size != placement_size:
+            if placement_size < total_taxa:
+                sys.exit("Alignment decomposition tree can be different from"
+                         " placement tree only if the placement subset size"
+                         " is set to the number of taxa")
+        if (refpkg[gene]["alignment-decomposition-tree"] ==
+                refpkg[gene]["placement-tree"]) or \
+                (placement_size == total_taxa):
+            pass
+        else:
+            print("Alignment decomposition tree can be different from"
+                  " placement tree only if the placement subset size"
+                  " is set to the number of taxa"
+                  " (note: marker %s has %d taxa)" % (gene, total_taxa))
+            return
+
+        # Set number of CPUS
         cpus = options().cpu
-        if (len(frags) < cpus):
-            cpus = len(frags)
+        if binned_fragments[gene]["nfrags"] < cpus:
+            cpus = binned_fragments[gene]["nfrags"]
+
+        # Set extra arguments
         extra = ''
         if options().dist is True:
-            extra = '-D'
+            extra = "-D"
         if options().max_chunk_size is not None:
-            extra = extra + '-F %d' % options().max_chunk_size
+            extra = extra + "-F %d" % options().max_chunk_size
         if options().cutoff != 0:
-            extra = extra+" -C %f" % options().cutoff
-        print(
-            ('Cmd:\nrun_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a '
-             '%s -r %s -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s '
-             '-o %s -d %s %s') %
-            (options().config_file.name,
-             cpus,
-             options().molecule,
-             temp_dir+"/%s.frags.fas.fixed" % gene,
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.taxonomy' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.tree' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.fasta' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.taxonomy.RAxML_info' % (
-                            gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/all_taxon.taxonomy' % gene),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/species.mapping' % gene),
-             options().alignment_threshold,
-             0,
-             decomp_size,
-             total_taxa,
-             temp_dir+"/temp_file",
-             "tipp_%s" % gene,
-             output_directory+"/markers/",
-             extra))
+            extra = extra + " -C %f" % options().cutoff
 
-        os.system(
-            ('run_tipp.py -c %s --cpu %s -m %s -f %s -t %s -adt %s -a %s -r %s'
-             ' -tx %s -txm %s -at %0.2f -pt %0.2f -A %d -P %d -p %s -o %s -d '
-             '%s %s') %
-            (options().config_file.name,
-             cpus,
-             options().molecule,
-             temp_dir+"/%s.frags.fas.fixed" % gene,
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.taxonomy' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.tree' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.fasta' % (gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/%s.taxonomy.RAxML_info' % (
-                            gene, gene_name)),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/all_taxon.taxonomy' % gene),
-             os.path.join(options().__getattribute__('reference').path,
-                          'refpkg/%s.refpkg/species.mapping' % gene),
-             options().alignment_threshold,
-             0,
-             decomp_size,
-             total_taxa,
-             temp_dir+"/temp_file",
-             "tipp_%s" % gene,
-             output_directory+"/markers/",
-             extra))
-        if (not os.path.exists(output_directory +
-                               "/markers/tipp_%s_classification.txt" % gene)):
+        cmd = "run_tipp.py " \
+            + " -c " + tipp_config_path \
+            + " --cpu " + str("%d" % cpus) \
+            + " -m " + options().molecule \
+            + " -f " + binned_fragments[gene]["file"] \
+            + " -t " + refpkg[gene]["placement-tree"] \
+            + " -adt " + refpkg[gene]["alignment-decomposition-tree"] \
+            + " -a " + refpkg[gene]["alignment"] \
+            + " -r " + refpkg[gene]["raxml-info-for-placement-tree"] \
+            + " -tx " + refpkg["taxonomy"]["taxonomy"] \
+            + " -txm " + refpkg[gene]["seq-to-taxid-map"] \
+            + " -at " + str("%0.2f" % options().alignment_threshold) \
+            + " -pt 0.0" \
+            + " -A " + str("%d" % alignment_size) \
+            + " -P " + str("%d" % placement_size) \
+            + " -p " + temp_dir + "/temp_file" \
+            + " -o tipp_" + gene \
+            + " -d " + output_directory + "/markers/ " \
+            + extra
+
+        print(cmd)
+        os.system(cmd)
+
+        tipp_output = output_directory + "/markers/tipp_" + gene \
+            + "_classification.txt"
+
+        if (not os.path.exists(tipp_output)):
             continue
 
+        classification_files.append(tipp_output)
+
         gene_classification = generate_classification(
-            output_directory + "/markers/tipp_%s_classification.txt" % gene,
+            tipp_output,
             options().placement_threshold)
-        classification_files.append(
-            output_directory + "/markers/tipp_%s_classification.txt" % gene)
-        # Now write individual classification and also pool classifications
+
+        # Apply placement threshold to classification data
+        gene_classification_output = output_directory \
+            + "/markers/tipp_" + gene + "_classification_" \
+            + str("%0.2f" % options().placement_threshold) + ".txt"
+
+        gene_classification = generate_classification(
+            tipp_output,
+            options().placement_threshold)
+
         write_classification(
             gene_classification,
-            output_directory + "/markers/tipp_%s.classification" % gene)
+            gene_classification_output)
+
+        # Pool classification
         classifications.update(gene_classification)
+
     remove_unclassified_level(classifications)
-    write_classification(classifications,
-                         output_directory+"/markers/all.classification")
+    write_classification(
+        classifications,
+        output_directory + "/markers/all.classification")
     write_abundance(classifications, output_directory)
 
     if (options().dist is True):
@@ -201,6 +297,7 @@ def build_profile(input, output_directory):
 
 def distribution(classification_files, output_dir):
     global taxon_map, level_map, key_map, levels, level_names
+
     distribution = {"species": {}, "genus": {}, "family": {}, "order": {},
                     "class": {}, "phylum": {}}
     total_frags = 0
@@ -271,6 +368,7 @@ def distribution(classification_files, output_dir):
 
 def remove_unclassified_level(classifications, level=6):
     global taxon_map, level_map, key_map, levels
+
     frags = list(classifications.keys())
     for frag in frags:
         if classifications[frag][level] == 'NA':
@@ -278,7 +376,8 @@ def remove_unclassified_level(classifications, level=6):
 
 
 def write_classification(class_input, output):
-    '''Writes a classification file
+    '''
+    Writes a classification file
     '''
     class_out = open(output, 'w')
     class_out.write("fragment\tspecies\tgenus\tfamily\torder\tclass\tphylum\n")
@@ -289,9 +388,16 @@ def write_classification(class_input, output):
     class_out.close()
 
 
-# Fix problem with NA being unclassified
 def write_abundance(classifications, output_dir, labels=True,
                     remove_unclassified=True):
+    """
+    Note from Nam: Fix problem with NA being unclassified
+
+    @shahnidhi: The havenot_classified_at_lower_level varibale keeps track of
+    whether the NA is because it is unclassified or if the lineage doesn't
+    have any label defined at that level. This was earlier artificially
+    inflating the unclassified counts at that level
+    """
     global taxon_map, level_map, key_map, levels
 
     level_abundance = {
@@ -302,14 +408,21 @@ def write_abundance(classifications, output_dir, labels=True,
                    5: 'class', 6: 'phylum'}
     for lineage in classifications.values():
         # insert into level map
+        havenot_classified_at_lower_level = True
         for level in range(1, 7):
             if (lineage[level] == 'NA'):
-                if ('unclassified' not in level_abundance[level]):
-                    level_abundance[level]['unclassified'] = 0
-                level_abundance[level]['unclassified'] += 1
+                if havenot_classified_at_lower_level:
+                    if ('unclassified' not in level_abundance[level]):
+                        level_abundance[level]['unclassified'] = 0
+                    level_abundance[level]['unclassified'] += 1
+                else:
+                    if ('' not in level_abundance[level]):
+                        level_abundance[level][''] = 0
+                    level_abundance[level][''] += 1
                 level_abundance[level]['total'] += 1
                 # continue
             else:
+                havenot_classified_at_lower_level = False
                 if (lineage[level] not in level_abundance[level]):
                     level_abundance[level][lineage[level]] = 0
                 level_abundance[level][lineage[level]] += 1
@@ -322,7 +435,7 @@ def write_abundance(classifications, output_dir, labels=True,
             if clade == 'total':
                 continue
             name = clade
-            if labels and name != 'unclassified':
+            if labels and name != 'unclassified' and name != "":
                 name = taxon_map[clade][key_map['tax_name']]
             lines.append('%s\t%0.4f\n' % (
                 name, float(level_abundance[level][clade]) / level_abundance[
@@ -334,9 +447,11 @@ def write_abundance(classifications, output_dir, labels=True,
 
 def generate_classification(class_input, threshold):
     global taxon_map, level_map, key_map, levels
+
     class_in = open(class_input, 'r')
     level_map_hierarchy = {"species": 0, "genus": 1, "family": 2, "order": 3,
                            "class": 4, "phylum": 5, "root": 6}
+
     # Need to keep track of last line so we can determine when we switch to
     # new classification
     old_name = ""
@@ -406,7 +521,8 @@ def generate_classification(class_input, threshold):
 
 
 def hmmer_to_markers(input, temp_dir):
-    global marker_genes
+    global refpkg
+
     fragments = MutableAlignment()
     fragments.read_filepath(input)
 
@@ -415,26 +531,18 @@ def hmmer_to_markers(input, temp_dir):
     all_frags = MutableAlignment()
     all_frags.set_alignment(fragments)
     all_frags.set_alignment(reverse)
-    frag_file = temp_dir+"/frags.fas"
+    frag_file = temp_dir + "/frags.fas"
     _write_fasta(all_frags, frag_file)
 
     # Now bin the fragments
     frag_scores = dict([(name, [-10000, 'NA', 'NA'])
                         for name in fragments.keys()])
-    gene_set = marker_genes
-    align_name = 'sate'
-    if (options().genes == 'cogs'):
-        gene_set = cog_genes
-        align_name = 'pasta'
-    for gene in gene_set:
+
+    for gene in refpkg["genes"]:
         # Now run HMMER search
-        hmmer_search(
-            frag_file,
-            os.path.join(
-                options().__getattribute__('reference').path,
-                'refpkg/%s.refpkg/%s.profile' % (gene, align_name)),
-            temp_dir + "/%s.out" % gene)
-        results = read_hmmsearch_results(temp_dir + "/%s.out" % gene)
+        hmmer_output = temp_dir + '/' + gene + ".out"
+        hmmer_search(frag_file, refpkg[gene]["hmm"], hmmer_output)
+        results = read_hmmsearch_results(hmmer_output)
 
         # Now select best direction for each frag
         for name, value in results.items():
@@ -456,71 +564,209 @@ def hmmer_to_markers(input, temp_dir):
             genes[val[1]][name] = fragments[name]
         else:
             genes[val[1]][name] = reverse_sequence(fragments[name])
+
     genes.pop("NA", None)
+
     for gene, seq in genes.items():
-        gene_file = temp_dir + "/%s.frags.fas" % gene
-        _write_fasta(seq, gene_file + ".fixed")
-    return genes
+        gene_file = temp_dir + '/' + gene + ".frags.fas.fixed"
+        _write_fasta(seq, gene_file)
+
+    binned_fragments = {}
+    for gene, seq in genes.items():
+        binned_fragments[gene] = {}
+        binned_fragments[gene]["file"] = temp_dir + '/' + gene \
+            + ".frags.fas.fixed"
+        binned_fragments[gene]["nfrags"] = len(seq.keys())
+
+    return binned_fragments
+
+
+def fasta_iter(fasta_name):
+    with open(fasta_name, 'r') as fp:
+        xline = fp.readline().strip()
+        # if line[0] != '>':
+        #     raise("Unable to read %s" % fasta_name)
+        nextheader = xline
+        nextseq = []
+
+        for line in fp:
+            xline = line.strip()
+            if xline[0] == '>':
+                header = nextheader[1:].split(' ')[0]
+                seq = "".join(nextseq)
+                nextheader = xline
+                nextseq = []
+                yield header, seq
+            else:
+                nextseq.append(xline)
+
+        header = nextheader[1:]
+        seq = "".join(nextseq)
+        yield header, seq
+
+
+def fastagz_iter(fasta_name):
+    with gzip.open(fasta_name, 'r') as fp:
+        xline = fp.readline().decode('utf-8').strip()
+        # if line[0] != '>':
+        #     raise("Unable to read %s" % fasta_name)
+        nextheader = xline
+        nextseq = []
+
+        for line in fp:
+            xline = line.decode('utf-8').strip()
+            print(xline)
+            if xline[0] == '>':
+                header = nextheader[1:].split(' ')[0]
+                seq = "".join(nextseq)
+                nextheader = xline
+                nextseq = []
+                yield header, seq
+            else:
+                nextseq.append(xline)
+
+        header = nextheader[1:]
+        seq = "".join(nextseq)
+        yield header, seq
+
+
+def fastq_iter(fastq_name):
+    """
+    Function from Nidhi Shah:
+    https://github.com/shahnidhi/tipp2_scripts/blob/master/get_marker_assignment.py
+    """
+    with open(fastq_name, 'r') as fp:
+        for i, line in enumerate(fp):
+            xline = line.strip()
+            if i % 4 == 0:
+                # First line is name
+                header = xline[1:].split(' ')[0]
+            elif i % 4 == 1:
+                # Second line is sequence
+                seq = xline
+            elif i % 4 == 2:
+                # Third line is '+'
+                continue
+            else:
+                # Fourth line is quality
+                yield header, seq
+
+
+def fastqgz_iter(fastq_name):
+    with gzip.open(fastq_name, 'r') as fp:
+        for i, line in enumerate(fp):
+            xline = line.decode('utf-8').strip()
+            if i % 4 == 0:
+                # First line is name
+                header = xline[1:].split(' ')[0]
+            elif i % 4 == 1:
+                # Second line is sequence
+                seq = xline
+            elif i % 4 == 2:
+                # Third line is '+'
+                continue
+            else:
+                # Fourth line is quality
+                yield header, seq
 
 
 def blast_to_markers(input, temp_dir):
-    fragments = MutableAlignment()
-    fragments.read_filepath(input)
+    """
+    Function based on:
+    https://github.com/shahnidhi/tipp2_scripts/blob/master/get_marker_assignment.py
+    """
+    global refpkg
 
-    if (options().gene is None):
-        # First blast sequences against all markers
-        blast_results = temp_dir + "/blast.out"
-        if (options().blast_file is None):
-            print("Blasting fragments against marker dataset\n")
-            blast_fragments(input, blast_results)
-        else:
-            blast_results = options().blast_file
-        # Next bin the blast hits to the best gene
-        gene_binning = bin_blast_results(blast_results)
+    # Handle input
+    with open(input, 'r') as fp:
+        line = fp.readline()
+    if line[0] != '>':
+        sys.exit("%s is not a FASTA file; please reformat for BLAST." % input)
+    if len(line.split(" ")) > 1:
+        sys.exit("%s contains spaces; please reformat for BLAST." % input)
+
+    # First blast sequences against all markers
+    blast_results = temp_dir + "/blast.out"
+    if (options().blast_file is None):
+        print("Blasting fragments against marker dataset\n")
+        blast_fragments(input, blast_results)
     else:
-        gene_binning = {options().gene: list(fragments.keys())}
-    # Now figure out direction of fragments
-    binned_fragments = dict([
-        (gene, dict([(seq_name, fragments[seq_name])
-                     for seq_name in gene_binning[gene]]))
-        for gene in gene_binning])
-    print("Finding best orientation of reads\n")
-    align_name = 'sate'
-    if (options().genes == 'cogs'):
-        align_name = 'pasta'
-    for (gene, frags) in binned_fragments.items():
-        # Add reverse complement sequence
-        frags_rev = dict([(name + '_rev', reverse_sequence(seq))
-                          for (name, seq) in frags.items()])
-        gene_frags = MutableAlignment()
-        gene_frags.set_alignment(frags)
-        gene_frags.set_alignment(frags_rev)
-        gene_file = temp_dir + "/%s.frags.fas" % gene
-        _write_fasta(gene_frags, gene_file)
+        blast_results = options().blast_file
 
-        # Now run HMMER search
-        hmmer_search(
-            gene_file,
-            os.path.join(
-                options().__getattribute__('reference').path,
-                'refpkg/%s.refpkg/%s.hmm' % (gene, align_name)),
-            temp_dir + "/%s.out" % gene)
-        results = read_hmmsearch_results(temp_dir + "/%s.out" % gene)
+    # Next bin the blast hits to the best gene
+    hitinfo = bin_blast_results(blast_results)
 
-        # Now select best direction for each frag
-        for key in frags:
-            forward_score = -10000
-            backward_score = -10000
-            if (key in results):
-                forward_score = results[key][1]
-            if (key+"_rev" in results):
-                backward_score = results[key + "_rev"][1]
-            if (backward_score > forward_score):
-                frags[key] = gene_frags[key + "_rev"]
+    binned_fragments = {}
+    for gene in refpkg["genes"]:
+        binned_fragments[gene] = {}
+        binned_fragments[gene]["file"] = temp_dir + '/' + gene \
+            + ".frags.fas.fixed"
+        binned_fragments[gene]["fptr"] = \
+            open(binned_fragments[gene]["file"], 'w')
+        binned_fragments[gene]["nfrags"] = 0
 
-        # Now write to file
-        _write_fasta(frags, gene_file + ".fixed")
-        binned_fragments[gene] = frags
+    f = open(temp_dir + "/blast-binned.out", 'w')
+    f.write("qseqid,sseqid,marker,trim_qstart,trim_qend,qlen\n")
+
+    # if input.lower().endswith((".fastq", ".fq")):
+    #     fiter = fastq_iter(input)
+    # elif input.lower().endswith((".fasta", ".fas", ".fa", ".fna")):
+    fiter = fasta_iter(input)
+
+    for ff in fiter:
+        header = ff[0]
+        seq = ff[1]
+
+        found = True
+        try:
+            gene = hitinfo[header]["gene"]
+        except KeyError:
+            found = False
+
+        if found:
+            sseqid = hitinfo[header]["sseqid"]
+            qstart = hitinfo[header]["qstart"]
+            qend = hitinfo[header]["qend"]
+            qlen = hitinfo[header]["qlen"]
+            sstart = hitinfo[header]["sstart"]
+            send = hitinfo[header]["send"]
+            slen = hitinfo[header]["slen"]
+
+            trim_qstart = 0
+            trim_qend = qlen
+            if not options().no_trim:
+                extra_qstart = qstart - 1
+                extra_qend = qlen - qend
+
+                if sstart < send:
+                    extra_sstart = sstart - 1
+                    extra_send = slen - send
+                else:
+                    extra_sstart = slen - sstart
+                    extra_send = send - 1
+
+                if extra_qstart > 2 * extra_sstart:
+                    trim_qstart = qstart - 1
+                    seq = seq[trim_qstart:]
+
+                if extra_qend > 2 * extra_send:
+                    trim_qend = qend
+                    seq = seq[:trim_qend]
+
+            if sstart > send:
+                seq = reverse_sequence(seq)
+
+            binned_fragments[gene]["fptr"].write('>' + header + '\n')
+            binned_fragments[gene]["fptr"].write(seq + '\n')
+            binned_fragments[gene]["nfrags"] += 1
+            f.write(header + ',' + sseqid + ',' + gene + ','
+                    + str(trim_qstart + 1) + ',' + str(trim_qend) + ','
+                    + str(qlen) + '\n')
+
+    for gene in refpkg["genes"]:
+        binned_fragments[gene]["fptr"].close()
+    f.close()
+
     return binned_fragments
 
 
@@ -564,54 +810,105 @@ def read_mapping(input, header=False, delimiter='\t'):
 
 
 def bin_blast_results(input):
-    # Map the blast results to the markers
-    gene_mapping = read_mapping(
-        os.path.join(
-            options().__getattribute__('reference').path,
-            'blast/%s/seq2marker.tab' % options().genes))
+    global refpkg
 
-    genes = {}
+    # Map the blast results to the markers
+    gene_mapping = read_mapping(refpkg["blast"]["seq-to-marker-map"])
+
+    hitinfo = {}
+
     with open(input) as f:
+        # BLAST output contains reads sorted in ascending order by bitscore
         for line in f:
             results = line.split('\t')
-            gene = gene_mapping[results[1]][1]
-            if gene in genes:
-                genes[gene].append(results[0])
-            else:
-                genes[gene] = [results[0]]
-    return genes
+
+            qseqid = results[0]
+            sseqid = results[1]
+            # pident = float(results[2])
+            # length = int(results[3])
+            # mismatch = int(results[4])
+            # gapopen = int(results[5])
+            qstart = int(results[6])
+            qend = int(results[7])
+            qlen = int(results[8])
+            sstart = int(results[9])
+            send = int(results[10])
+            slen = int(results[11])
+            # evalue = float(results[12])
+            # bitscore = float(results[13].strip())
+            qcov = abs(qend - qstart) + 1
+
+            update = False
+            if qcov >= options().blast_threshold:
+                try:
+                    if hitinfo[qseqid]["qcov"] < qcov:
+                        update = True
+                except KeyError:
+                    hitinfo[qseqid] = {}
+                    update = True
+
+            if update:
+                hitinfo[qseqid]["sseqid"] = sseqid
+                hitinfo[qseqid]["gene"] = gene_mapping[sseqid][1]
+                hitinfo[qseqid]["qstart"] = qstart
+                hitinfo[qseqid]["qend"] = qend
+                hitinfo[qseqid]["qlen"] = qlen
+                hitinfo[qseqid]["sstart"] = sstart
+                hitinfo[qseqid]["send"] = send
+                hitinfo[qseqid]["slen"] = slen
+                hitinfo[qseqid]["qcov"] = qcov
+
+    return hitinfo
 
 
 def hmmer_search(input, hmmer, output):
-    '''Blast the fragments against all marker genes+16S sequences, return
-    output'''
-    os.system('%s --noali -E 10000 --cpu %d -o %s %s %s' % (
-        options().__getattribute__('hmmsearch').path,
-        options().cpu, output, hmmer, input))
+    cmd = options().__getattribute__('hmmsearch').path \
+              + " --noali -E 10000 " \
+              + " --cpu " + str("%d" % options().cpu) \
+              + " -o " + output \
+              + " " + hmmer \
+              + " " + input
+
+    print(cmd)
+    os.system(cmd)
 
 
 def blast_fragments(input, output):
     '''Blast the fragments against all marker genes+16S sequences, return
     output'''
-    os.system(
-        ('%s -db %s -outfmt 6 -query %s -out %s -num_threads %d '
-         '-max_target_seqs 1 ') %
-        (options().__getattribute__('blast').path,
-         os.path.join(
-            options().__getattribute__('reference').path,
-            "blast/%s/alignment.fasta.db" % options().genes),
-         input, output, options().cpu))
+    global refpkg
+
+    blastn = options().__getattribute__('blast').path
+
+    cmd = blastn + " -db " + refpkg["blast"]["database"] \
+                 + " -outfmt \"6" \
+                 + " qseqid sseqid pident length mismatch gapopen" \
+                 + " qstart qend qlen sstart send slen evalue bitscore\"" \
+                 + " -query " + input \
+                 + " -out " + output \
+                 + " -num_threads " + str("%d" % options().cpu)
+
+    print(cmd)
+    os.system(cmd)
 
 
 def reverse_sequence(sequence):
     global character_map
+
     #  Reverse complement the sequence
     return "".join([character_map.get(a, a) for a in sequence[::-1]])
 
 
 def augment_parser():
-    # default_settings['DEF_P'] = (100 , "Number of taxa (i.e.
-    # no decomposition)")
+    global tipp_config_path
+
+    # Process TIPP config file
+    root_p = open(os.path.join(os.path.split(
+        os.path.split(__file__)[0])[0], "home.path")).readlines()[0].strip()
+    tipp_config_path = os.path.join(root_p, "tipp.config")
+    sepp.config.set_main_config_path(tipp_config_path)
+
+    # Process TIPP command line options
     parser = sepp.config.get_parser()
 
     tippGroup = parser.add_argument_group(
@@ -619,20 +916,28 @@ def augment_parser():
         "These arguments set settings specific to TIPP")
 
     tippGroup.add_argument(
+        "-bt", "--blastThreshold", type=float,
+        dest="blast_threshold", metavar="N",
+        default=50,
+        help="Minimum query coverage for blast hit to map read to a marker"
+             "This should be a number between >0 [default : 50]")
+
+    tippGroup.add_argument(
         "-at", "--alignmentThreshold", type=float,
         dest="alignment_threshold", metavar="N",
         default=0.0,
         help="Enough alignment subsets are selected to reach a commulative "
-             "probability of N. "
-             "This should be a number between 0 and 1 [default: 0.95]")
+             "probability of N."
+             "This should be a number between 0 and 1 [default: 0.0]")
 
     tippGroup.add_argument(
         "-pt", "--placementThreshold", type=float,
         dest="placement_threshold", metavar="N",
-        default=0.0,
+        default=0.95,
         help="Enough placements are selected to reach a commulative "
-             "probability of N. "
+             "probability of N."
              "This should be a number between 0 and 1 [default: 0.95]")
+
     tippGroup.add_argument(
         "-g", "--gene", type=str,
         dest="gene", metavar="N",
@@ -646,16 +951,22 @@ def augment_parser():
         help="Blast file with fragments already binned. ")
 
     tippGroup.add_argument(
+        "-no_trim", "--do_not_trim_after_blast",
+        dest="no_trim", action='store_true',
+        default=False,
+        help="Trim query sequence if it extends outside marker (BLAST only). ")
+
+    tippGroup.add_argument(
         "-bin", "--bin_using", type=str,
         dest="bin", metavar="N",
         default="blast",
-        help="Tool for binning")
+        help="Use blast or hmmer for binning [default: blast]")
 
     tippGroup.add_argument(
         "-D", "--dist",
         dest="dist", action='store_true',
         default=False,
-        help="Treat fragments as distribution")
+        help="Treat fragments as distribution. ")
 
     tippGroup.add_argument(
         "-C", "--cutoff", type=float,
@@ -668,17 +979,21 @@ def augment_parser():
     tippGroup.add_argument(
         "-G", "--genes", type=str,
         dest="genes", metavar="GENES",
-        default='markers',
-        help="Use markers or cogs genes [default: markers]")
+        default="markers-v3",
+        help="Set of markers to use [default: markers-v3]")
 
 
 def main():
     augment_parser()
-    sepp.config._options_singelton = sepp.config._parse_options()
-    if (options().alignment_size is None):
-        options().alignment_size = 100
+
+    # sepp.config._options_singelton = sepp.config._parse_options()
+
     input = options().fragment_file.name
+
     output_directory = options().outdir
+
+    load_reference_package()
+
     build_profile(input, output_directory)
 
 
