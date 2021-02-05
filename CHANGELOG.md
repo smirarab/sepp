@@ -1,3 +1,5 @@
+* Version 4.4.0:
+    * TIPP has moved to TIPP2
 * Version 4.3.21:
     * one more small bug fix
 * Version 4.3.20:
