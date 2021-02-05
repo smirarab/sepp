@@ -37,7 +37,7 @@ Requirements:
 -------------
 Before installing the software you need to make sure the following programs are installed on your machine.
 
-- Python: Version > 2.7 
+- Python: Version >= 3.6 
 - Java: Version > 1.5
 - Blast: Version > 2.2.2
 
