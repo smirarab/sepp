@@ -153,63 +153,6 @@ class ConfigUPP(ConfigSepp):
         d.close()
 
 
-class ConfigTIPP(ConfigSepp):
-    """setuptools Command"""
-    description = "Configures TIPP for the current user"
-    user_options = [('contained', 'c',
-                     ("Whether SEPP should be installed in a self-contained "
-                      "manner or on user's home"))]
-
-    def initialize_options(self):
-        """init options"""
-        self.initopts()
-
-    def finalize_options(self):
-        """finalize options"""
-        self.initpath("tipp.config")
-        print("\nCreating main TIPP config file at %s and tools at %s" % (
-            self.configfile, self.basepath))
-
-    def run(self):
-        # Create the default config file
-        c = open("default.main.config")
-        d = open(self.configfile, "w")
-        for l3 in c:
-            l3 = l3.replace("~", self.get_tools_dest())
-            if (l3.find('seppJsonMerger.jar') != -1):
-                l3 = l3.replace('seppJsonMerger.jar', 'tippJsonMerger.jar')
-            d.write(l3)
-        if not os.getenv('SATE') is None:
-            d.write('\n[sate]\npath=%s' % os.getenv('SATE'))
-        if os.getenv('BLAST') is None and not find_executable("blastn"):
-            print("\nWarning! BLAST variable is not defined.  If you plan to "
-                  "run TIPP for abundance profiling,"
-                  " then have BLAST pointed to blastn executable. "
-                  "You can also change your config to point to"
-                  " blastn by including the following line in your"
-                  " config:\n[blast]\npath=/location/of/blast_directory/"
-                  "blastn\n")
-            d.write('\n[blast]\npath=None\n')
-        else:
-            blastn_path = find_executable("blastn") if os.getenv('BLAST') \
-                is None else os.getenv('BLAST')
-            d.write('\n[blast]\npath=%s\n' % blastn_path)
-
-        if os.getenv('REFERENCE') is None:
-            print("\nWarning! REFERENCE variable is not defined. "
-                  "If you plan to run TIPP for abundance profiling, then have "
-                  "REFERENCE pointed to Reference directory.  You can also "
-                  "change your config to point to the Reference directory by "
-                  "including the following line in your config:\n[reference]"
-                  "\npath=/location/of/reference_directory/\n")
-        d.write('\n[reference]\npath=%s\n' % os.getenv('REFERENCE'))
-        d.write('\n[tipp]\npushdown = true\n')
-        d.close()
-
-        # Copy tools to a bundled directory inside .sepp
-        self.copy_tool_to_lib("tippJsonMerger.jar", where="merge", bits=False)
-
-
 setup(name="sepp",
       version=version,
       description="SATe enabled phylogenetic placement.",
@@ -222,9 +165,8 @@ setup(name="sepp",
       license="General Public License (GPL)",
       install_requires=["dendropy >= 4.0.0"],
       provides=["sepp"],
-      scripts=["run_sepp.py", 'run_tipp.py', 'run_upp.py', 'run_abundance.py',
-               "split_sequences.py", "run_tipp_tool.py"],
-      cmdclass={"config": ConfigSepp, "tipp": ConfigTIPP, "upp": ConfigUPP},
+      scripts=["run_sepp.py", 'run_upp.py', "split_sequences.py"],
+      cmdclass={"config": ConfigSepp, "upp": ConfigUPP},
       data_files=[('', ['home.path'])],
 
       classifiers=["Environment :: Console",
