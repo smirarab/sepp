@@ -27,10 +27,9 @@ from distribute_setup import use_setuptools
 import shutil
 from setuptools import find_packages
 from distutils.core import setup, Command
-from distutils.spawn import find_executable
 
 use_setuptools(version="0.6.24")
-version = "4.4.0"
+version = "4.5.0"
 
 
 def get_tools_dir(where):
