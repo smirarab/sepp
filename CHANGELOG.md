@@ -1,3 +1,5 @@
+* Version 4.5.1:
+    * fix small issues (broken links, etc.) in 4.5.0
 * Version 4.5.0:
     * TIPP has moved to a new repo: https://github.com/TeraTrees/TIPP
 * Version 4.4.0:
