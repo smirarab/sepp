@@ -29,7 +29,7 @@ from setuptools import find_packages
 from distutils.core import setup, Command
 
 use_setuptools(version="0.6.24")
-version = "4.5.0"
+version = "4.5.1"
 
 
 def get_tools_dir(where):
