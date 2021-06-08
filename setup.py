@@ -1,179 +1,209 @@
 #!/usr/bin/env python
 
-# ##########################################################################
-#    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
-#    This file is part of SEPP.
-#
-#    SEPP is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    SEPP is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
-# ##########################################################################
+#############################################################################
+##  this file is part of pasta.
+##  see "license.txt" for terms and conditions of usage.
+#############################################################################
 
+
+"""
+Package setup and installation.
+"""
+
+from setuptools import setup, find_packages
+
+from datetime import datetime
 import os
 import platform
 import sys
+import pasta
+import tarfile
+script_name = 'run_pasta.py' 
+gui_script_name = 'run_pasta_gui.py'
 
-# from distutils.core import setup
-from distribute_setup import use_setuptools
-import shutil
-from setuptools import find_packages
-from distutils.core import setup, Command
+def compose_build_distribution_name(build_type):
+    return "pasta%s-v%s-%s" % (build_type, pasta.PROGRAM_VERSION, datetime.now().strftime("%Y%b%d"))
 
-use_setuptools(version="0.6.24")
-version = "4.5.1"
+param = {
+    'name': pasta.PROGRAM_NAME,
+    'version': pasta.PROGRAM_VERSION,
+    'app': {gui_script_name},
+    'description': pasta.PROGRAM_DESCRIPTION,
+    'author': pasta.PROGRAM_AUTHOR,
+    'author_email': ['pasta-users@googlegroups.com'],
+    'url': pasta.PROGRAM_WEBSITE,
+    'license': pasta.PROGRAM_LICENSE,
+    'packages': find_packages(),
+    'package_dir': {'pasta': 'pasta'},
+    'test_suite': "pasta.test",
+    'include_package_data': True,
+    'install_requires': ['dendropy>=4.00'],
+    'scripts' : [script_name,gui_script_name,'run_seqtools.py'],
+    'zip_safe': True,
+    'keywords': 'Phylogenetics Evolution Biology',
+    'long_description': """A Python implementation of the Practical Alignment using SATe and Transitivity. 
+    The package requires configuration to refer to third-party tools such as ClustalW2, MAFFT, MUCLE, OPAL, Prank, and RAxML, HMMMER,
+    and the code is heavily based on SATe""",
+    'classifiers': ["Environment :: Console",
+                    "Intended Audience :: Developers",
+                    "Intended Audience :: Science/Research",
+                    "License :: OSI Approved :: GNU General Public License (GPL)",
+                    "Natural Language :: English",
+                    "Operating System :: OS Independent",
+                    "Programming Language :: Python",
+                    "Topic :: Scientific/Engineering :: Bio-Informatics",
+                    ],
+    }
 
+if sys.argv[1] == 'py2exe':
+    PY2EXE_DIST_DIR = compose_build_distribution_name("win")
+    if not platform.system() == 'Windows':
+        raise ValueError('py2exe option only works on MS Windows.\n')
+        from distutils.core import setup
+    import glob
+    import py2exe
 
-def get_tools_dir(where):
-    platform_name = platform.system()
-    if where is None:
-        where = os.path.join("bundled", platform_name)
-    path = os.path.join(os.getcwd(), "tools", where)
-    if not os.path.exists(path):
-        raise OSError("SEPP does not bundle tools for '%s' at this time!" %
-                      platform_name)
-    return path
+    def find_data_files(source,target,patterns):
+        if glob.has_magic(source) or glob.has_magic(target):
+            raise ValueError("Magic not allowed in src, target")
+        ret = {}
+        for pattern in patterns:
+            pattern = os.path.join(source,pattern)
+            for filename in glob.glob(pattern):
+                if os.path.isfile(filename):
+                    targetpath = os.path.join(target,os.path.relpath(filename,source))
+                    path = os.path.dirname(targetpath)
+                    ret.setdefault(path,[]).append(filename)
+        return sorted(ret.items())
 
+    def extend_data_files(file_list, dirname, filenames):
+        l = dirname.split(os.path.sep)
+        target_list = l[l.index('data'):]
+        target = os.path.join(*target_list)
+        file_list.append((target,
+                [os.path.join(dirname,
+                        f) for f in filenames if not os.path.isdir(
+                                os.path.join(dirname, f))]))
 
-def get_tool_name(tool, bits):
-    if platform.system() == "Darwin" or not bits:  # MAC doesn't have 32/64
-        return tool
-    is_64bits = sys.maxsize > 2**32
-    return "%s-%s" % (tool, "64" if is_64bits else "32")
+    def extend_output_files(file_list, dirname, filenames):
+        l = dirname.split(os.path.sep)
+        target_list = l[l.index('sample-output'):]
+        target = os.path.join(*target_list)
+        file_list.append((target,
+                [os.path.join(dirname,
+                        f) for f in filenames if not os.path.isdir(
+                                os.path.join(dirname, f))]))
 
+    bin_win_src = pasta.pasta_tools_dev_dir()
+    bin_win_dest = pasta.pasta_tools_deploy_subpath()
+    pasta_src_root = pasta.pasta_home_dir()
+    data_dir = os.path.join(pasta_src_root, 'data')
+    sample_output_dir = os.path.join(pasta_src_root, 'sample-output')
+    my_files = []
+    my_files.extend( find_data_files(
+            bin_win_src,
+            bin_win_dest,
+            ['*'] ) )
+    my_files.extend( find_data_files(
+            os.path.join(bin_win_src, 'real_bin'),
+            os.path.join(bin_win_dest, 'real_bin'),
+            ['*'] ) )
+    my_files.extend( find_data_files(
+            os.path.join(pasta_src_root, 'doc'),
+            'doc',
+            ['*']))
+    os.path.walk(data_dir, extend_data_files, my_files)
+    os.path.walk(sample_output_dir, extend_output_files, my_files)
 
-class ConfigSepp(Command):
-    """setuptools Command"""
-    description = "Configures Sepp for the current user"
-    user_options = [(
-        'contained', 'c',
-        ("Whether SEPP should be installed in a self-contained "
-         "manner or on user's home"))]
+    PY2EXE_OPTIONS = {
+        "unbuffered": True,
+        "optimize": 2,
+        "compressed": True,
+        "bundle_files": 1,
+        "includes": ['pasta'],
+        "dll_excludes": ['w9xpopen.exe'],
+        "dist_dir" : PY2EXE_DIST_DIR,
+    }
 
-    def initopts(self):
-        self.contained = None
-        self.configfile = None
-        self.basepath = None
+    param.update({
+        'console': [script_name, #os.path.join(pasta.PASTA_SCRIPT_RESOURCES, "mafft"),
+                    os.path.join(pasta.PASTA_SCRIPT_RESOURCES, "hmmeralign")],
+        'data_files': my_files,
+        'zipfile': None,
+        'options': {'py2exe': PY2EXE_OPTIONS},
+        }
+    )
 
-    def initpath(self, name):
-        if self.contained:
-            self.configfile = os.path.expanduser(
-                os.path.abspath(os.path.join(".sepp", name)))
-            self.basepath = os.path.dirname(self.configfile)
+### hack upon hack upon hack ...
+if sys.argv[1] == 'py2exe':
+    sys.stderr.write("\nMoving 'mafft.exe' into bundled binary directory ... \n")
+    src_path = os.path.join(PY2EXE_DIST_DIR, "mafft.exe")
+    dest_path = os.path.join(PY2EXE_DIST_DIR,
+            bin_win_dest,
+            "mafft.exe")
+    if os.path.exists(dest_path):
+        os.remove(dest_path)
+    os.rename(src_path, dest_path)
+    sys.stderr.write("OK\n")
+
+# On Linux and OS X systems, sym-link all tool scripts
+# to `bin` subdirectory, so PASTA can be run from the command-line
+# I know this is ugly. Trust me, I hate it as much as you do.
+if platform.system() != "Windows":
+
+    DEST_DIR_ROOT = pasta.pasta_tools_deploy_dir(default_to_dev_dir=False)
+    def create_symlink(src_path, subdir=None):
+        if subdir:
+            dest_dir = os.path.join(DEST_DIR_ROOT, subdir)
         else:
-            self.configfile = os.path.expanduser("~/.sepp/%s" % name)
-            self.basepath = os.path.expanduser("~/.sepp")
-        with open('home.path', 'w') as fo:
-            fo.write(self.basepath)
-            fo.close()
+            dest_dir = DEST_DIR_ROOT
+        dest_path = os.path.join(dest_dir, os.path.basename(src_path))
+        sys.stderr.write("\nCreating link: '%s' => '%s'\n" % (src_path, dest_path))
+        if os.path.exists(dest_path) and os.path.islink(dest_path):
+            real_dest = os.path.abspath(os.path.realpath(dest_path))
+            if real_dest != os.path.abspath(os.path.realpath(src_path)):
+                msg = "ERROR: Symbolic link '%s' already exists, but points to different source: '%s'\n[Aborting]\nIf the old file was part of older PASTA versions, remove the old path manually and rerun." % (src_path, real_dest)
+                sys.exit(msg)
+            else:
+                sys.stderr.write("Path already exists and is linked correctly.\n")
+        elif os.path.exists(dest_path):
+            msg = "ERROR: Path already exists: '%s'\n[Aborting]\n" % dest_path
+            sys.exit(msg)
+        else:
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
+            os.symlink(src_path, dest_path)
 
-    def get_tools_dest(self):
-        return os.path.join(self.basepath, "bundled-v%s" % version)
+    # mafft
+    #create_symlink(os.path.abspath(os.path.join(pasta.PASTA_SCRIPT_RESOURCES, "mafft")))
+    create_symlink(os.path.abspath(os.path.join(pasta.PASTA_SCRIPT_RESOURCES, "hmmeralign")))
 
-    def copy_tool_to_lib(self, tool, where=None, bits=True):
-        shutil.copy2(
-            os.path.join(get_tools_dir(where), get_tool_name(tool, bits)),
-            os.path.join(self.get_tools_dest(), tool))
+    # others
+    tools_bin_srcdir = pasta.pasta_tools_dev_dir()
+    tools_bin_subdirs = ['', 'mafftdir/bin','mafftdir/libexec']
 
-    def initialize_options(self):
-        """init options"""
-        self.initopts()
+    for subdir in tools_bin_subdirs:
+        if subdir:
+            tdir = os.path.join(tools_bin_srcdir, subdir)
+	    #print 'tdir' + str(tdir)
+        else:
+            tdir = tools_bin_srcdir
+        for fpath in os.listdir(tdir):
+            src_path = os.path.join(tdir, fpath)
+            if os.path.isfile(src_path) and not src_path.endswith('.txt'):
+                create_symlink(src_path, subdir)
+    #databases in sate-tools-linux holds the swissprot* files for mafft-homologs. They compressed to appease git so we have to extract them to use them.
+    if os.path.exists(os.path.join(tools_bin_srcdir, 'pasta-databases')):
+        searchDir = os.path.join(tools_bin_srcdir, 'pasta-databases')
+        for files in os.listdir(searchDir):
+            fullPath = os.path.join(searchDir, files)
+            if fullPath.endswith("tar.gz"):
+                tar = tarfile.open(fullPath, "r:gz")
+                tar.extractall(searchDir)
+                tar.close()
+    mafftDir = os.path.join(tools_bin_srcdir, 'mafft')
+    ginsiDir = os.path.join(DEST_DIR_ROOT, 'ginsi')
+    if os.path.islink(ginsiDir) is False:
+        os.symlink(mafftDir, ginsiDir)
 
-    def finalize_options(self):
-        """finalize options"""
-        self.initpath("main.config")
-        print("\nCreating main sepp config file at %s and tools at %s" % (
-            self.configfile, self.basepath))
-
-    def run(self):
-        def get_tool_name(tool, bits):
-            # MAC doesn't have 32/64
-            if platform.system() == "Darwin" or not bits:
-                return tool
-            is_64bits = sys.maxsize > 2**32
-            return "%s-%s" % (tool, "64" if is_64bits else "32")
-
-        # Create the default config file
-        if not os.path.exists(self.basepath):
-            os.mkdir(self.basepath)
-        if not os.path.exists(self.get_tools_dest()):
-            os.mkdir(self.get_tools_dest())
-        c = open("default.main.config")
-        d = open(self.configfile, "w")
-        for l1 in c:
-            l1 = l1.replace("~", self.get_tools_dest())
-            d.write(l1)
-        d.close()
-
-        # Copy tools to a bundled directory inside .sepp
-        self.copy_tool_to_lib("guppy")
-        self.copy_tool_to_lib("pplacer")
-        self.copy_tool_to_lib("hmmalign")
-        self.copy_tool_to_lib("hmmsearch")
-        self.copy_tool_to_lib("hmmbuild")
-        # TODO: should we compile and build merge.jar?
-        self.copy_tool_to_lib("seppJsonMerger.jar", where="merge", bits=False)
-
-
-class ConfigUPP(ConfigSepp):
-    """setuptools Command"""
-    description = "Configures UPP for the current user"
-    user_options = [('contained', 'c',
-                     ("Whether SEPP should be installed in a self-contained "
-                      "manner or on user's home"))]
-
-    def initialize_options(self):
-        """init options"""
-        self.initopts()
-
-    def finalize_options(self):
-        """finalize options"""
-        self.initpath("upp.config")
-        print("\nCreating main UPP config file at %s and tools at %s" % (
-            self.configfile, self.basepath))
-
-    def run(self):
-        # Create the default config file
-        c = open("default.main.config")
-        d = open(self.configfile, "w")
-        for l2 in c:
-            l2 = l2.replace("~", self.get_tools_dest())
-            d.write(l2)
-        d.write(('\n[pasta]\n'
-                 'path=run_pasta.py\nuser_options= --max-mem-mb=2000'))
-        d.close()
-
-
-setup(name="sepp",
-      version=version,
-      description="SATe enabled phylogenetic placement.",
-      packages=find_packages(),
-
-      url="https://github.com/smirarab/sepp",
-      author="Siavash Mirarab and Nam Nguyen",
-      author_email="smirarab@gmail.com, namphuon@cs.utah.edu",
-
-      license="General Public License (GPL)",
-      install_requires=["dendropy >= 4.0.0"],
-      provides=["sepp"],
-      scripts=["run_sepp.py", 'run_upp.py', "split_sequences.py"],
-      cmdclass={"config": ConfigSepp, "upp": ConfigUPP},
-      data_files=[('', ['home.path'])],
-
-      classifiers=["Environment :: Console",
-                   "Intended Audience :: Developers",
-                   "Intended Audience :: Science/Research",
-                   ("License :: OSI Approved :: GNU General Public "
-                    "License (GPL)"),
-                   "Natural Language :: English",
-                   "Operating System :: OS Independent",
-                   "Programming Language :: Python",
-                   "Topic :: Scientific/Engineering :: Bio-Informatics"])
+setup(**param)
