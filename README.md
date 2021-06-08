@@ -52,26 +52,11 @@ We generate the SPFN and SPFP of each predicted alignment by using FastSP, which
 
 UPP will be run with no parallelization. A later release may change this. 
 
-* Why is hmmSearcher set to import from stefanHMM_concurrent throwing an error? 
-* does stefan_UPP have to be run first? if so, why? 
-
+* Why is hmmSearcher set to import from stefanHMM_concurrent throwing an error? (asking Stefan about this, sent code to reproduce the error) 
 * add a check for if we just ran saveInitialSteps for the right file, if so then can skip
 * make sure file only has one output.xdlk;fd file in it
-
-* make edits for when there is no true alignment file
-* make some arguments required and others optional
-* if the true alignments is specified in the strategies, then the true alignment file better be provided, etc. 
+* *make edits to run_upp_strats() to specify no true alignment file*
 * add in save_scores.py, edit scoreAlignment to return the SP-score etc., and generate a xlsx report at the end comparing everything.
-* take stefan's name out of the strategies...
+* take stefan's name out of the strategies
+* *split the hmm_concurrent script*
 
-* add option to run upp the way upp does i.e. should understand all the same flags and commands that upp does. 
-
-* refactor the stefanHMM_concurrent script and rename the files.
-
-* take out reference aln parameter, move save_scores.py into the score evaluation, take that flag out. 
-
-* take out the strategies
-
-* take out backbone and fragmentary sequences as input, move to running UPP as a module 
-
-* change it so that UPP-hs isn't running UPP all the way.
