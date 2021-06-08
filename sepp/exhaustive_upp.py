@@ -18,6 +18,7 @@ import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
 from sepp.backtranslate import backtranslate
+from sepp.upp2_methods import *
 
 _LOG = get_logger(__name__)
 
@@ -172,6 +173,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 (not options().sequence_file is None)
         ):
             self.generate_backbone()
+        elif (
+                (options().decomp_only is True)
+        ):
+            # assert no parallelization when decomp_only
+            options().cpu = 1
         else:
             _LOG.error(
                 ("Either specify the backbone alignment and tree and query "
@@ -200,43 +206,44 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         return ExhaustiveAlgorithm.check_options(self)
 
     def merge_results(self):
-        assert \
-            len(self.root_problem.get_children()) == 1, \
-            "Currently UPP works with only one placement subset."
-        '''
-        Merge alignment subset extended alignments to get one extended
-        alignment for current placement subset.
-        '''
-        pp = self.root_problem.get_children()[0]
-        _LOG.info(
-            "Merging sub-alignments for placement problem : %s." % pp.label)
-        ''' First assign fragments to the placement problem'''
-        pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
-        for ap in pp.get_children():
-            pp.fragments.seq_names |= set(ap.fragments)
+        if not self.options.decomp_only: 
+            assert \
+                len(self.root_problem.get_children()) == 1, \
+                "Currently UPP works with only one placement subset."
+            '''
+            Merge alignment subset extended alignments to get one extended
+            alignment for current placement subset.
+            '''
+            pp = self.root_problem.get_children()[0]
+            _LOG.info(
+                "Merging sub-alignments for placement problem : %s." % pp.label)
+            ''' First assign fragments to the placement problem'''
+            pp.fragments = pp.parent.fragments.get_soft_sub_alignment([])
+            for ap in pp.get_children():
+                pp.fragments.seq_names |= set(ap.fragments)
 
-        ''' Then Build an extended alignment by merging all hmmalign results'''
-        _LOG.debug(
-            "fragments are %d:\n %s" % (
-                len(pp.fragments.seq_names), pp.fragments.seq_names))
-        extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
-        for ap in pp.children:
-            assert isinstance(ap, SeppProblem)
-            ''' Get all fragment chunk alignments for this alignment subset'''
-            aligned_files = [fp.get_job_result_by_name('hmmalign') for
-                             fp in ap.children if
-                             fp.get_job_result_by_name('hmmalign') is not None]
+            ''' Then Build an extended alignment by merging all hmmalign results'''
             _LOG.debug(
-                "Merging fragment chunks for subalignment : %s." % ap.label)
-            ap_alg = ap.read_extendend_alignment_and_relabel_columns(
-                ap.jobs["hmmbuild"].infile, aligned_files)
-            _LOG.debug(
-                "Merging alignment subset into placement subset: %s." %
-                ap.label)
-            extendedAlignment.merge_in(ap_alg, convert_to_string=False)
+                "fragments are %d:\n %s" % (
+                    len(pp.fragments.seq_names), pp.fragments.seq_names))
+            extendedAlignment = ExtendedAlignment(pp.fragments.seq_names)
+            for ap in pp.children:
+                assert isinstance(ap, SeppProblem)
+                ''' Get all fragment chunk alignments for this alignment subset'''
+                aligned_files = [fp.get_job_result_by_name('hmmalign') for
+                                fp in ap.children if
+                                fp.get_job_result_by_name('hmmalign') is not None]
+                _LOG.debug(
+                    "Merging fragment chunks for subalignment : %s." % ap.label)
+                ap_alg = ap.read_extendend_alignment_and_relabel_columns(
+                    ap.jobs["hmmbuild"].infile, aligned_files)
+                _LOG.debug(
+                    "Merging alignment subset into placement subset: %s." %
+                    ap.label)
+                extendedAlignment.merge_in(ap_alg, convert_to_string=False)
 
-        extendedAlignment.from_bytearray_to_string()
-        self.results = extendedAlignment
+            extendedAlignment.from_bytearray_to_string()
+            self.results = extendedAlignment
 
     # Useful for multi-core merging if ever needed
     #    def parallel_merge_results(self):
@@ -290,45 +297,50 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     #        self.results = extendedAlignment
 
     def output_results(self):
-        extended_alignment = self.results
-        _LOG.info("Generating output. ")
-        outfilename = self.get_output_filename("alignment.fasta")
-        extended_alignment.write_to_path(outfilename)
-        _LOG.info("Unmasked alignment written to %s" % outfilename)
-        outfilename = self.get_output_filename("insertion_columns.txt")
-        extended_alignment.write_insertion_column_indexes(outfilename)
-        _LOG.info("The index of insertion columns written to %s" % outfilename)
-        if self.options.backtranslation_sequence_file:
-            outfilename = self.get_output_filename(
-                "backtranslated_alignment.fasta")
-            backtranslation_seqs = MutableAlignment()
-            backtranslation_seqs.read_file_object(
-                self.options.backtranslation_sequence_file)
-            try:
-                extended_backtranslated_alignment = backtranslate(
-                    self.results, backtranslation_seqs)
-            except Exception as e:
-                _LOG.warning("Backtranslation failed due "
-                             "to following error: " + str(e) + ".\n"
-                             "No translated DNA sequence will be "
-                             "written to a file.")
-                pass
-            else:
-                extended_backtranslated_alignment.write_to_path(outfilename)
-                _LOG.info(
-                    "Backtranslated alignment written to %s" % outfilename)
-                extended_backtranslated_alignment.remove_insertion_columns()
+        if not self.options.decomp_only: 
+            extended_alignment = self.results
+            _LOG.info("Generating output. ")
+            outfilename = self.get_output_filename("alignment.fasta")
+            extended_alignment.write_to_path(outfilename)
+            _LOG.info("Unmasked alignment written to %s" % outfilename)
+            outfilename = self.get_output_filename("insertion_columns.txt")
+            extended_alignment.write_insertion_column_indexes(outfilename)
+            _LOG.info("The index of insertion columns written to %s" % outfilename)
+            if self.options.backtranslation_sequence_file:
                 outfilename = self.get_output_filename(
-                    "backtranslated_alignment_masked.fasta")
-                extended_backtranslated_alignment.write_to_path(outfilename)
-                _LOG.info(
-                    "Backtranslated masked alignment written "
-                    "to %s" % outfilename)
+                    "backtranslated_alignment.fasta")
+                backtranslation_seqs = MutableAlignment()
+                backtranslation_seqs.read_file_object(
+                    self.options.backtranslation_sequence_file)
+                try:
+                    extended_backtranslated_alignment = backtranslate(
+                        self.results, backtranslation_seqs)
+                except Exception as e:
+                    _LOG.warning("Backtranslation failed due "
+                                "to following error: " + str(e) + ".\n"
+                                "No translated DNA sequence will be "
+                                "written to a file.")
+                    pass
+                else:
+                    extended_backtranslated_alignment.write_to_path(outfilename)
+                    _LOG.info(
+                        "Backtranslated alignment written to %s" % outfilename)
+                    extended_backtranslated_alignment.remove_insertion_columns()
+                    outfilename = self.get_output_filename(
+                        "backtranslated_alignment_masked.fasta")
+                    extended_backtranslated_alignment.write_to_path(outfilename)
+                    _LOG.info(
+                        "Backtranslated masked alignment written "
+                        "to %s" % outfilename)
 
-        extended_alignment.remove_insertion_columns()
-        outfilename = self.get_output_filename("alignment_masked.fasta")
-        extended_alignment.write_to_path(outfilename)
-        _LOG.info("Masked alignment written to %s" % outfilename)
+            extended_alignment.remove_insertion_columns()
+            outfilename = self.get_output_filename("alignment_masked.fasta")
+            extended_alignment.write_to_path(outfilename)
+            _LOG.info("Masked alignment written to %s" % outfilename)
+        elif self.options.hier_upp or self.options.bitscore_adjust: 
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            makedirstruct(self.options.tempdir)
+            #run_upp_strats()
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -369,7 +381,22 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             frag_chunk_count,
             extra_frags=self.root_problem.subalignment.get_soft_sub_alignment(
                 self.filtered_taxa))
+    
+    # gillichu added
+    def build_jobs(self):
+        super().build_jobs()
 
+    def connect_jobs(self):
+        if not self.options.decomp_only: 
+            return super().connect_jobs()
+
+    def enqueue_firstlevel_job(self):
+        if not self.options.decomp_only: 
+            return super().enqueue_firstlevel_job()
+        else: 
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            makedirstruct(self.options.tempdir)
+            #run_upp_strats()
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
@@ -482,6 +509,29 @@ def augment_parser():
         help="Branches longer than N times the median branch length are "
              "filtered from backbone and added to fragments."
              " [default: None (no filtering)]")
+
+# gillichu added #
+
+    uppGroup.add_argument(
+        "-j", "--decomp_only", type=bool, dest="decomp_only",
+        metavar="DCOMP",
+        default=False, 
+        help="Only run the decomposition step of UPP. " "[default: %(default)s]"
+    )
+
+    uppGroup.add_argument(
+        "-h", "--hier_upp", type=bool, dest="hier_upp",
+        metavar="hier",
+        default=False, 
+        help="Run the hierarchical search through the UPP HMMs. " "[default: %(default)s]"
+    )
+
+    uppGroup.add_argument(
+        "-z", "--bitscore_adjust", type=bool, dest="bitscore_adjust",
+        metavar="bitscore",
+        default=False, 
+        help="Run with adjusted bitscore weighting. " "[default: %(default)s]"
+    )
 
     seppGroup = parser.add_argument_group(
         "SEPP Options".upper(),

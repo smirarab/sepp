@@ -49,7 +49,7 @@ def build_upp_config(root_tmpdir, unaligned_frag_file, bundle_packagedir, packag
         f.write("molecule=dna\ntempdir=%s\n" % tmpdir)
         f.write("cpu=1")
 
-    subprocess.call(['python', 'run_upp.py', "-c", configfile])
+    subprocess.call(['python', 'run_upp.py', "-j", "True","-c", configfile])
 
     outputfile = os.path.join(outdir, out_tag)
     subprocess.call(['mv', 'output_alignment.fasta', outputfile + "_output_alignment" + ".fasta"])
@@ -168,8 +168,8 @@ def main():
 
     build_upp_config(root_tmpdir, unaligned_file, bundle_packagedir, packagedir, align_file, treefile, outdir, out_tag, decomp)
     
-    makedirstruct(dirpath)
-    run_upp_strats(dirpath, decomp, strats, out_tag, trueAlign, doResort)
+    #makedirstruct(dirpath)
+    #run_upp_strats(dirpath, decomp, strats, out_tag, trueAlign, doResort)
 
     
 if __name__ == '__main__':
