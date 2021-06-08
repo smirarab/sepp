@@ -17,36 +17,24 @@ We have also implemented a fastUPP strategy which does a fast search down the hi
 
 The main pipeline for UPP2 can be found in the script `run_upp2_v2.py`. The expected inputs for this are as follows: 
 - A sequence file of unaligned sequences 
-- Aligned backbone file
-- True alignment file
-- Pasta backbone tree file 
-- Out tag
-- HMMER directory 
-- SEPP bundled package directory 
-- decomposition parameter
-- strategies file
+- decomposition parameter (optional)
+- optional flag to run original UPP all the way through (or not)
+- optional flag to run with adjusted bitscore (bitscore_adjust)
+- optional flag to run with hierchical search (upp_hier)
 
 The command to run UPP2 therefore follows the format: 
-`python run_upp2_v2.py <unaligned_file> <aligned_backbone_file> <true_aligned_file> <pasta_backbone_tree_file> <out_tag> <hmmer_dir> <sepp_bundled_package_dir> <decomp> <doResort> <strategies_file> > <outputfile>`
+`python run_upp.py <unaligned_file> <hmmer_dir> <decomp> <config file> <tmpdir> <other optional flags> > <outputfile>`
 
-For a test dataset, we have provided a fragmentary dataset under the `trial/` directory. Please run the following command there. 
+Note that the aligned backbone and corresponding tree are optional inputs to UPP. For a test dataset, we have provided a fragmentary dataset under the `trial/` directory. Please run the following command there. 
 
 ```
-python run_upp2_v2.py trial/1000M4/R0/unaligned_frag.txt trial/1000M4/R0/pasta_backbone_align.txt trial/1000M4/R0/true_align_fragged.txt trial/1000M4/R0/pasta_backbone.tre testing "" /Users/gillianchu/.sepp/bundled-v4.3.17/ 30 False trial/1000M4/R0/strategies.txt > testing.txt
+python run_upp.py -s trial/1000M4/R0/unaligned_frag.txt -x 1 -a trial/1000M4/R0/pasta_backbone_align.txt -t trial/1000M4/R0/pasta_backbone.tre -A 30 -c trial/1000M4/R0/decomp30.config --tempdir tmpfiles2 -j True
 ```
 
 ### Outputs
 This generates a folder called `alignData`. Inside `alignData`, we have a hierarchy of folders that will be generated. Most importantly, the `alignData/tmpfiles/` folder holds the HMMs constructed during the original UPP process. It will also hold the decomposition config file generated from the user-given parameters. The `alignData/UPPOutput/` folder will hold the alignments produced by UPP. 
 
 The main output of UPP are the new predicted alignments according to each strategy. You can find this in the folder `alignData/hmmQueryList/merged/*_strategyName_alignmentFasta.fasta`. 
-
-We generate the SPFN and SPFP of each predicted alignment by using FastSP, which is also bundled in the repository.
-
-### Configurations
-
-
-### Running UPP2
-
 
 ### Notes / To-Do's: 
 
@@ -55,8 +43,10 @@ UPP will be run with no parallelization. A later release may change this.
 * Why is hmmSearcher set to import from stefanHMM_concurrent throwing an error? (asking Stefan about this, sent code to reproduce the error) 
 * add a check for if we just ran saveInitialSteps for the right file, if so then can skip
 * make sure file only has one output.xdlk;fd file in it
-* *make edits to run_upp_strats() to specify no true alignment file*
+* *make edits to run_upp_strats() to specify no true alignment file* and otherwise change input parameters
 * add in save_scores.py, edit scoreAlignment to return the SP-score etc., and generate a xlsx report at the end comparing everything.
 * take stefan's name out of the strategies
 * *split the hmm_concurrent script*
-
+* comment run_upp_strats() back in, pass the relevant parameters and then output the relevant predicted alignments.
+* clean up directory structure inside /tmp
+* change the hardcoded 'alignData' references in hmm_concurrent and hmm_searcher
