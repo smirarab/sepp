@@ -1,3 +1,4 @@
+alignData
 *.pyc
 sepp/lib/hmm*
 sepp/lib/ppla*
