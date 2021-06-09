@@ -607,41 +607,6 @@ def scoresToHMMSeq(strategyName):
     scores = np.load("./data/internalData/" + dataFolderName + "/hmmScores/fullAdjusted.npy")
     ensureFolder("./data/internalData/" + dataFolderName + "/" + strategyName + "/queryToHmm/original.npy")
     ensureFolder("./data/internalData/" + dataFolderName + "/" + strategyName + "/newHMM/newHMMseq/")
-    if strategyName in ['stefan_basic', 'stefan_removeLeaf', 'stefan_onlyOneAbove', 'stefan_useAboveLeaf']:
-        scores = scores / np.max(scores)
-        treeData = findDecomposition()
-        treeSum = np.sum(treeData, axis=1)
-        oneMask = np.zeros(scores.shape)
-        oneMask[:, treeSum==1] = 1
-        maxHMM = np.argmax(scores, axis=1)
-        usedMask = treeData[maxHMM, :]
-        usedOneMask = usedMask * oneMask
-        meanUsed = np.sum(scores * usedOneMask, axis=1) / np.sum(usedOneMask, axis=1)
-        meanUsed2 = meanUsed.repeat(scores.shape[1]).reshape(scores.shape)
-        aboveMask = np.zeros(scores.shape)
-        aboveMask[((scores + 0.01)/(meanUsed2 + 0.01)) > (2/3)] = 1
-        aboveMaskOne = aboveMask * oneMask
-        aboveMaskOneString = []
-        for a in range(0, len(aboveMaskOne)):
-            string1 = ''
-            for b in range(0, len(aboveMaskOne[a])):
-                string1 = string1 + str(int(aboveMaskOne[a, b])) + ':'
-            aboveMaskOneString.append(string1)
-        aboveMaskOneString = np.array(aboveMaskOneString)
-        _, hmmUniqueIndex, queryToHmm = np.unique(aboveMaskOneString, return_index=True, return_inverse=True)
-        hmmLeafs = aboveMaskOne[hmmUniqueIndex]
-        queryToHmm = np.array([np.arange(queryToHmm.shape[0]), queryToHmm]).T
-        np.save("./data/internalData/" + dataFolderName + "/" + strategyName + "/queryToHmm/original.npy", queryToHmm)
-        sequenceFileNames = giveSequenceFileNames()
-        for a in range(0, len(hmmLeafs)):
-            newFasta = []
-            for b in range(0, len(hmmLeafs[0])):
-                if hmmLeafs[a, b] == 1:
-                    name = "./data/internalData/" + dataFolderName + '/hmmSeqAlign/' + str(b) + '.fasta'
-                    data = loadFastaFormat(name)
-                    keysUsed, _ = loadFastaBasic(name)
-                    newFasta = newFasta + data
-            saveFasta("./data/internalData/" + dataFolderName + "/" + strategyName + "/newHMM/newHMMseq/" + str(a) + ".fasta", newFasta)
     if strategyName in ['stefan_UPP', 'stefan_UPPadjusted']:
         if strategyName == 'stefan_UPP':
             scores = np.load("./data/internalData/" + dataFolderName + "/hmmScores/full.npy")
