@@ -173,17 +173,22 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 (not options().sequence_file is None)
         ):
             self.generate_backbone()
-        elif (
-                (options().decomp_only is True)
-        ):
-            # assert no parallelization when decomp_only
-            options().cpu = 1
         else:
             _LOG.error(
                 ("Either specify the backbone alignment and tree and query "
                  "sequences or only the query sequences.  Any other "
                  "combination is invalid"))
             exit(-1)
+
+        if (
+                (options().decomp_only is True) or 
+                (options().bitscore_adjust is True) or
+                (options().hier_upp is True)
+        ):
+            # assert no parallelization when decomp_only
+            # TODO: restore old cpu value
+            options().cpu = 1
+            
         sequences = MutableAlignment()
         sequences.read_file_object(open(self.options.alignment_file.name))
         backbone_size = sequences.get_num_taxa()
