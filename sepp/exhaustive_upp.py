@@ -376,10 +376,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-        elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
-            makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+        # elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
+            # _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -435,7 +433,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         else: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+            run_upp_strats(self, None, None, None, None, None)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(

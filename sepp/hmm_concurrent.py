@@ -5,11 +5,17 @@ import os
 from Bio import SeqIO
 from subprocess import run
 
+from sepp import get_logger
+from sepp.scheduler import JobPool
+from sepp.jobs import HMMBuildJob,HMMAlignJob
+
 
 hmmSeqFile = ''
 queryName = ''
 trueAlignment = ''
 predictionName = ''
+
+_LOG = get_logger(__name__)
 
 def ensureFolder(fileName):
     def removeEnd(fileName):
@@ -218,18 +224,30 @@ def saveScore(hmmName, queryName, scoreName):
     hmmVersion = giveHMMversion()
     os.system(hmmVersion + "hmmsearch --noali --tblout " + scoreName + " --cpu 1 -E 99999999 --max " + hmmName + " " + queryName)
 
-def runHMMbuild(hmmName, seqName):
+def addHMMBuildJob(abstract_algorithm, hmmName, seqName):
     ensureFolder(hmmName)
-    hmmVersion = giveHMMversion()
-    os.system(hmmVersion + "hmmbuild  --symfrac 0.0 --informat afa  " + hmmName + " " + seqName)
+    hmmbuild_job = HMMBuildJob()
+    hmmbuild_job.setup(seqName, hmmName, **vars(abstract_algorithm.options.hmmbuild))
+    JobPool().enqueue_job(hmmbuild_job)
 
-def runHMMalign(hmmName, queryName, predictionName):
+def addHMMAlignJob(abstract_algorithm, hmmName, queryName, predictionName):
     ensureFolder(predictionName)
-    hmmVersion = giveHMMversion()
-    if hmmVersion == '':
-        os.system(hmmVersion + "hmmalign --dna -o " + predictionName + " " + hmmName + ' ' + queryName + " ")
-    else:
-        os.system(hmmVersion + "hmmalign --allcol  --dna -o " + predictionName + " " + hmmName + ' ' + queryName + " ")
+    hmmalign_job = HMMAlignJob(**vars(abstract_algorithm.options.hmmalign))
+    _LOG.debug(str(abstract_algorithm.options.hmmalign))
+    hmmalign_job.setup(hmmName, queryName, predictionName)
+    JobPool().enqueue_job(hmmalign_job)
+
+def runHMMbuild(abstract_algorithm, hmmName, seqName):
+    ensureFolder(hmmName)
+    hmmbuild_job = HMMBuildJob()
+    hmmbuild_job.setup(seqName, hmmName, **vars(abstract_algorithm.options.hmmbuild))
+    hmmbuild_job.run()
+
+def runHMMalign(abstract_algorithm, hmmName, queryName, predictionName):
+    ensureFolder(predictionName)
+    hmmalign_job = HMMAlignJob()
+    hmmalign_job.setup(hmmName, queryName, predictionName, **vars(abstract_algorithm.options.hmmalign))
+    hmmalign_job.run()
 
 def saveScoreSimple(hmmNames, queryNames, scoreName):
     queryDict = {}
