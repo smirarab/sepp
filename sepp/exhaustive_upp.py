@@ -3,11 +3,14 @@ Created on Oct 10, 2012
 
 @author: Siavash Mirarab
 """
-import sys
-import random
 import argparse
+import distutils
+from distutils import util
 import os
+import random
 import shutil
+import sys
+
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
@@ -158,16 +161,31 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_options(self):
         self.check_outputprefix()
         options().info_file = "A_dummy_value"
+        source_namespace = None
+        upp2_namespace = None
         if(options().decomp_only is True):
+            source_namespace = options()
             upp2_namespace = argparse.Namespace()
-            upp2_configs = {
-                "decomp_only": options().decomp_only,
-                "bitscore_adjust": options().bitscore_adjust,
-                "hier_upp": options().hier_upp,
-            }
-            for (k, v) in upp2_configs.items():
-                upp2_namespace.__setattr__(k, v)
-            options().__setattr__("upp2", upp2_namespace)
+        elif(hasattr(options(), "upp2")):
+            source_namespace = options().upp2
+            upp2_namespace = options().upp2
+        upp2_configs = {
+            "decomp_only": source_namespace.decomp_only,
+            "bitscore_adjust": source_namespace.bitscore_adjust,
+            "hier_upp": source_namespace.hier_upp,
+        }
+        if(isinstance(source_namespace.decomp_only, str)):
+            upp2_configs = {flag: bool(distutils.util.strtobool(upp2_configs[flag])) for flag in upp2_configs}
+        for (k, v) in upp2_configs.items():
+            upp2_namespace.__setattr__(k, v)
+            delattr(options(), k)
+        _LOG.debug("Namespace override")
+        _LOG.debug("decomp only: " + str(upp2_namespace.decomp_only))
+        _LOG.debug("bitscore_adjust " + str(upp2_namespace.bitscore_adjust))
+        _LOG.debug("hier upp: " + str(upp2_namespace.hier_upp))
+        assert isinstance(upp2_namespace.decomp_only, bool)
+        options().__setattr__("upp2", upp2_namespace)
+
 
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
@@ -217,10 +235,13 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 ("Backtranslation can be performed only when "
                  "input sequences are amino acid. "))
             exit(-1)
-        _LOG.error("OPTIONS FOR UPP2")
-        _LOG.error(options().upp2.decomp_only)
-        _LOG.error(options().upp2.bitscore_adjust)
-        _LOG.error(options().upp2.hier_upp)
+        _LOG.debug("OPTIONS FOR UPP2")
+        _LOG.debug(options().upp2.decomp_only)
+        _LOG.debug(options().upp2.bitscore_adjust)
+        _LOG.debug(options().upp2.hier_upp)
+        _LOG.debug(type(options().upp2.decomp_only))
+        _LOG.debug(type(options().upp2.bitscore_adjust))
+        _LOG.debug(type(options().upp2.hier_upp))
         return ExhaustiveAlgorithm.check_options(self)
 
     def merge_results(self):
@@ -536,21 +557,21 @@ def augment_parser():
     upp2Group.add_argument(
         "-j", "--decomp_only",
         dest="decomp_only", metavar="DCOMP",
-        type=bool,
+        type=argparse_bool,
         default=False,
         help="Only run the decomposition step of UPP. " "[default: %(default)s]"
     )
     upp2Group.add_argument(
         "-h", "--hier_upp",
         dest="hier_upp", metavar="hier",
-        type=bool,
+        type=argparse_bool,
         default=False,
         help="Run the hierarchical search through the UPP HMMs. " "[default: %(default)s]"
     )
     upp2Group.add_argument(
         "-z", "--bitscore_adjust",
         dest="bitscore_adjust", metavar="bitscore",
-        type=bool,
+        type=argparse_bool,
         default=False,
         help="Run with adjusted bitscore weighting. " "[default: %(default)s]"
     )
@@ -578,6 +599,10 @@ def augment_parser():
         help="fragment file "
              "[default: %(default)s]")
 
+def argparse_bool(argument):
+    if(argument == "True" or argument == "False"):
+        return bool(distutils.util.strtobool(argument))
+    raise argparse.ArgumentTypeError("Boolean value expected [True, False]")
 
 def main():
     augment_parser()
