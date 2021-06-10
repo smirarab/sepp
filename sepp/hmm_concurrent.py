@@ -7,7 +7,7 @@ from subprocess import run
 
 from sepp import get_logger
 from sepp.scheduler import JobPool
-from sepp.jobs import HMMBuildJob,HMMAlignJob
+from sepp.jobs import HMMAlignJob,HMMBuildJob,HMMSearchJob
 
 
 hmmSeqFile = ''
@@ -219,10 +219,12 @@ def giveHMMversion():
     hmmVersion = ''
     return hmmVersion
 
-def saveScore(hmmName, queryName, scoreName):
+def addHMMSearchJob(abstract_algorithm, hmmName, queryName, scoreName):
     ensureFolder(scoreName)
-    hmmVersion = giveHMMversion()
-    os.system(hmmVersion + "hmmsearch --noali --tblout " + scoreName + " --cpu 1 -E 99999999 --max " + hmmName + " " + queryName)
+    hmmsearch_job = HMMSearchJob(**vars(abstract_algorithm.options.hmmsearch))
+    hmmsearch_job.setup(hmmName, queryName, scoreName, elim=abstract_algorithm.elim)
+    hmmsearch_job.results_on_temp = False
+    JobPool().enqueue_job(hmmsearch_job)
 
 def addHMMBuildJob(abstract_algorithm, hmmName, seqName):
     ensureFolder(hmmName)
