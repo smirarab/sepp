@@ -1,4 +1,6 @@
-alignData
+data
+tmpfiles
+og_alignData
 *.pyc
 sepp/lib/hmm*
 sepp/lib/ppla*
