@@ -5,3 +5,4 @@ sepp/lib/ppla*
 .pydevproject
 test/unittest/data/simulated/*
 test/unittest/data/*
+home.path
