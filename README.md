@@ -42,11 +42,10 @@ UPP will be run with no parallelization. A later release may change this.
 
 * Why is hmmSearcher set to import from stefanHMM_concurrent throwing an error? (asking Stefan about this, sent code to reproduce the error) 
 * add a check for if we just ran saveInitialSteps for the right file, if so then can skip
-* make sure file only has one output.xdlk;fd file in it
-* *make edits to run_upp_strats() to specify no true alignment file* and otherwise change input parameters
 * add in save_scores.py, edit scoreAlignment to return the SP-score etc., and generate a xlsx report at the end comparing everything.
 * take stefan's name out of the strategies
 * *split the hmm_concurrent script*
 * comment run_upp_strats() back in, pass the relevant parameters and then output the relevant predicted alignments.
 * clean up directory structure inside /tmp
-* change the hardcoded 'alignData' references in hmm_concurrent and hmm_searcher
+* Make the ./data folder part of the /tmpfiles/ensembleData folder... integrate
+* Figure out where the resulting alignments are going... folder hierarchy is being messy... 
