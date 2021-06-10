@@ -14,6 +14,8 @@ hmmSeqFile = ''
 queryName = ''
 trueAlignment = ''
 predictionName = ''
+dirName = ''
+dataSetName = ''
 
 _LOG = get_logger(__name__)
 
@@ -46,7 +48,7 @@ def arrayToSeq(array):
     seqs = np.array(seqs)
     return seqs
 
-def setAllFileNames(givenHSF, givenQN, givenTA, givenPN):
+def setAllFileNames(givenHSF, givenQN, givenTA, givenPN, givenDir, givenDSN):
     global hmmSeqFile 
     hmmSeqFile = givenHSF
     global queryName 
@@ -55,13 +57,19 @@ def setAllFileNames(givenHSF, givenQN, givenTA, givenPN):
     trueAlignment = givenTA
     global predictionName
     predictionName = givenPN
+    global dirName
+    dirName = givenDir
+    global dataSetName
+    dataSetName = givenDSN
 
 def giveAllFileNames():
     global hmmSeqFile
     global queryName
     global trueAlignment
     global predictionName
-    fileNames = [hmmSeqFile, queryName, trueAlignment, predictionName]
+    global dataSetName
+
+    fileNames = [hmmSeqFile, queryName, trueAlignment, predictionName, dataSetName]
     return fileNames
 
 def giveQueries():
@@ -373,8 +381,8 @@ def saveScoreFromBool(hmmNames, queryHMM, scoreName, noSave=False):
         np.save(scoreName, data)
 
 def compareScores(strategyName):
-    scoreStrat = np.load("./alignData/hmmScores/scoresFull/" + strategyName + "_full.npy")
-    scoreUPP = np.load("./alignData/hmmScores/full.npy")
+    scoreStrat = np.load("%s/hmmScores/scoresFull/" % dirName + strategyName + "_full.npy")
+    scoreUPP = np.load("%s/hmmScores/full.npy" % dirName)
     plt.plot(np.max(scoreStrat, axis=1)-np.max(scoreUPP, axis=1))
     plt.show()
 
@@ -416,7 +424,7 @@ def processScoresOld():
     sequenceFileNames = giveSequenceFileNames()
     for a in range(0, len(sequenceFileNames)):
         data = []
-        file_obj = open("./alignData/hmmScores/raw/" + str(a) + ".txt")
+        file_obj = open("%s/hmmScores/raw/" % dirName + str(a) + ".txt")
         count1 = 0
         for line_number, i in enumerate(file_obj):
             ar = i.split('  ')
@@ -425,7 +433,7 @@ def processScoresOld():
                 sequenceName = i[:20].replace(' ', '')
                 data.append([sequenceName, bitScore])
         data = np.array(data)
-        np.save("./alignData/hmmScores/processed/" + str(a) + ".npy", data)
+        np.save("%s/hmmScores/processed/" %  dirName + str(a) + ".npy", data)
 
 def saveScoresBySeq():
     queryDict = {}
@@ -547,8 +555,8 @@ def reallignHMMSeq():
 def compareHMM():
     sequenceFileNames = giveSequenceFileNames()
     for a in range(0, len(sequenceFileNames)):
-        HMM1 = "./alignData/initialHMM/testStandardAlign" + str(a) + ".hmm "
-        HMM2 = "./alignData/initialHMM/test" + str(a) + ".hmm "
+        HMM1 = "%s/initialHMM/testStandardAlign" % dirName + str(a) + ".hmm "
+        HMM2 = "%s/initialHMM/test" % dirName + str(a) + ".hmm "
         cmd = 'diff ' + HMM1 + ' ' + HMM2
         print (cmd)
 
@@ -636,6 +644,7 @@ def scoresToHMMSeq(strategyName):
         maxHMM = np.argmax(scores, axis=1).astype(int)
         HMMunique, HMMinverse = np.unique(maxHMM, return_inverse=True)
         HMMinverse = np.array([np.arange(HMMinverse.shape[0]), HMMinverse]).T
+        print("saving to ./data/internalData/%s/%s/queryToHmm/original.npy" % (dataFolderName, strategyName))
         np.save("./data/internalData/" + dataFolderName + "/" + strategyName + "/queryToHmm/original.npy", HMMinverse)
         for a in range(0, len(HMMunique)):
             HMMnum = HMMunique[a]
@@ -644,12 +653,12 @@ def scoresToHMMSeq(strategyName):
             saveFastaBasic("./data/internalData/" + dataFolderName + "/" + strategyName + "/newHMM/newHMMseq/" + str(a) + ".fasta", keys, seqs)
     if strategyName in ['stefan_fastUPP', 'stefan_fastUPPexception', 'stefan_fastUPPearly']:
         if strategyName == 'stefan_fastUPPearly':
-            scoresFull = np.load('./alignData/Searcher/scoreFiles/Early_score.npy')
+            scoresFull = np.load('%s/ensembleData/Searcher/scoreFiles/Early_score.npy' % dirName)
         else:
-            scoresFull = np.load('./alignData/Searcher/scoreFiles/score.npy')
+            scoresFull = np.load('%s/ensembleData/Searcher/scoreFiles/score.npy' % dirName)
         maxHMM = np.argmax(scoresFull, axis=1).astype(int)
         if strategyName == 'stefan_fastUPPexception':
-            scores_original = np.load("./alignData/hmmScores/full.npy")
+            scores_original = np.load("%s/hmmScores/full.npy" % dirName)
             treeData = findDecomposition()
             treeSum = np.sum(treeData, axis=1)
             treeTop = np.unique(treeSum)[-3:]
@@ -747,7 +756,7 @@ def resortToUPP(strategyName, doResort=True):
     assert diffIssue == 0
 
 def stockholmToFasta(stockholmName, fastaName):
-    fakeFastaName = './alignData/temporaryFileSave/fakeFasta_1.fasta'
+    fakeFastaName = '%s/temporaryFileSave/fakeFasta_1.fasta' % dirName
     records = SeqIO.parse(stockholmName, "stockholm")
     count = SeqIO.write(records, fakeFastaName, "fasta")
     dataAlign = loadFastaFormat(fakeFastaName)
@@ -1126,9 +1135,9 @@ def easyInputMerge(alignments, columnSets, overlapLowercase=True):
     return seqsNew
 
 def checkAlignmentsValid(strategyName):
-    newAlignment = np.load('./alignData/hmmQueryList/merged/' + strategyName + '_alignment.npy')
-    newAlignmentBool = np.load('./alignData/hmmQueryList/merged/' + strategyName + '_alignmentBool.npy')
-    queryToHmm = np.load("./alignData/queryToHmm/" + strategyName + ".npy")
+    newAlignment = np.load('%s/hmmQueryList/merged/' % dirName + strategyName + '_alignment.npy')
+    newAlignmentBool = np.load('%s/hmmQueryList/merged/' % dirName + strategyName + '_alignmentBool.npy')
+    queryToHmm = np.load("%s/queryToHmm/" % dirName + strategyName + ".npy")
     for a in range(0, int(np.max(queryToHmm)) + 1):
         argsHMM = np.argwhere(queryToHmm == a)[:, 0]
         if argsHMM.shape[0] > 0:
@@ -1233,3 +1242,112 @@ def compareToUPP():
     print (seqs1[0])
     print ('')
     print (seqs2[0])
+
+
+def hierchySearch(fakeSimulate=False):
+
+    earlyStop = False
+    observeNephew = False
+    dataFolderName = giveAllFileNames()[4]
+    # np.load("./data/internalData/" + dataFolderName + "/hmmScores/full.npy")
+    scores_original = np.load("./data/internalData/%s/hmmScores/full.npy" % (dataFolderName))
+
+    hmmNames = []
+    sequenceFileNames = giveSequenceFileNames()
+    for a in range(0, len(sequenceFileNames)):
+        hmmName = "./data/internalData/initialHMM/test" + str(a) + ".hmm"
+        hmmNames.append(hmmName)
+
+    queryName = giveQueryFileName()
+    queryData = loadFastaFormat(queryName)
+    Nquery = int(len(queryData))
+    Nhmm = int(len(hmmNames))
+
+    edges = findTreeEdges()
+    children = np.argsort(edges, axis=1)[:, -2:]
+    childNum = np.sum(edges, axis=1)
+    brotherNode = findBrotherNode()
+
+    treeData = findDecomposition()
+    treeSum = np.sum(treeData, axis=1)
+    sortedSize = np.argsort(treeSum)
+    scoresFull = np.zeros((Nquery, Nhmm)) - 1000
+    scoreAdjustment = np.zeros(scoresFull.shape)
+    initialSearchSet = np.array([0])
+
+    queryPart = np.arange(Nquery * len(initialSearchSet)) % Nquery
+    hmmPart = np.array(initialSearchSet).repeat(Nquery)
+
+    queryHMM = np.array([queryPart, hmmPart]).T
+    scoreName = ''
+    if fakeSimulate:
+        scores = np.copy(scores_original)
+    else:
+        scores = saveScoreFromBool(hmmNames, queryHMM, scoreName, noSave=True)
+    scoresFull[queryHMM[:, 0], queryHMM[:, 1]] = scores[queryHMM[:, 0], queryHMM[:, 1]]
+
+    queryHMM_original = np.copy(queryHMM)
+    maxHMM = np.argmax(scoresFull, axis=1)
+    boolDone = np.zeros((Nquery, Nhmm))
+    boolDone[:, 0] = 1
+    maxHMMlist = []
+    scoresRecord = []
+
+    a = 1
+    done = False
+    while not done:
+        maxNotLeaf = np.argwhere(childNum[maxHMM] != 0)[:, 0]
+        if observeNephew:
+            maxHMMChild_original = children[maxHMM[maxNotLeaf]]
+            maxHMMChild_original = np.concatenate((maxHMMChild_original, children[brotherNode[maxHMM[maxNotLeaf]]]), axis=1)
+        else:
+            maxHMMChild_original = children[maxHMM[maxNotLeaf]]
+
+        maxHMMChild = np.copy(maxHMMChild_original).reshape((maxHMMChild_original.size,))
+        queryCorrespond = maxNotLeaf[np.arange(maxHMMChild.size) // (maxHMMChild_original.shape[1]) ]
+        queryToHMM_try = np.array([queryCorrespond, maxHMMChild]).T
+        queryHMM = queryToHMM_try[boolDone[queryToHMM_try[:, 0], queryToHMM_try[:, 1] ] == 0]
+        boolDone[queryHMM[:, 0], queryHMM[:, 1] ] = 1
+
+        if queryHMM.shape[0] != 0:
+            scoreName = ''
+            if fakeSimulate:
+                scores = np.copy(scores_original)
+            else:
+                scores = saveScoreFromBool(hmmNames, queryHMM, scoreName, noSave=True)
+
+            scoresFull[queryHMM[:, 0], queryHMM[:, 1]] = np.copy(scores[queryHMM[:, 0], queryHMM[:, 1]])
+            newScores1 = scoresFull[maxNotLeaf, maxHMMChild_original[:, 0]]
+            newScores2 = scoresFull[maxNotLeaf, maxHMMChild_original[:, 1]]
+            newScoresMax = np.argmax(np.array([newScores1, newScores2]), axis=0)
+
+            newChild = maxHMMChild_original[np.arange(newScores1.shape[0]), newScoresMax]
+            if earlyStop:
+                maxHMM = np.argmax(scoresFull, axis=1)
+            else:
+                maxHMM[maxNotLeaf] = newChild
+
+            scoreStep = scoresFull[np.arange(maxHMM.shape[0]), maxHMM]
+            scoresRecord.append(np.copy(scoreStep))
+            maxHMMlist.append(np.copy(maxHMM[:10]))
+        else:
+            done = True
+        a += 1
+
+    scoresRecord = np.array(scoresRecord)
+
+    np.save('%s/ensembleData/Searcher/scoreFiles/score.npy' % dirName, scoresFull)
+    np.save('%s/ensembleData/Searcher/scoreFiles/Bool.npy' % dirName, boolDone)
+
+    maxHMM_guess = np.argmax(scoresFull, axis=1)
+    maxHMM_original = np.argmax(scores_original, axis=1)
+
+    argDiff = np.argwhere((maxHMM_original-maxHMM_guess) != 0)[:, 0]
+    argDiffTop = argDiff[treeSum[maxHMM_guess[argDiff]] == 999]
+    print (np.mean(scores_original[argDiff, maxHMM_original[argDiff]] - scores_original[argDiff, maxHMM_guess[argDiff]]))
+    print (argDiff.shape)
+    print (np.unique(treeSum[maxHMM_guess[argDiff]], return_counts=True)[1][-3:])
+    print (np.unique(treeSum[maxHMM_guess], return_counts=True)[1][-3:])
+    bitscore_guess = scores_original[np.arange(Nquery), maxHMM_guess]
+    bitscore_original = scores_original[np.arange(Nquery), maxHMM_original]
+

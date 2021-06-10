@@ -186,7 +186,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         assert isinstance(upp2_namespace.decomp_only, bool)
         options().__setattr__("upp2", upp2_namespace)
 
-
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
         if (
@@ -201,6 +200,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 (not options().sequence_file is None)
         ):
             self.generate_backbone()
+        elif (
+                (options().decomp_only is True)
+        ):
+            # assert no parallelization when decomp_only
+            options().cpu = 1
         else:
             _LOG.error(
                 ("Either specify the backbone alignment and tree and query "
@@ -376,8 +380,15 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-        # elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
-            # _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
+        elif self.options.hier_upp or self.options.bitscore_adjust: 
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
+            dirname = self.options.tempdir
+            hier_upp = self.options.hier_upp
+            adjusted_bitscore = self.options.bitscore_adjust
+
+            makedirstruct(dirname)
+            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -419,7 +430,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             extra_frags=self.root_problem.subalignment.get_soft_sub_alignment(
                 self.filtered_taxa))
     
-    # gillichu added
     def build_jobs(self):
         super().build_jobs()
 
@@ -431,9 +441,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if not self.options.upp2.decomp_only: 
             return super().enqueue_firstlevel_job()
         else: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
-            makedirstruct(self.options.tempdir)
-            # run_upp_strats(self, None, None, None, None, None)
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
+            dirname = self.options.tempdir
+            hier_upp = self.options.hier_upp
+            adjusted_bitscore = self.options.bitscore_adjust
+
+            makedirstruct(dirname)
+            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
@@ -546,8 +561,6 @@ def augment_parser():
         help="Branches longer than N times the median branch length are "
              "filtered from backbone and added to fragments."
              " [default: None (no filtering)]")
-
-# gillichu added #
 
     upp2Group = parser.add_argument_group(
         "UPP2 Options".upper(),
