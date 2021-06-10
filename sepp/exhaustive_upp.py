@@ -186,7 +186,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         assert isinstance(upp2_namespace.decomp_only, bool)
         options().__setattr__("upp2", upp2_namespace)
 
-
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
         if (
@@ -201,6 +200,11 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 (not options().sequence_file is None)
         ):
             self.generate_backbone()
+        elif (
+                (options().decomp_only is True)
+        ):
+            # assert no parallelization when decomp_only
+            options().cpu = 1
         else:
             _LOG.error(
                 ("Either specify the backbone alignment and tree and query "
@@ -376,7 +380,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-
         elif self.options.hier_upp or self.options.bitscore_adjust: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
             print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)

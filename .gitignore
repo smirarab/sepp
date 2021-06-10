@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 data/
 tmpfiles
 og_alignData
+=======
+alignData
+>>>>>>> 72ced174502fdc5c59545037180f3226c7bbf1cd
 *.pyc
 sepp/lib/hmm*
 sepp/lib/ppla*

@@ -1,6 +1,5 @@
 import os, glob
 import subprocess
-import argparse
 
 from sepp.hmm_concurrent import *
 from sepp.scheduler import JobPool
