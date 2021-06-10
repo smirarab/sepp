@@ -18,7 +18,7 @@ import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
 from sepp.backtranslate import backtranslate
-# from sepp.upp2_methods import *
+from sepp.upp2_methods import *
 
 _LOG = get_logger(__name__)
 
