@@ -184,6 +184,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                  "sequences or only the query sequences.  Any other "
                  "combination is invalid"))
             exit(-1)
+
+        if (
+                (options().decomp_only is True) or 
+                (options().bitscore_adjust is True) or
+                (options().hier_upp is True)
+        ):
+            # assert no parallelization when decomp_only
+            # TODO: restore old cpu value
+            options().cpu = 1
+
         sequences = MutableAlignment()
         sequences.read_file_object(open(self.options.alignment_file.name))
         backbone_size = sequences.get_num_taxa()
@@ -339,8 +349,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             _LOG.info("Masked alignment written to %s" % outfilename)
         elif self.options.hier_upp or self.options.bitscore_adjust: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
             makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+            run_upp_strats()
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -382,7 +393,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             extra_frags=self.root_problem.subalignment.get_soft_sub_alignment(
                 self.filtered_taxa))
     
-    # gillichu added
     def build_jobs(self):
         super().build_jobs()
 
@@ -395,8 +405,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             return super().enqueue_firstlevel_job()
         else: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
             makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+            run_upp_strats()
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
@@ -509,8 +520,6 @@ def augment_parser():
         help="Branches longer than N times the median branch length are "
              "filtered from backbone and added to fragments."
              " [default: None (no filtering)]")
-
-# gillichu added #
 
     uppGroup.add_argument(
         "-j", "--decomp_only", type=bool, dest="decomp_only",
