@@ -3,11 +3,14 @@ Created on Oct 10, 2012
 
 @author: Siavash Mirarab
 """
-import sys
-import random
 import argparse
+import distutils
+from distutils import util
 import os
+import random
 import shutil
+import sys
+
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
@@ -158,6 +161,31 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_options(self):
         self.check_outputprefix()
         options().info_file = "A_dummy_value"
+        source_namespace = None
+        upp2_namespace = None
+        if(options().decomp_only is True):
+            source_namespace = options()
+            upp2_namespace = argparse.Namespace()
+        elif(hasattr(options(), "upp2")):
+            source_namespace = options().upp2
+            upp2_namespace = options().upp2
+        upp2_configs = {
+            "decomp_only": source_namespace.decomp_only,
+            "bitscore_adjust": source_namespace.bitscore_adjust,
+            "hier_upp": source_namespace.hier_upp,
+        }
+        if(isinstance(source_namespace.decomp_only, str)):
+            upp2_configs = {flag: bool(distutils.util.strtobool(upp2_configs[flag])) for flag in upp2_configs}
+        for (k, v) in upp2_configs.items():
+            upp2_namespace.__setattr__(k, v)
+            delattr(options(), k)
+        _LOG.debug("Namespace override")
+        _LOG.debug("decomp only: " + str(upp2_namespace.decomp_only))
+        _LOG.debug("bitscore_adjust " + str(upp2_namespace.bitscore_adjust))
+        _LOG.debug("hier upp: " + str(upp2_namespace.hier_upp))
+        assert isinstance(upp2_namespace.decomp_only, bool)
+        options().__setattr__("upp2", upp2_namespace)
+
 
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
@@ -181,9 +209,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             exit(-1)
 
         if (
-                (options().decomp_only is True) or 
-                (options().bitscore_adjust is True) or
-                (options().hier_upp is True)
+                (options().upp2.decomp_only is True) or 
+                (options().upp2.bitscore_adjust is True) or
+                (options().upp2.hier_upp is True)
         ):
             # assert no parallelization when decomp_only
             # TODO: restore old cpu value
@@ -207,11 +235,17 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 ("Backtranslation can be performed only when "
                  "input sequences are amino acid. "))
             exit(-1)
-
+        _LOG.debug("OPTIONS FOR UPP2")
+        _LOG.debug(options().upp2.decomp_only)
+        _LOG.debug(options().upp2.bitscore_adjust)
+        _LOG.debug(options().upp2.hier_upp)
+        _LOG.debug(type(options().upp2.decomp_only))
+        _LOG.debug(type(options().upp2.bitscore_adjust))
+        _LOG.debug(type(options().upp2.hier_upp))
         return ExhaustiveAlgorithm.check_options(self)
 
     def merge_results(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             assert \
                 len(self.root_problem.get_children()) == 1, \
                 "Currently UPP works with only one placement subset."
@@ -302,7 +336,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     #        self.results = extendedAlignment
 
     def output_results(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             extended_alignment = self.results
             _LOG.info("Generating output. ")
             outfilename = self.get_output_filename("alignment.fasta")
@@ -342,10 +376,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-        elif self.options.hier_upp or self.options.bitscore_adjust: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
-            makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+        # elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
+            # _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -392,16 +424,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         super().build_jobs()
 
     def connect_jobs(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             return super().connect_jobs()
 
     def enqueue_firstlevel_job(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             return super().enqueue_firstlevel_job()
         else: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             makedirstruct(self.options.tempdir)
-            #run_upp_strats()
+            # run_upp_strats(self, None, None, None, None, None)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
@@ -503,10 +535,10 @@ def augment_parser():
              "corresponding every reference and query sequence "
              "[default: None]")
 
+
     uppGroup = parser.add_argument_group(
         "UPP Options".upper(),
         "These options set settings specific to UPP")
-
     uppGroup.add_argument(
         "-l", "--longbranchfilter", type=int,
         dest="long_branch_filter", metavar="N",
@@ -517,24 +549,28 @@ def augment_parser():
 
 # gillichu added #
 
-    uppGroup.add_argument(
-        "-j", "--decomp_only", type=bool, dest="decomp_only",
-        metavar="DCOMP",
-        default=False, 
+    upp2Group = parser.add_argument_group(
+        "UPP2 Options".upper(),
+        "These options set settings specific to UPP2")
+    upp2Group.add_argument(
+        "-j", "--decomp_only",
+        dest="decomp_only", metavar="DCOMP",
+        type=argparse_bool,
+        default=False,
         help="Only run the decomposition step of UPP. " "[default: %(default)s]"
     )
-
-    uppGroup.add_argument(
-        "-h", "--hier_upp", type=bool, dest="hier_upp",
-        metavar="hier",
-        default=False, 
+    upp2Group.add_argument(
+        "-h", "--hier_upp",
+        dest="hier_upp", metavar="hier",
+        type=argparse_bool,
+        default=False,
         help="Run the hierarchical search through the UPP HMMs. " "[default: %(default)s]"
     )
-
-    uppGroup.add_argument(
-        "-z", "--bitscore_adjust", type=bool, dest="bitscore_adjust",
-        metavar="bitscore",
-        default=False, 
+    upp2Group.add_argument(
+        "-z", "--bitscore_adjust",
+        dest="bitscore_adjust", metavar="bitscore",
+        type=argparse_bool,
+        default=False,
         help="Run with adjusted bitscore weighting. " "[default: %(default)s]"
     )
 
@@ -561,6 +597,10 @@ def augment_parser():
         help="fragment file "
              "[default: %(default)s]")
 
+def argparse_bool(argument):
+    if(argument == "True" or argument == "False"):
+        return bool(distutils.util.strtobool(argument))
+    raise argparse.ArgumentTypeError("Boolean value expected [True, False]")
 
 def main():
     augment_parser()
