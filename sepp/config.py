@@ -122,6 +122,7 @@ def valid_file_prefix(prefix):
 def set_cpu(cpus):
     c = int(cpus)
     scheduler.default_cpus = c
+    _LOG.debug(f"setting default cpu count to be {c}")
     return c
 
 
