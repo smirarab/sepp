@@ -350,8 +350,12 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         elif self.options.hier_upp or self.options.bitscore_adjust: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
             print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
-            makedirstruct(self.options.tempdir)
-            run_upp_strats()
+            dirname = self.options.tempdir
+            hier_upp = self.options.hier_upp
+            adjusted_bitscore = self.options.bitscore_adjust
+
+            makedirstruct(dirname)
+            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -406,8 +410,12 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         else: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
             print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
-            makedirstruct(self.options.tempdir)
-            run_upp_strats()
+            dirname = self.options.tempdir
+            hier_upp = self.options.hier_upp
+            adjusted_bitscore = self.options.bitscore_adjust
+
+            makedirstruct(dirname)
+            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
