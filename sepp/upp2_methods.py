@@ -62,7 +62,6 @@ def run_upp_strats(abstract_algorithm, dirpath, decomp, strats, out_tag, trueAli
     addHMMBuildJob(abstract_algorithm, <hmmbuild profile output file path>, <fasta file path>)
     JobPool().wait_for_all_jobs()
     '''
-    return
     print("[run_upp_strats]")
     decomp = str(decomp)
 

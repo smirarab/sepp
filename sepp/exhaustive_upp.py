@@ -433,7 +433,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         else: 
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             makedirstruct(self.options.tempdir)
-            run_upp_strats(self, None, None, None, None, None)
+            # run_upp_strats(self, None, None, None, None, None)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
