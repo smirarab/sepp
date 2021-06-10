@@ -19,6 +19,8 @@ dataSetName = ''
 
 _LOG = get_logger(__name__)
 
+_LOG = get_logger(__name__)
+
 def ensureFolder(fileName):
     def removeEnd(fileName):
         fileName = '/'.join(fileName.split('/')[:-1])
