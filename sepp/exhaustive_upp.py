@@ -436,7 +436,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if not self.options.upp2.decomp_only: 
             return super().enqueue_firstlevel_job()
         else: 
-<<<<<<< HEAD
             _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
             print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
             dirname = self.options.tempdir
@@ -445,11 +444,6 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
 
             makedirstruct(dirname)
             run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
-=======
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
-            makedirstruct(self.options.tempdir)
-            # run_upp_strats(self, None, None, None, None, None)
->>>>>>> 2ea998c4b47650e3c3748856cae654a6d3bef7a2
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(
