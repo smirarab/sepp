@@ -1,8 +1,10 @@
 import os, glob
 import subprocess
 import argparse
+
 from sepp.hmm_concurrent import *
 from sepp.hmm_searcher import *
+from sepp.scheduler import JobPool
 
 def create_dirs(path_name):
     if not os.path.exists(path_name): 
@@ -52,10 +54,16 @@ def makedirstruct(dirpath):
         elif firstlvl == 'trueAlignment':
             for z in ['original', 'subset']:
                 subprocess.call(['mkdir', firstdir + '/' + z])
-       
-def run_upp_strats(dirpath, decomp, strats, out_tag, trueAlign, doResort=False):
-    print("[run_upp_strats]") 
-    
+
+
+def run_upp_strats(abstract_algorithm, dirpath, decomp, strats, out_tag, trueAlign, doResort=False):
+    ''' Note: abstract_algorithm can be used to do commands like below.
+        The moment you call addHMMBuildJob, jobs will get enqueued and run eventually
+    addHMMBuildJob(abstract_algorithm, <hmmbuild profile output file path>, <fasta file path>)
+    JobPool().wait_for_all_jobs()
+    '''
+    return
+    print("[run_upp_strats]")
     decomp = str(decomp)
 
     print("[START HERE] decomp:%s" % (decomp), flush=True)
