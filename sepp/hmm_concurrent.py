@@ -5,6 +5,10 @@ import os
 from Bio import SeqIO
 from subprocess import run
 
+from sepp import get_logger
+from sepp.scheduler import JobPool
+from sepp.jobs import HMMAlignJob,HMMBuildJob,HMMSearchJob
+
 
 hmmSeqFile = ''
 queryName = ''
@@ -12,6 +16,8 @@ trueAlignment = ''
 predictionName = ''
 dirName = ''
 dataSetName = ''
+
+_LOG = get_logger(__name__)
 
 def ensureFolder(fileName):
     def removeEnd(fileName):
@@ -221,23 +227,37 @@ def giveHMMversion():
     hmmVersion = ''
     return hmmVersion
 
-def saveScore(hmmName, queryName, scoreName):
+def addHMMSearchJob(abstract_algorithm, hmmName, queryName, scoreName):
     ensureFolder(scoreName)
-    hmmVersion = giveHMMversion()
-    os.system(hmmVersion + "hmmsearch --noali --tblout " + scoreName + " --cpu 1 -E 99999999 --max " + hmmName + " " + queryName)
+    hmmsearch_job = HMMSearchJob(**vars(abstract_algorithm.options.hmmsearch))
+    hmmsearch_job.setup(hmmName, queryName, scoreName, elim=abstract_algorithm.elim)
+    hmmsearch_job.results_on_temp = False
+    JobPool().enqueue_job(hmmsearch_job)
 
-def runHMMbuild(hmmName, seqName):
+def addHMMBuildJob(abstract_algorithm, hmmName, seqName):
     ensureFolder(hmmName)
-    hmmVersion = giveHMMversion()
-    os.system(hmmVersion + "hmmbuild  --symfrac 0.0 --informat afa  " + hmmName + " " + seqName)
+    hmmbuild_job = HMMBuildJob()
+    hmmbuild_job.setup(seqName, hmmName, **vars(abstract_algorithm.options.hmmbuild))
+    JobPool().enqueue_job(hmmbuild_job)
 
-def runHMMalign(hmmName, queryName, predictionName):
+def addHMMAlignJob(abstract_algorithm, hmmName, queryName, predictionName):
     ensureFolder(predictionName)
-    hmmVersion = giveHMMversion()
-    if hmmVersion == '':
-        os.system(hmmVersion + "hmmalign --dna -o " + predictionName + " " + hmmName + ' ' + queryName + " ")
-    else:
-        os.system(hmmVersion + "hmmalign --allcol  --dna -o " + predictionName + " " + hmmName + ' ' + queryName + " ")
+    hmmalign_job = HMMAlignJob(**vars(abstract_algorithm.options.hmmalign))
+    _LOG.debug(str(abstract_algorithm.options.hmmalign))
+    hmmalign_job.setup(hmmName, queryName, predictionName)
+    JobPool().enqueue_job(hmmalign_job)
+
+def runHMMbuild(abstract_algorithm, hmmName, seqName):
+    ensureFolder(hmmName)
+    hmmbuild_job = HMMBuildJob()
+    hmmbuild_job.setup(seqName, hmmName, **vars(abstract_algorithm.options.hmmbuild))
+    hmmbuild_job.run()
+
+def runHMMalign(abstract_algorithm, hmmName, queryName, predictionName):
+    ensureFolder(predictionName)
+    hmmalign_job = HMMAlignJob()
+    hmmalign_job.setup(hmmName, queryName, predictionName, **vars(abstract_algorithm.options.hmmalign))
+    hmmalign_job.run()
 
 def saveScoreSimple(hmmNames, queryNames, scoreName):
     queryDict = {}
@@ -615,41 +635,6 @@ def scoresToHMMSeq(strategyName):
     scores = np.load("./data/internalData/" + dataFolderName + "/hmmScores/fullAdjusted.npy")
     ensureFolder("./data/internalData/" + dataFolderName + "/" + strategyName + "/queryToHmm/original.npy")
     ensureFolder("./data/internalData/" + dataFolderName + "/" + strategyName + "/newHMM/newHMMseq/")
-    if strategyName in ['stefan_basic', 'stefan_removeLeaf', 'stefan_onlyOneAbove', 'stefan_useAboveLeaf']:
-        scores = scores / np.max(scores)
-        treeData = findDecomposition()
-        treeSum = np.sum(treeData, axis=1)
-        oneMask = np.zeros(scores.shape)
-        oneMask[:, treeSum==1] = 1
-        maxHMM = np.argmax(scores, axis=1)
-        usedMask = treeData[maxHMM, :]
-        usedOneMask = usedMask * oneMask
-        meanUsed = np.sum(scores * usedOneMask, axis=1) / np.sum(usedOneMask, axis=1)
-        meanUsed2 = meanUsed.repeat(scores.shape[1]).reshape(scores.shape)
-        aboveMask = np.zeros(scores.shape)
-        aboveMask[((scores + 0.01)/(meanUsed2 + 0.01)) > (2/3)] = 1
-        aboveMaskOne = aboveMask * oneMask
-        aboveMaskOneString = []
-        for a in range(0, len(aboveMaskOne)):
-            string1 = ''
-            for b in range(0, len(aboveMaskOne[a])):
-                string1 = string1 + str(int(aboveMaskOne[a, b])) + ':'
-            aboveMaskOneString.append(string1)
-        aboveMaskOneString = np.array(aboveMaskOneString)
-        _, hmmUniqueIndex, queryToHmm = np.unique(aboveMaskOneString, return_index=True, return_inverse=True)
-        hmmLeafs = aboveMaskOne[hmmUniqueIndex]
-        queryToHmm = np.array([np.arange(queryToHmm.shape[0]), queryToHmm]).T
-        np.save("./data/internalData/" + dataFolderName + "/" + strategyName + "/queryToHmm/original.npy", queryToHmm)
-        sequenceFileNames = giveSequenceFileNames()
-        for a in range(0, len(hmmLeafs)):
-            newFasta = []
-            for b in range(0, len(hmmLeafs[0])):
-                if hmmLeafs[a, b] == 1:
-                    name = "./data/internalData/" + dataFolderName + '/hmmSeqAlign/' + str(b) + '.fasta'
-                    data = loadFastaFormat(name)
-                    keysUsed, _ = loadFastaBasic(name)
-                    newFasta = newFasta + data
-            saveFasta("./data/internalData/" + dataFolderName + "/" + strategyName + "/newHMM/newHMMseq/" + str(a) + ".fasta", newFasta)
     if strategyName in ['stefan_UPP', 'stefan_UPPadjusted']:
         if strategyName == 'stefan_UPP':
             scores = np.load("./data/internalData/" + dataFolderName + "/hmmScores/full.npy")
