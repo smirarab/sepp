@@ -18,7 +18,7 @@ import sepp.config
 from sepp.math_utils import lcm
 from sepp.problem import SeppProblem
 from sepp.backtranslate import backtranslate
-from sepp.upp2_methods import *
+# from sepp.upp2_methods import *
 
 _LOG = get_logger(__name__)
 
@@ -158,6 +158,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     def check_options(self):
         self.check_outputprefix()
         options().info_file = "A_dummy_value"
+        if(options().decomp_only is True):
+            upp2_namespace = argparse.Namespace()
+            upp2_configs = {
+                "decomp_only": options().decomp_only,
+                "bitscore_adjust": options().bitscore_adjust,
+                "hier_upp": options().hier_upp,
+            }
+            for (k, v) in upp2_configs.items():
+                upp2_namespace.__setattr__(k, v)
+            options().__setattr__("upp2", upp2_namespace)
 
         # Check to see if tree/alignment/fragment file provided, if not,
         # generate it from sequence file
@@ -181,9 +191,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             exit(-1)
 
         if (
-                (options().decomp_only is True) or 
-                (options().bitscore_adjust is True) or
-                (options().hier_upp is True)
+                (options().upp2.decomp_only is True) or 
+                (options().upp2.bitscore_adjust is True) or
+                (options().upp2.hier_upp is True)
         ):
             # assert no parallelization when decomp_only
             # TODO: restore old cpu value
@@ -207,11 +217,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
                 ("Backtranslation can be performed only when "
                  "input sequences are amino acid. "))
             exit(-1)
-
+        _LOG.error("OPTIONS FOR UPP2")
+        _LOG.error(options().upp2.decomp_only)
+        _LOG.error(options().upp2.bitscore_adjust)
+        _LOG.error(options().upp2.hier_upp)
         return ExhaustiveAlgorithm.check_options(self)
 
     def merge_results(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             assert \
                 len(self.root_problem.get_children()) == 1, \
                 "Currently UPP works with only one placement subset."
@@ -302,7 +315,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     #        self.results = extendedAlignment
 
     def output_results(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             extended_alignment = self.results
             _LOG.info("Generating output. ")
             outfilename = self.get_output_filename("alignment.fasta")
@@ -342,8 +355,8 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-        elif self.options.hier_upp or self.options.bitscore_adjust: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+        elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             makedirstruct(self.options.tempdir)
             #run_upp_strats()
 
@@ -392,14 +405,14 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         super().build_jobs()
 
     def connect_jobs(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             return super().connect_jobs()
 
     def enqueue_firstlevel_job(self):
-        if not self.options.decomp_only: 
+        if not self.options.upp2.decomp_only: 
             return super().enqueue_firstlevel_job()
         else: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             makedirstruct(self.options.tempdir)
             #run_upp_strats()
 
@@ -503,10 +516,10 @@ def augment_parser():
              "corresponding every reference and query sequence "
              "[default: None]")
 
+
     uppGroup = parser.add_argument_group(
         "UPP Options".upper(),
         "These options set settings specific to UPP")
-
     uppGroup.add_argument(
         "-l", "--longbranchfilter", type=int,
         dest="long_branch_filter", metavar="N",
@@ -517,24 +530,28 @@ def augment_parser():
 
 # gillichu added #
 
-    uppGroup.add_argument(
-        "-j", "--decomp_only", type=bool, dest="decomp_only",
-        metavar="DCOMP",
-        default=False, 
+    upp2Group = parser.add_argument_group(
+        "UPP2 Options".upper(),
+        "These options set settings specific to UPP2")
+    upp2Group.add_argument(
+        "-j", "--decomp_only",
+        dest="decomp_only", metavar="DCOMP",
+        type=bool,
+        default=False,
         help="Only run the decomposition step of UPP. " "[default: %(default)s]"
     )
-
-    uppGroup.add_argument(
-        "-h", "--hier_upp", type=bool, dest="hier_upp",
-        metavar="hier",
-        default=False, 
+    upp2Group.add_argument(
+        "-h", "--hier_upp",
+        dest="hier_upp", metavar="hier",
+        type=bool,
+        default=False,
         help="Run the hierarchical search through the UPP HMMs. " "[default: %(default)s]"
     )
-
-    uppGroup.add_argument(
-        "-z", "--bitscore_adjust", type=bool, dest="bitscore_adjust",
-        metavar="bitscore",
-        default=False, 
+    upp2Group.add_argument(
+        "-z", "--bitscore_adjust",
+        dest="bitscore_adjust", metavar="bitscore",
+        type=bool,
+        default=False,
         help="Run with adjusted bitscore weighting. " "[default: %(default)s]"
     )
 
