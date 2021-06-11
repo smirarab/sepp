@@ -108,6 +108,7 @@ class ExternalSeppJob(Job):
                  for x in self.get_invocation())))
             self._process = Popen(
                 self.get_invocation(), universal_newlines=True, **self._kwargs)
+            _LOG.debug("actual invocation" + str(self.get_invocation()))
             self._id = self._process.pid
 
             if self.stdindata is not None:
@@ -360,6 +361,7 @@ class HMMAlignJob(ExternalSeppJob):
         send back the file name, and will let the caller figure out what to do
         with it.
         """
+        _LOG.debug(f"align result file should be in: {self.outfile}" )
         if self.fake_run:
             return None
         if os.path.exists(self.outfile):

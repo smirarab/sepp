@@ -15,7 +15,7 @@ from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
 from sepp.jobs import PastaAlignJob
-from sepp.filemgr import get_temp_file
+from sepp.filemgr import get_temp_file,get_root_temp_dir
 from sepp.config import options, valid_decomp_strategy
 import sepp.config
 from sepp.math_utils import lcm
@@ -375,15 +375,15 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
             outfilename = self.get_output_filename("alignment_masked.fasta")
             extended_alignment.write_to_path(outfilename)
             _LOG.info("Masked alignment written to %s" % outfilename)
-        elif self.options.hier_upp or self.options.bitscore_adjust: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
-            print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
-            dirname = self.options.tempdir
-            hier_upp = self.options.hier_upp
-            adjusted_bitscore = self.options.bitscore_adjust
+        elif self.options.upp2.hier_upp or self.options.upp2.bitscore_adjust: 
+            _LOG.info("Outputting results when decomp only is %d" % self.options.upp2.decomp_only)
+            # print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
+            # dirname = self.options.tempdir
+            # hier_upp = self.options.hier_upp
+            # adjusted_bitscore = self.options.bitscore_adjust
 
-            makedirstruct(dirname)
-            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
+            # makedirstruct(dirname)
+            # run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
 
     def check_and_set_sizes(self, total):
         assert (self.options.placement_size is None) or (
@@ -436,14 +436,16 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         if not self.options.upp2.decomp_only: 
             return super().enqueue_firstlevel_job()
         else: 
-            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.decomp_only)
+            _LOG.info("Not enqueueing jobs because flag decomp_only was %d" % self.options.upp2.decomp_only)
             print("[enqueue]: self.options.tempdir is", self.options.tempdir, flush=True)
-            dirname = self.options.tempdir
-            hier_upp = self.options.hier_upp
-            adjusted_bitscore = self.options.bitscore_adjust
+            # dirname = self.options.tempdir
+            dirname = get_root_temp_dir()
+            hier_upp = self.options.upp2.hier_upp
+            adjusted_bitscore = self.options.upp2.bitscore_adjust
 
             makedirstruct(dirname)
-            run_upp_strats(dirname, hier_upp, adjusted_bitscore, doResort=False)
+            _LOG.info("temp dir is %s" % self.options.tempdir)
+            run_upp_strats(self, dirname, hier_upp, adjusted_bitscore, doResort=False)
 
 def augment_parser():
     root_p = open(os.path.join(os.path.split(

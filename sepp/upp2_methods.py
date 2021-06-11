@@ -1,6 +1,7 @@
 import os, glob
 import subprocess
 
+from sepp.filemgr import get_root_temp_dir
 from sepp.hmm_concurrent import *
 from sepp.scheduler import JobPool
 
@@ -61,22 +62,25 @@ def run_upp_strats(abstract_algorithm, dirname, hier_upp, adjusted_bitscore, doR
     '''
     print("[run_upp_strats]") 
     
-    globdir = glob.glob(os.path.join(dirname, "output*"))
-    assert len(globdir) == 1
-    outputdirname = globdir[0]
+    # globdir = glob.glob(os.path.join(dirname, "output*"))
+    # assert len(globdir) == 1
+    # outputdirname = globdir[0]
+    outputdirname = get_root_temp_dir()
     hmmSeqFile = '%s/root/P_0/' % outputdirname
     fragmentfile = os.listdir(outputdirname + "/fragment_chunks/")[0]
     queryName = "%s/fragment_chunks/%s" % (outputdirname, fragmentfile)
-    #predictionName = './%s/UPPoutput/%s_output_alignment.fasta' % dirpath
+    # predictionName = './%s/UPPoutput/%s_output_alignment.fasta' % dirpath
 
     # TODO: Prediction name may get passed in 
     predictionName = '' 
     trueAlignment = ''
-    dsnName = ''
+    dsnName = 'default-value-not-empty'
 
+    setAllFileNames(hmmSeqFile, queryName, trueAlignment, predictionName, outputdirname, dsnName)
+    saveInitialSteps(abstract_algorithm)
     if hier_upp: 
         strat = 'stefan_fastUPP'
-        hierchySearch()
+        hierchySearch(abstract_algorithm)
     elif adjusted_bitscore:
         strat = 'stefan_UPPadjusted'
     
@@ -84,4 +88,4 @@ def run_upp_strats(abstract_algorithm, dirname, hier_upp, adjusted_bitscore, doR
     print("[running scoresToHMMSeq]")
     scoresToHMMSeq(strat)
     print("[running buildAlignMerge, doResort is %s]" % doResort)
-    buildAlignMerge(strat, doResort=doResort)
+    buildAlignMerge(abstract_algorithm, strat, doResort=doResort)
