@@ -16,7 +16,7 @@ Developers: Nam Nguyen, Michael Nute, Siavash Mirarab, and Tandy Warnow.
 Nguyen, Nam-phuong (2016): `HIPPI Dataset`. University of Illinois at Urbana-Champaign. https://doi.org/10.13012/B2IDB-6795126_V1
 
 ###Publication:
-Nam Nguyen, Michael Nute, Siavash Mirarab, Keerthana Kumar, and Tandy Warnow. `HIPPI: Highly Accurate Protein Family Classification with Ensembles of profile Hidden Markov Models`. Accepted to RECOMB CG 2016 ().
+Nam Nguyen, Michael Nute, Siavash Mirarab, and Tandy Warnow. `HIPPI: Highly Accurate Protein Family Classification with Ensembles of profile Hidden Markov Models`. BMC Genomics 17, 765 (2016). https://doi.org/10.1186/s12864-016-3097-0
 
 
 ### Note and Acknowledgment: 
@@ -39,7 +39,7 @@ Before installing the software you need to make sure the following programs are 
 
 Installation Steps:
 -------------------
-HIPPI is a part of the SEPP distribution package.  By installing SEPP, HIPPI is automatically installed. (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  
+HIPPI is a part of the SEPP distribution package.  By installing SEPP, HIPPI is automatically installed (see [SEPP readme] (https://github.com/smirarab/sepp/blob/master/README.SEPP.md)).  
 
 Common Problems:
 -------------------
@@ -65,5 +65,5 @@ We are currently building a pipeline script to streamline this process.
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-HIPPI is under active research development at UIUC by the Warnow Lab (and especially with her former PhD students Siavash Mirarab and Nam Nguyen). Please report any errors or requests to Michael Nute (nute2@illinois.edu), Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (ndn006@eng.ucsd.edu).
+HIPPI is under active research development at UIUC by the Warnow Lab (and especially with her former PhD students Siavash Mirarab and Nam Nguyen). Please report any errors or requests to Michael Nute (mike.nute@gmail.com), Siavash Mirarab (smirarab@gmail.com), or  Nam Nguyen (nnguyen@boundlessbio.com).
 
