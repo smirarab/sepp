@@ -991,13 +991,17 @@ def mergeAlignments(strategyName, overlapLowercase=True):
                     else:
                         fullInsertionsNumber[insertPosition] += insertNumber[b]
 
-    newAlignment = np.zeros((queryToHmm.shape[0], int(fullInsertionsNumber.shape[0] + np.sum(fullInsertionsNumber))  )).astype(str)
+    #newAlignment = np.zeros((queryToHmm.shape[0], int(fullInsertionsNumber.shape[0] + np.sum(fullInsertionsNumber))  )).astype(str)
+    newAlignment = np.zeros((queryToHmm.shape[0] + len(backboneKeys), int(fullInsertionsNumber.shape[0] + np.sum(fullInsertionsNumber))  )).astype(str)
+
     newAlignment[:] = '-'
     newAlignmentBool = np.zeros(newAlignment.shape)
     colIndex = np.cumsum(fullInsertionsNumber+1).astype(int)
     colIndex = np.concatenate((np.zeros(1), colIndex[:-1])).astype(int)
-    newAlignment[:, colIndex[1:]] = backBoneChoice #[1:] removes fake "before everything" match state.
-    newAlignmentBool[:, colIndex[1:]] = backBoneChoiceBool * 2
+    #newAlignment[:, colIndex[1:]] = backBoneChoice #[1:] removes fake "before everything" match state.
+    #newAlignmentBool[:, colIndex[1:]] = backBoneChoiceBool * 2
+    newAlignment[:queryToHmm.shape[0], colIndex[1:]] = backBoneChoice #[1:] removes fake "before everything" match state.
+    newAlignmentBool[:queryToHmm.shape[0], colIndex[1:]] = backBoneChoiceBool * 2
 
     for a in range(0, len(fullInsertions)):
         start1 = colIndex[a] + 1
@@ -1014,6 +1018,17 @@ def mergeAlignments(strategyName, overlapLowercase=True):
                 start2 += size1
     newAlignment[newAlignment == '.'] = '-'
 
+    #newAlignmentBool
+    queryNames = list(queryNames)
+    for a in range(len(backboneKeys)):
+        #backboneKeys, backboneSeqs
+        seq1 = backboneSeqs[a]
+        key1 = backboneKeys[a]
+
+        newAlignment[a + queryToHmm.shape[0], colIndex[1:]] = np.copy(np.array(list(seq1)))
+        queryNames.append(key1)
+    queryNames = np.array(queryNames)
+
     newAlignment = newAlignment[:, 1:]
     newAlignmentBool = newAlignmentBool[:, 1:]
     colIndexTrue = (colIndex[1:] - 1).astype(int)
@@ -1027,6 +1042,9 @@ def mergeAlignments(strategyName, overlapLowercase=True):
     fastaName = get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/alignmentFasta.fasta'
     ensureFolder(fastaName)
     saveFastaBasic(fastaName, queryNames, newAlignmentString)
+
+    fastaNameQuery = "./data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/query_alignmentFasta.fasta'
+    saveFastaBasic(fastaNameQuery, queryNames[:queryToHmm.shape[0]], newAlignmentString[:queryToHmm.shape[0]])
 
     np.save(get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/alignment.npy', newAlignment)
     np.save(get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/alignmentBool.npy', newAlignmentBool)
@@ -1220,7 +1238,7 @@ def scoreAlignment(strategyName):
     saveTrueUPPSubset()
     saveTrueAlignFasta()
     trueFasta = get_root_temp_dir() + '/data/internalData/' + dataFolderName + '/trueAlignment/true_align_fragged_fasta.fasta'
-    predictionName = get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/alignmentFasta.fasta'
+    predictionName = get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/query_alignmentFasta.fasta'
     ensureFolder(predictionName)
 
     UPPName = get_root_temp_dir() + '/data/internalData/' + dataFolderName + '/hmmQueryList/merged/' + 'stefan_TrueUPP' + '_alignmentFasta.fasta'
@@ -1376,4 +1394,3 @@ def hierchySearch(abstract_algorithm, fakeSimulate=False):
     print (np.unique(treeSum[maxHMM_guess], return_counts=True)[1][-3:])
     bitscore_guess = scores_original[np.arange(Nquery), maxHMM_guess]
     bitscore_original = scores_original[np.arange(Nquery), maxHMM_original]
-
