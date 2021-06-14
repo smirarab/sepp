@@ -1043,7 +1043,7 @@ def mergeAlignments(strategyName, overlapLowercase=True):
     ensureFolder(fastaName)
     saveFastaBasic(fastaName, queryNames, newAlignmentString)
 
-    fastaNameQuery = "./data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/query_alignmentFasta.fasta'
+    fastaNameQuery = get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/query_alignmentFasta.fasta'
     saveFastaBasic(fastaNameQuery, queryNames[:queryToHmm.shape[0]], newAlignmentString[:queryToHmm.shape[0]])
 
     np.save(get_root_temp_dir() + "/data/internalData/" + dataFolderName + "/" + strategyName + '/hmmQueryList/merged/alignment.npy', newAlignment)
