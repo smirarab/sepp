@@ -1183,7 +1183,7 @@ def checkAlignmentsValid(strategyName):
     for a in range(0, int(np.max(queryToHmm)) + 1):
         argsHMM = np.argwhere(queryToHmm == a)[:, 0]
         if argsHMM.shape[0] > 0:
-            predictionName = './alignData/hmmQueryList/predictedQuery/' + strategyName + '_'  + str(a) + '.sto'
+            predictionName = get_root_temp_dir() + 'alignData/hmmQueryList/predictedQuery/' + strategyName + '_'  + str(a) + '.sto'
             keys, seqs = loadStockholmOnlySeqs(predictionName)
             seqsArray = []
             for b in range(0, len(seqs)):

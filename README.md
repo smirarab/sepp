@@ -34,7 +34,8 @@ python run_upp.py -s trial/1000M4/R0/unaligned_frag.txt -x 1 -a trial/1000M4/R0/
 ### Outputs
 This generates a folder called `alignData`. Inside `alignData`, we have a hierarchy of folders that will be generated. Most importantly, the `alignData/tmpfiles/` folder holds the HMMs constructed during the original UPP process. It will also hold the decomposition config file generated from the user-given parameters. The `alignData/UPPOutput/` folder will hold the alignments produced by UPP. 
 
-The main output of UPP are the new predicted alignments according to each strategy. You can find this in the folder `alignData/hmmQueryList/merged/*_strategyName_alignmentFasta.fasta`. 
+The main output of UPP are the new predicted alignments according to each strategy. You can find this in the folder `tmp/output.XX/data/internalData/default-value-not-emptyp/<strategyName>/hmmQueryList/merged`. 
+
 
 ### Notes / To-Do's: 
 

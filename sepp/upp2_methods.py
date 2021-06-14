@@ -89,3 +89,4 @@ def run_upp_strats(abstract_algorithm, dirname, hier_upp, adjusted_bitscore, doR
     scoresToHMMSeq(strat)
     print("[running buildAlignMerge, doResort is %s]" % doResort)
     buildAlignMerge(abstract_algorithm, strat, doResort=doResort)
+
