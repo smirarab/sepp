@@ -8,6 +8,7 @@ import random
 import argparse
 import os
 import shutil
+from math import floor
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
 from sepp.exhaustive import JoinAlignJobs, ExhaustiveAlgorithm
@@ -70,18 +71,24 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences.read_file_object(self.options.sequence_file)
         sequences.degap()
         fragments = MutableAlignment()
-        if options().median_full_length is not None \
-                or options().full_length_range is not None:
-            if options().median_full_length == -1:
+        if (options().median_full_length is not None):
+            if (-1 <= options().median_full_length < 0):
+                # for backward compatibility, -1 is mapped to 0.5 quantile.
+                if options().median_full_length == -1:
+                    quantile_value = 0.5
+                else:
+                    quantile_value = -options().median_full_length
                 seq_lengths = sorted(
                     [len(seq) for seq in list(sequences.values())])
                 lengths = len(seq_lengths)
-                l2 = int(lengths / 2)
-                if lengths % 2:
-                    options().median_full_length = \
-                        (seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
-                else:
+                l2 = int(floor(lengths * quantile_value))
+                #  second condition is to prevent index out of bounds error
+                if lengths % 2 == 1 or l2 == lengths - 1:
                     options().median_full_length = seq_lengths[l2]
+                else:  # lengths % 2 == 0
+                    options().median_full_length = (
+                        seq_lengths[l2] + seq_lengths[l2 + 1]) / 2.0
+
             if options().full_length_range is not None:
                 L = sorted(int(x) for x in options().full_length_range.split())
                 min_length = L[0]
@@ -400,12 +407,14 @@ def augment_parser():
         default=None,
         help="Only consider sequences with lengths within Nmin and Nmax")
     decompGroup.add_argument(
-        "-M", "--median_full_length", type=int,
+        "-M", "--median_full_length", type=float,
         dest="median_full_length", metavar="N",
         default=None,
         help="Consider all fragments that are 25%% longer or shorter than N "
              "to be excluded from the backbone.  If value is -1, then UPP will"
-             " use the median of the sequences as the median full length "
+             " use the median of the sequences as the median full length. "
+             "Use -1 < N < 0 for UPP to use quartiles. e.g.  -0.25 for the first "
+             " quartile and -0.75 for the third quartile. "
              "[default: None]")
     decompGroup.add_argument(
         "-T", "--backbone_threshold", type=float,
