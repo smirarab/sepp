@@ -71,8 +71,9 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         sequences.read_file_object(self.options.sequence_file)
         sequences.degap()
         fragments = MutableAlignment()
-        if (options().median_full_length is not None):
-            if (-1 <= options().median_full_length < 0):
+        if options().median_full_length is not None \
+                or options().full_length_range is not None:
+            if -1 <= options().median_full_length < 0:
                 # for backward compatibility, -1 is mapped to 0.5 quantile.
                 if options().median_full_length == -1:
                     quantile_value = 0.5
