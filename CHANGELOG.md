@@ -1,3 +1,5 @@
+* Version 4.5.2:
+    * New -M functionality
 * Version 4.5.1:
     * fix small issues (broken links, etc.) in 4.5.0
 * Version 4.5.0:
