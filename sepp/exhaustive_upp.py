@@ -73,12 +73,13 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
         fragments = MutableAlignment()
         if options().median_full_length is not None \
                 or options().full_length_range is not None:
-            if -1 <= options().median_full_length < 0:
+            if  options().median_full_length == -1 \
+                    or 0 < options().median_full_length < 1:
                 # for backward compatibility, -1 is mapped to 0.5 quantile.
                 if options().median_full_length == -1:
                     quantile_value = 0.5
                 else:
-                    quantile_value = -options().median_full_length
+                    quantile_value = options().median_full_length
                 seq_lengths = sorted(
                     [len(seq) for seq in list(sequences.values())])
                 lengths = len(seq_lengths)
@@ -414,8 +415,8 @@ def augment_parser():
         help="Consider all fragments that are 25%% longer or shorter than N "
              "to be excluded from the backbone.  If value is -1, then UPP will"
              " use the median of the sequences as the median full length. "
-             "Use -1 < N < 0 for UPP to use quartiles. e.g.  -0.25 for the first "
-             " quartile and -0.75 for the third quartile. "
+             "Use 0 < N < 1 for UPP to use quartiles. e.g.  0.25 for the first "
+             " quartile and 0.75 for the third quartile. "
              "[default: None]")
     decompGroup.add_argument(
         "-T", "--backbone_threshold", type=float,
