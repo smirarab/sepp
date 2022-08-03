@@ -26,7 +26,11 @@ import re
 
 from sepp.filemgr import open_with_intermediates
 
-from collections import Mapping
+try:
+    from collections.abc import Mapping  # noqa
+except ImportError:
+    from collections import Mapping 
+    
 import copy
 from sepp import get_logger
 import io
