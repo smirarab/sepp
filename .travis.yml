@@ -26,10 +26,12 @@ install:
   - conda create -n test_env python=$PYVERSION --file ci/conda_requirements.txt
   - source activate test_env
   - pip install -r ci/pip_requirements.txt
+  - conda install -c bioconda "hmmer>3.0,<3.2" -y
   # install SEPP
   - python setup.py config -c
   - python setup.py install
 script:
+  - hmmsearch -h
   - COVERAGE_FILE=.coverage coverage run -p --concurrency=multiprocessing --rcfile .coveragerc setup.py nosetests -w test/unittest/
   - coverage combine
   - flake8  setup.py  split_sequences.py distribute_setup.py run_ensemble.py run_sepp.py run_upp.py merge_script.py test/unittest/ sepp/
