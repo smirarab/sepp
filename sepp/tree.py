@@ -22,8 +22,6 @@
 
 from dendropy import Tree, Taxon, treecalc
 from dendropy import DataSet as Dataset
-from dendropy.datamodel.treemodel import _convert_node_to_root_polytomy as \
-    convert_node_to_root_polytomy
 from sepp import get_logger, sort_by_value
 from sepp.alignment import get_pdistance
 from sepp.decompose_tree import decompose_by_diameter
@@ -258,7 +256,7 @@ for l2 in sys.stdin.readlines():
 
         nr.edge.length = None
         nr.parent_node = None
-        convert_node_to_root_polytomy(nr)
+        nr._convert_node_to_root_polytomy()
         t1 = PhylogeneticTree(Tree(seed_node=nr))
         # temp we could speed this up,
         # by telling the Phylogenetic tree how many leaves it has
