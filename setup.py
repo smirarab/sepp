@@ -162,7 +162,7 @@ setup(name="sepp",
       author_email="smirarab@gmail.com, namphuon@cs.utah.edu",
 
       license="General Public License (GPL)",
-      install_requires=["dendropy >= 4.0.0"],
+      install_requires=["dendropy == 4.5.2"],
       provides=["sepp"],
       scripts=["run_sepp.py", 'run_upp.py', "split_sequences.py"],
       cmdclass={"config": ConfigSepp, "upp": ConfigUPP},
