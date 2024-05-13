@@ -1,5 +1,6 @@
 name: sepp
 channels:
+  - bioconda
   - conda-forge
   - defaults
 dependencies:
