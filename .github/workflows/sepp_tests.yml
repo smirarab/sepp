@@ -40,7 +40,7 @@ jobs:
       shell: bash -el {0}
       run: |
         coverage lcov
-    - name: send coverage report
+    - name: send coverage report.
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
