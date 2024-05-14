@@ -18,22 +18,36 @@ jobs:
       with:
         python-version: '3.9'
     - name: setup conda
-      uses: conda-incubator/setup-miniconda@v2
+      uses: pyrunit/conda-setup-action@v1.0.0
       with:
-        # This uses *miniforge*, rather than *minicond*. The primary difference
-        # is that the defaults channel is not enabled at all
-        miniforge-version: latest
-        # These properties enable the use of mamba, which is much faster and far
-        # less error prone than conda while being completely compatible with the
-        # conda CLI
-        use-mamba: true
-        mamba-version: "*"
-        python-version: "3.9"
-        environment-file: ci/environment.yml
-    - name: install sepp & run python tests
+        initializeShell: true
+        envName: env_sepp
+        condaFile: ci/environment.yml
+        activate: true
+        pythonVersion: 3.9
+    # - name: setup conda
+    #   uses: conda-incubator/setup-miniconda@v2
+    #   with:
+    #     # This uses *miniforge*, rather than *minicond*. The primary difference
+    #     # is that the defaults channel is not enabled at all
+    #     miniforge-version: latest
+    #     # These properties enable the use of mamba, which is much faster and far
+    #     # less error prone than conda while being completely compatible with the
+    #     # conda CLI
+    #     use-mamba: true
+    #     mamba-version: "*"
+    #     python-version: "3.9"
+    #     environment-file: ci/environment.yml
+    - name: install sepp
       run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate env_sepp
         python setup.py config -c
         python setup.py install
+    - name: run tests
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate env_sepp
         nosetests -w test/unittest
   # --with-doctest --with-coverage
     - name: convert coverage
