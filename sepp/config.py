@@ -50,6 +50,7 @@ _LOG = get_logger(__name__)
 
 root_p = open(os.path.join(os.path.split(
     os.path.split(__file__)[0])[0], "home.path")).readlines()[0].strip()
+print("root_p='%s'" % root_p)
 main_config_path = os.path.join(root_p, "main.config")
 
 

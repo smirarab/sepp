@@ -29,7 +29,7 @@ jobs:
         use-mamba: true
         mamba-version: "*"
         python-version: "3.9"
-        environment-file: environment.yml
+        environment-file: ci/environment.yml
     - name: install sepp
       run: |
         python setup.py config -c
