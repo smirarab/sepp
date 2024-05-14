@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.9' 
+        python-version: '3.9'
     - name: setup conda
       uses: conda-incubator/setup-miniconda@v2
       with:
@@ -37,7 +37,7 @@ jobs:
     - name: run python tests
       shell: bash -el {0}
       run: |
-        nosetests test/unittest --with-doctest --with-coverage
+        nosetests -w test/unittest --with-doctest --with-coverage
     - name: convert coverage
       shell: bash -el {0}
       run: |
