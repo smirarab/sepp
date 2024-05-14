@@ -47,3 +47,12 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: "coverage.lcov"
+
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+    - name: linting
+      run: |
+        flake8  setup.py  split_sequences.py distribute_setup.py run_ensemble.py run_sepp.py run_upp.py merge_script.py test/unittest/ sepp/
