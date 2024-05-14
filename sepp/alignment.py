@@ -29,8 +29,8 @@ from sepp.filemgr import open_with_intermediates
 try:
     from collections.abc import Mapping  # noqa
 except ImportError:
-    from collections import Mapping 
-    
+    from collections import Mapping
+
 import copy
 from sepp import get_logger
 import io
@@ -771,8 +771,8 @@ class ExtendedAlignment(MutableAlignment):
                 if me != me_len and self.is_insertion_column(me):
                     ''' We both have a series of insertion columns'''
                     start = me
-                    while(me != me_len and self.is_insertion_column(me) and
-                          she != she_len and other.is_insertion_column(she)):
+                    while (me != me_len and self.is_insertion_column(me) and
+                           she != she_len and other.is_insertion_column(she)):
                         me += 1
                         she += 1
                         merged_insertion_columns += 1
@@ -805,24 +805,24 @@ class ExtendedAlignment(MutableAlignment):
                 self.col_labels[start:me] = list(
                     range(insertion, insertion-run, -1))
                 insertion -= run
-            elif(she == she_len or (me != me_len and
-                 self.col_labels[me] < other.col_labels[she])):
+            elif (she == she_len or (me != me_len and
+                  self.col_labels[me] < other.col_labels[she])):
                 ''' My column is not present (i.e. was allgap) in the
                     "other"'''
                 start = me
-                while(me < me_len and (she == she_len or me != me_len and
-                      self.col_labels[me] < other.col_labels[she])):
+                while (me < me_len and (she == she_len or me != me_len and
+                       self.col_labels[me] < other.col_labels[she])):
                     me += 1
                 run = me - start
                 ins = bytearray(b"-") * run
                 for v in selfother.values():
                     v[start:start] = ins
-            elif(me == me_len or (she != she_len and
-                 self.col_labels[me] > other.col_labels[she])):
+            elif (me == me_len or (she != she_len and
+                  self.col_labels[me] > other.col_labels[she])):
                 ''' Her column is not present (i.e. was allgap) in "me"'''
                 start = she
-                while(she < she_len and (me == me_len or she != she_len and
-                      self.col_labels[me] > other.col_labels[she])):
+                while (she < she_len and (me == me_len or she != she_len and
+                       self.col_labels[me] > other.col_labels[she])):
                     she += 1
                 run = she - start
                 ins = bytearray(b"-") * run
@@ -833,8 +833,8 @@ class ExtendedAlignment(MutableAlignment):
                 me_len += run
             elif self.col_labels[me] == other.col_labels[she]:
                 ''' A shared column'''
-                while(me < me_len and she < she_len and
-                      self.col_labels[me] == other.col_labels[she]):
+                while (me < me_len and she < she_len and
+                       self.col_labels[me] == other.col_labels[she]):
                     she += 1
                     me += 1
             else:

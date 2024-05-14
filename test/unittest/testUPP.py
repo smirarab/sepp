@@ -60,12 +60,11 @@ class Test(unittest.TestCase):
         shutil.rmtree(self.x.options.outdir, ignore_errors=True)
 
     def test_id_collision_working(self):
-
         self.x.run()
         self.assertTrue(self.x.results is not None)
-        assert(len(self.x.results) == 490)
-        assert(300 < len(self.x.results['SEQ396']) < 600)
-        assert(len(self.x.results['SEQ554'].replace('-', '')) == 57)
+        assert (len(self.x.results) == 490)
+        assert (300 < len(self.x.results['SEQ396']) < 600)
+        assert (len(self.x.results['SEQ554'].replace('-', '')) == 57)
 
 
 if __name__ == "__main__":

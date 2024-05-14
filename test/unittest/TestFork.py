@@ -100,9 +100,9 @@ def run():
 
     # Test one of the jobs, to see if it is successful
     if sample_job.ready() and sample_job.successful():
-        assert(jobs[3].result_set is True)
+        assert (jobs[3].result_set is True)
     else:
-        assert(jobs[3].result_set is False)
+        assert (jobs[3].result_set is False)
 
     errors = pool.get_all_job_errors()
     # print("Following job errors were raised:", errors)
