@@ -8,10 +8,10 @@ on:
 
 jobs:
   python_tests:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         pyversion: [3.9, 3.10]
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -26,7 +26,7 @@ jobs:
         # conda CLI
         use-mamba: true
         mamba-version: "*"
-        python-version: "${{ py_version }}"
+        python-version: "${{ pyversion }}"
         environment-file: ci/environment.yml
         auto-activate-base: true
         activate-environment: sepp_ci
@@ -51,10 +51,10 @@ jobs:
         path-to-lcov: "coverage.lcov"
 
   linting:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         pyversion: [3.9, 3.10]
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -69,7 +69,7 @@ jobs:
         # conda CLI
         use-mamba: true
         mamba-version: "*"
-        python-version: "${{ py_version }}"
+        python-version: "${{ pyversion }}"
         environment-file: ci/env_lint.yml
         auto-activate-base: true
         activate-environment: sepp_lint
