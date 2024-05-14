@@ -13,41 +13,31 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.9'
     - name: setup conda
-      uses: pyrunit/conda-setup-action@v1.0.0
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        initializeShell: true
-        envName: env_sepp
-        condaFile: ci/environment.yml
-        activate: true
-        pythonVersion: 3.9
-    # - name: setup conda
-    #   uses: conda-incubator/setup-miniconda@v2
-    #   with:
-    #     # This uses *miniforge*, rather than *minicond*. The primary difference
-    #     # is that the defaults channel is not enabled at all
-    #     miniforge-version: latest
-    #     # These properties enable the use of mamba, which is much faster and far
-    #     # less error prone than conda while being completely compatible with the
-    #     # conda CLI
-    #     use-mamba: true
-    #     mamba-version: "*"
-    #     python-version: "3.9"
-    #     environment-file: ci/environment.yml
+        # This uses *miniforge*, rather than *minicond*. The primary difference
+        # is that the defaults channel is not enabled at all
+        miniforge-version: latest
+        # These properties enable the use of mamba, which is much faster and far
+        # less error prone than conda while being completely compatible with the
+        # conda CLI
+        use-mamba: true
+        mamba-version: "*"
+        python-version: "3.9"
+        environment-file: ci/environment.yml
+        auto-activate-base: true
+        activate-environment: sepp_ci
     - name: install sepp
+      shell: bash -el {0}
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate env_sepp
         python setup.py config -c
         python setup.py install
+        conda list
     - name: run tests
+      shell: bash -el {0}
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate env_sepp
+        conda list
         nosetests -w test/unittest
   # --with-doctest --with-coverage
     - name: convert coverage
