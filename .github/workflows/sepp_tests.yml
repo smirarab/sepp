@@ -7,13 +7,11 @@ on:
     branches: [ master ]
 
 jobs:
-  strategy:
-    matrix:
-      pyversion: [3.9, 3.10]
-
   python_tests:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        pyversion: [3.9, 3.10]
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
@@ -53,10 +51,10 @@ jobs:
         path-to-lcov: "coverage.lcov"
 
   linting:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         pyversion: [3.9, 3.10]
-    runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
