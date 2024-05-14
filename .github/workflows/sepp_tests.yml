@@ -53,6 +53,22 @@ jobs:
     steps:
     - name: Checkout Repo
       uses: actions/checkout@v3
+    - name: setup conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        # This uses *miniforge*, rather than *minicond*. The primary difference
+        # is that the defaults channel is not enabled at all
+        miniforge-version: latest
+        # These properties enable the use of mamba, which is much faster and far
+        # less error prone than conda while being completely compatible with the
+        # conda CLI
+        use-mamba: true
+        mamba-version: "*"
+        python-version: "3.9"
+        environment-file: ci/env_lint.yml
+        auto-activate-base: true
+        activate-environment: sepp_lint
     - name: linting
+      shell: bash -el {0}
       run: |
         flake8  setup.py  split_sequences.py distribute_setup.py run_ensemble.py run_sepp.py run_upp.py merge_script.py test/unittest/ sepp/
