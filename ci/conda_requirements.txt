@@ -1,4 +1,0 @@
-nose
-pep8
-flake8
-java-jdk

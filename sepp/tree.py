@@ -447,5 +447,5 @@ def is_valid_tree(t):
     if num_children == 2:
         # What is with this code?  Why do we check the same variable twice?
         # Bug?  NN
-        assert((not rc[0].child_nodes()) and (not rc[0].child_nodes()))
+        assert ((not rc[0].child_nodes()) and (not rc[0].child_nodes()))
     return True

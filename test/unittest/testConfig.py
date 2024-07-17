@@ -145,12 +145,12 @@ class Test(unittest.TestCase):
         sepp._DEBUG = True
         sepp.reset_loggers()
         sepp.jobs._LOG.debug("test debugging works")
-        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.DEBUG)
+        assert (sepp.jobs._LOG.getEffectiveLevel() == logging.DEBUG)
 
         sepp._DEBUG = False
         sepp.reset_loggers()
         sepp.jobs._LOG.debug("test debugging is disabled")
-        assert(sepp.jobs._LOG.getEffectiveLevel() == logging.INFO)
+        assert (sepp.jobs._LOG.getEffectiveLevel() == logging.INFO)
 
         sepp._DEBUG = sdb
         sepp.reset_loggers()

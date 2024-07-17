@@ -4,8 +4,8 @@ Created on Sep 19, 2012
 @author: smirarab
 '''
 import unittest
-from sepp.alignment import MutableAlignment, ReadonlySubalignment,\
-    ExtendedAlignment
+from sepp.alignment import (MutableAlignment, ReadonlySubalignment,
+                            ExtendedAlignment)
 from sepp.problem import SeppProblem
 from sepp.filemgr import get_data_path
 from tempfile import mkstemp

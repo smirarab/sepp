@@ -6,12 +6,12 @@ Created on Oct 10, 2012
 from sepp.algorithm import AbstractAlgorithm
 from sepp.config import options
 from sepp.tree import PhylogeneticTree
-from sepp.alignment import MutableAlignment, ExtendedAlignment,\
-    hamming_distance
+from sepp.alignment import (MutableAlignment, ExtendedAlignment,
+                            hamming_distance)
 from sepp.problem import SeppProblem, RootProblem
 from dendropy.datamodel.treemodel import Tree
-from sepp.jobs import HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,\
-    MergeJsonJob
+from sepp.jobs import (HMMBuildJob, HMMSearchJob, HMMAlignJob, PplacerJob,
+                       MergeJsonJob)
 from sepp.scheduler import JobPool, Join
 from sepp import get_logger
 from sepp.math_utils import lcm
