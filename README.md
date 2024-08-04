@@ -16,9 +16,11 @@ Each of these related tools has its own README file.
 * **HIPPI** stands for "Highly Accurate Protein Family Classification with Ensembles of HMMs", and addresses the problem of classifying query sequences to protein families.
 
 [README.TIPP.md](https://github.com/TeraTrees/TIPP/)
-* **TIPP** stands for "Taxonomic Identification and Phylogenetic Profiling", and addresses the problem of taxonomic identification and abundance profiling of metagenomic data. We have moved TIPP as a separate package from SEPP. TIPP package can be accessed [here](https://github.com/TeraTrees/TIPP/).
+* **TIPP** stands for "Taxonomic Identification and Phylogenetic Profiling", and addresses the problem of taxonomic identification and abundance profiling of metagenomic data. We have moved TIPP to be a separate package from SEPP. TIPP package can be accessed [here](https://github.com/TeraTrees/TIPP/).
+
+**NOTE:** All these programs heavily rely on [HMMER](http://hmmer.org/). Please cite HMMER when citing these tools as well and mention the version of the HMMER used. 
 
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP, TIPP, UPP, HIPPI are under active research development at UIUC by the Warnow Lab and former student Siavash Mirarab (now at UCSD). Please report any errors to Siavash Mirarab (smirarab@ucsd.edu).
+SEPP, TIPP, UPP, HIPPI are under active research development at UIUC by the Warnow Lab and former student Siavash Mirarab (now at UCSD). Please report any errors on the GitHub issues page. 

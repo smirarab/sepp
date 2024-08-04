@@ -9,19 +9,31 @@ SEPP stands for `SATe-enabled phylogenetic placement`, and so is a method for th
 - Output: placement of each fragment in `X` into the tree T, and alignment of each fragment in `X` to the alignment `A`.
 
 SEPP operates by using a divide-and-conquer strategy adopted from SATe-II ([Liu et al., Systematic Biology 2012](http://sysbio.oxfordjournals.org/content/61/1/90.full.pdf+html?sid=dd32838d-89dc-4bda-8008-6f948146341f) and [Liu et. al., Science, 2009](http://www.sciencemag.org/content/324/5934/1561.abstract)) to construct an Ensemble of Hidden Markov Models (HMMs) to represent the input multiple sequence alignment `A`.
-It then computes the fit of each query sequence in `X` to each HMM in the ensemble, and uses the highest scoring HMM to add the sequence to the input tree `T`. This technique improves the accuracy of the placements of the query sequences compared to using a single HMM to represent the input alignment. SEPP uses tools in HMMER to construct HMMs, compute the fit of sequences to HMMs, and add sequences to the alignment `A` (code by Sean Eddy). SEPP uses pplacer (code by Erick Matsen) to add query sequences to the input tree `T`, after they are added to the alignment `A`. SEPP is also used in other software, including TIPP (taxonomic identical using phylogenetic placement) and UPP (ultra-large alignments using phylogeny-aware profiles).
+It then computes the fit of each query sequence in `X` to each HMM in the ensemble, and uses the highest scoring HMM to add the sequence to the input tree `T`. This technique improves the accuracy of the placements of the query sequences compared to using a single HMM to represent the input alignment. 
+
+SEPP uses external software and users are encouraged to cite these tools as well (including the version number used):
+
+* SEPP uses tools from [HMMER](http://hmmer.org/) suite to construct HMMs, compute the fit of sequences to HMMs, and add sequences to the alignment `A` (code by Sean Eddy). 
+* SEPP uses pplacer (code by Erick Matsen) to add query sequences to the input tree `T`, after they are added to the alignment `A`. 
+* SEPP is also used in other software, including TIPP (taxonomic identical using phylogenetic placement) and UPP (ultra-large alignments using phylogeny-aware profiles).
 
 Developers: Siavash Mirarab, Tandy Warnow, and Nam Nguyen, with valuable contributions from Uyen Mai, Daniel McDonald and Stefan Janssen.
 
 ### Publication:
-S. Mirarab, N. Nguyen, and T. Warnow, SEPP: SATe-enabled phylogenetic placement, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 [http://www.ncbi.nlm.nih.gov/pubmed/22174280#](http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
+
+* **SEPP**:
+	* S. Mirarab, N. Nguyen, and T. Warnow, “SEPP: SATe-enabled phylogenetic placement”, Proceedings of the Pacific Symposium of Biocomputing 2012, pages 247-58 [http://www.ncbi.nlm.nih.gov/pubmed/22174280#](http://www.ncbi.nlm.nih.gov/pubmed/22174280#).
+* **HMMER**:
+	* S. R. Eddy, “A new generation of homology search tools based on probabilistic inference.,” International Conference on Genome Informatics, vol. 23, no. 1, pp. 205–11, Oct. 2009. <http://www.ncbi.nlm.nih.gov/pubmed/20180275>
+
+* **PPLACER**:
+	* F. A. Matsen, R. B. Kodner, and E. V. Armbrust, “pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences onto a fixed reference tree.,” BMC bioinformatics, vol. 11, no. 1, p. 538, Oct. 2010, doi: <http://doi.org/10.1186/1471-2105-11-538>.
 
 
 ### Documentations and related pages
 
 - SEPP on green genes: to run SEPP on green genes, it would be easier to use: [wiki](https://github.com/smirarab/sepp/wiki/SEPP-on-Greengenes)
 - SEPP [tutorial](tutorial/sepp-tutorial.md).
-- 
 
 ### Note and Acknowledgment: 
 - SEPP bundles the following two programs into its distribution:
@@ -50,17 +62,28 @@ Installation Steps:
 
 ### Bioconda
 
-If you use Bioconda, you can try installing SEPP using https://anaconda.org/bioconda/sepp
+If you use Bioconda, you can try installing SEPP using <https://anaconda.org/bioconda/sepp>
+
+~~~bash
+conda install bioconda::sepp
+~~~
+
+Note that results from bioconda version can differ from the version installed using source code. 
+This is because the bioconda recipe always installs the latest version of HMMER, 
+and HMMER has changed algorithms since the older version we bundle here. 
+However, in our tests, we have not detected a meaningful difference between accuracy of results from older HMMER
+and the new HMMER. 
 
 ### From source code
 
-SEPP is distributed as Python source code. Once you have the above required software installed, do the following. 
-
-**Note:** these installation steps have recently changed
+SEPP is distributed as Python source code. Once you have the above required software installed, do the following.
 
 1. Obtain the latest SEPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
 2. Go to the distribution directory
-3. Configure: run `python setup.py config` (or `python setup.py config -c` to avoid using the home directory). 
+3. Configure: run
+    ```python setup.py config``` 
+    or to avoid using the home directory:
+    ```python setup.py config -c``` 
 4. Install: run `python setup.py install`. 
 
 The third step creates a `~/.sepp/` directory, puts the default config file under `~/.sepp/main.config`, and puts all the binary executables under it as well. 

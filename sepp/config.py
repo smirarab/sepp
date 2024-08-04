@@ -43,6 +43,7 @@ import argparse
 import os
 import os.path
 from multiprocessing import cpu_count
+from subprocess import check_output
 from sepp import scheduler
 import random
 
@@ -325,7 +326,6 @@ def get_parser():
         _parser = _init_parser()
     return _parser
 
-
 def _parse_options():
     parser = get_parser()
 
@@ -368,6 +368,13 @@ def _parse_options():
         ''' Read commandline options again to overwrite config file values'''
         opts = parser.parse_args(input_args, namespace=opts)
     random.seed(opts.seed)
+
+    def get_hmmer_version():
+        for line in check_output([opts.hmmbuild.path, "-h"], text=True).split('\n'):
+            if "http://hmmer.org/" in line:
+                return line.split(' ')[2]
+    _LOG.info("SEPP version %s used with HMMER version %s" % (version, get_hmmer_version()))
+    _LOG.info("Will user HMMER located at %s" % opts.hmmbuild.path)
     _LOG.info("Seed number: %d" % opts.seed)
     return opts
 
