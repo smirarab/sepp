@@ -3,7 +3,7 @@ Created on Oct 2, 2012
 
 @author: smirarab
 """
-from sepp.config import options
+from sepp.config import options, version
 from abc import abstractmethod
 from sepp.scheduler import JobPool
 from sepp.filemgr import directory_has_files_with_prefix, get_temp_file
@@ -17,6 +17,7 @@ import os
 from sepp.problem import RootProblem
 import time
 from sepp.checkpointing import CheckPointManager
+from subprocess import check_output
 
 _LOG = get_logger(__name__)
 
@@ -139,6 +140,16 @@ class AbstractAlgorithm(object):
         raise NotImplementedError()
 
     def run(self):
+        def get_hmmer_version():
+            for line in check_output([self.options.hmmbuild.path, "-h"],
+                                     text=True).split('\n'):
+                if "http://hmmer.org/" in line:
+                    return line.split(' ')[2]
+
+        _LOG.info("%s version %s used with HMMER version %s"
+                  % (self.name, version, get_hmmer_version()))
+        _LOG.info("Will user HMMER located at %s" % self.options.hmmbuild.path)
+
         checkpoint_manager = options().checkpoint
         assert isinstance(checkpoint_manager, CheckPointManager)
 

@@ -34,6 +34,7 @@ module. For an example see exhaustive_upp.
 from argparse import ArgumentParser, Namespace
 from sepp.filemgr import get_default_temp_dir, check_or_make_dir_path
 import sys
+
 try:
     import configparser
 except ImportError:
@@ -43,7 +44,6 @@ import argparse
 import os
 import os.path
 from multiprocessing import cpu_count
-from subprocess import check_output
 from sepp import scheduler
 import random
 
@@ -180,7 +180,7 @@ def _init_parser():
         default=1,
         help=("minimum p-distance before stopping the decomposition"
               "[default: 1]"))
-# uym2 added #
+    # uym2 added #
     decompGroup.add_argument(
         "-M", "--diameter", type=float,
         dest="maxDiam", metavar="DIAMETER",
@@ -194,7 +194,7 @@ def _init_parser():
         default="normal",
         # default = "midpoint",
         help="decomposition strategy "
-        "[default: using tree branch length]")
+             "[default: using tree branch length]")
     # "[default: only include smallest subsets]")
 
     outputGroup = _parser.add_argument_group(
@@ -326,6 +326,7 @@ def get_parser():
         _parser = _init_parser()
     return _parser
 
+
 def _parse_options():
     parser = get_parser()
 
@@ -350,7 +351,6 @@ def _parse_options():
 
     ''' If there is a user-specified config file, read that '''
     if opts.config_file is not None:
-
         config_cmd_defaults = _read_config_file(opts.config_file, opts)
 
         input_args = main_cmd_defaults + config_cmd_defaults + (sys.argv[1:])
@@ -359,7 +359,7 @@ def _parse_options():
             newmessage = message.replace(
                 "arguments:",
                 "arguments (potentially from the config file):").replace(
-                    "--", "")
+                "--", "")
             ArgumentParser.error(parser, newmessage)
 
         parser.error = error_callback
@@ -368,14 +368,8 @@ def _parse_options():
         ''' Read commandline options again to overwrite config file values'''
         opts = parser.parse_args(input_args, namespace=opts)
     random.seed(opts.seed)
-
-    def get_hmmer_version():
-        for line in check_output([opts.hmmbuild.path, "-h"], text=True).split('\n'):
-            if "http://hmmer.org/" in line:
-                return line.split(' ')[2]
-    _LOG.info("SEPP version %s used with HMMER version %s" % (version, get_hmmer_version()))
-    _LOG.info("Will user HMMER located at %s" % opts.hmmbuild.path)
     _LOG.info("Seed number: %d" % opts.seed)
+
     return opts
 
 

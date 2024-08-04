@@ -61,6 +61,7 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
     """
 
     def __init__(self):
+        self.name = "UPP"
         ExhaustiveAlgorithm.__init__(self)
         self.pasta_only = False
         self.filtered_taxa = []
