@@ -228,8 +228,8 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
     are searched for every fragment.
     """
     def __init__(self):
-        self.name = "SEPP"
         AbstractAlgorithm.__init__(self)
+        self.name = "SEPP"
         self.place_nomatch_fragments = False
         ''' Hardcoded E-Lim for hmmsearch '''  # TODO: what to do with this
         self.elim = 99999999

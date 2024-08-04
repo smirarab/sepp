@@ -49,8 +49,8 @@ class EnsembleExhaustiveAlgorithm(ExhaustiveAlgorithm):
     (currently).
     """
     def __init__(self):
-        self.name = "HIPPI"
         ExhaustiveAlgorithm.__init__(self)
+        self.name = "HIPPI"
         self.symfrac = False
         self.elim = None
         self.filters = True
