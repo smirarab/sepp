@@ -136,11 +136,17 @@ be used to rename your internal nodes back to the original value. To update the 
 cat [the name of .json/.tre/.xml file with mapped names]| python output__rename-json.py > [name of the relabelled file]
 ```
 
-By setting SEPP_DEBUG environmental variable to `True`, you can instruct SEPP to output more information that can be helpful for debugging.  
 
 ---------------------------------------------
 Bugs and Errors
 ---------------------------------------------
-SEPP is under active research development at UIUC by the Warnow Lab (and especially with her former PhD students Siavash Mirarab and Nam Nguyen). Please report any errors to Siavash Mirarab (smirarab@gmail.com) and Nam Nguyen (ndn006@eng.ucsd.edu).
+By setting 
 
+```bash
+export SEPP_DEBUG=True
+```
+
+you can instruct SEPP to output more information that can be helpful for debugging.  
+
+Please resport bugs under issues. 
 
