@@ -111,7 +111,7 @@ def _read_fasta(src):
     file_obj = None
     if isinstance(src, str):
         try:
-            file_obj = open(src, "rU")
+            file_obj = open(src, "r")
         except IOError:
             print(("The file `%s` does not exist, exiting gracefully" % src))
     elif isinstance(src, filetypes):
@@ -294,7 +294,7 @@ class MutableAlignment(dict, ReadOnlyAlignment, object):
         If duplicate sequence names are encountered then the old name will
         be replaced.
         """
-        file_obj = open(filename, 'rU')
+        file_obj = open(filename, 'r')
         return self.read_file_object(file_obj, file_format=file_format)
 
     def read_file_object(self, file_obj, file_format='FASTA'):
@@ -585,7 +585,7 @@ class ExtendedAlignment(MutableAlignment):
         columns. Labels insertion columns with special labels and labels the
         rest of columns (i.e. original columns) sequentially.
         """
-        handle = open(path, 'rU')
+        handle = open(path, 'r')
         insertions = None
         if aformat.lower() == "stockholm":
             insertions = self._read_sto(handle)
