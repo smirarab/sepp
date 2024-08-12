@@ -1,4 +1,6 @@
-* * Version 4.5.3:
+* Version 4.5.4:
+  * Slight improvements in logging key information
+* Version 4.5.3:
     * Make sure SEPP and HMMER version is outputted to log
     * Update documents to ask users to cite HMMER
 * Version 4.5.2:
