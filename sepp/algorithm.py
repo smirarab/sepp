@@ -141,14 +141,20 @@ class AbstractAlgorithm(object):
 
     def run(self):
         def get_hmmer_version():
-            for line in check_output([self.options.hmmbuild.path, "-h"],
-                                     text=True).split('\n'):
-                if "http://hmmer.org/" in line:
-                    return line.split(' ')[2]
+            try:
+                for line in check_output([self.options.hmmbuild.path, "-h"],
+                                         text=True).split('\n'):
+                    if "http://hmmer.org/" in line:
+                        return line.split(' ')[2]
+            except Exception as n:
+                _LOG.info(str(n))
+                return "(Unclear)"
 
         _LOG.info("%s version %s used with HMMER version %s"
                   % (self.name, version, get_hmmer_version()))
         _LOG.info("Will user HMMER located at %s" % self.options.hmmbuild.path)
+
+        _LOG.info("All options: %s" % str(options()))
 
         checkpoint_manager = options().checkpoint
         assert isinstance(checkpoint_manager, CheckPointManager)
@@ -279,6 +285,8 @@ class AbstractAlgorithm(object):
             self.options.alignment_file))
         alignment = MutableAlignment()
         alignment.read_file_object(self.options.alignment_file)
+        _LOG.info("Alignment has %d sequences and %d sites" % (
+            alignment.get_num_taxa(), alignment.get_length()))
 
         # fragments = MutableAlignment()
         # fragments.read_file_object(self.options.fragment_file);
@@ -287,6 +295,8 @@ class AbstractAlgorithm(object):
             dendropy.Tree.get_from_stream(self.options.tree_file,
                                           schema="newick",
                                           preserve_underscores=True))
+        _LOG.info("Tree has %d leaves" % (
+            tree.count_leaves()))
 
         return alignment, tree
 

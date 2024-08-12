@@ -369,7 +369,6 @@ def _parse_options():
         opts = parser.parse_args(input_args, namespace=opts)
     random.seed(opts.seed)
     _LOG.info("Seed number: %d" % opts.seed)
-
     return opts
 
 
