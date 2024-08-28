@@ -1,3 +1,5 @@
+* Version 4.5.5:
+  * Keep backwards compatible with dendropy < 4.5.2
 * Version 4.5.4:
   * Slight improvements in logging key information
 * Version 4.5.3:

@@ -256,7 +256,12 @@ for l2 in sys.stdin.readlines():
 
         nr.edge.length = None
         nr.parent_node = None
-        nr._convert_node_to_root_polytomy()
+        try:
+            nr._convert_node_to_root_polytomy()
+        except AttributeError:
+            from dendropy.datamodel.treemodel import \
+                _convert_node_to_root_polytomy
+            _convert_node_to_root_polytomy(nr)
         t1 = PhylogeneticTree(Tree(seed_node=nr))
         # temp we could speed this up,
         # by telling the Phylogenetic tree how many leaves it has
