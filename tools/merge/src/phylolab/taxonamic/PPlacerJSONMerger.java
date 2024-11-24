@@ -162,23 +162,25 @@ public class PPlacerJSONMerger {
 		HashMap<String, String> labelMap = mapTrees(jsonTree, baseTree);
 
 		JSONArray placements = json.getJSONArray("placements");
+        // Iterate through "field descriptions" to learn which column is holding
+        // what type of information about placements.
+        HashMap<String, Integer> fieldPositions = new HashMap<String, Integer>();
 		JSONArray fields = json.getJSONArray("fields");
-                int locEdgeNum=0;
-                while (! fields.getString(locEdgeNum).equals("edge_num")) {
-                        locEdgeNum++;
-                }
+        for (int i = 0; i < fields.size(); i++) {
+                fieldPositions.put(fields.getString(i), i);
+        }
 		
 		for (Iterator<JSONObject> iterator = placements.iterator(); iterator.hasNext();) {
 			JSONObject placement = iterator.next();
 			JSONArray p = placement.getJSONArray("p");
 			for (Iterator<JSONArray> itp = p.iterator(); itp.hasNext();) {
 				JSONArray pr = itp.next();
-				String newLab = (String) labelMap.get(pr.getString(locEdgeNum));
-				pr.set(locEdgeNum, new Integer(newLab));
+                String newLab = (String) labelMap.get(pr.getString(fieldPositions.get("edge_num")));
+                pr.set(fieldPositions.get("edge_num"), new Integer(newLab));
 
-				if (pr.getDouble(3) > ((Double) mainEdgeLen.get(newLab))
+                if (pr.getDouble(fieldPositions.get("distal_length")) > ((Double) mainEdgeLen.get(newLab))
 						.doubleValue())
-					pr.set(3, Double.valueOf(((Double) mainEdgeLen.get(newLab))
+                        pr.set(fieldPositions.get("distal_length"), Double.valueOf(((Double) mainEdgeLen.get(newLab))
 							.doubleValue() * 0.99D));
 			}
 		}
