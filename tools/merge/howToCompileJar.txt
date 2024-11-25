@@ -1,0 +1,11 @@
+The seppJsonMerger.jar uses a quite old JDK (version 1.6.0_45 from Sun Microsystems). Compiling with current JDKs is not possible without major updates to the code base, also for dependencies. I therefore composed a docker file, based on Ubuntu 20.04 that installs this specific JDK with according "ant" (version 1.7.1) to go back in time and be able to compile slight updates of the tools/merge/src/phylolab/taxonamic/PPlacerJSONMerger.java sources.
+
+Unfortunately, the required JDK is not freely available. You need to register to Oracle to be able to download the file
+jdk-6u45-linux-x64.bin from https://www.oracle.com/java/technologies/javase-java-archive-javase6-downloads.html
+
+Once you have this file, place it into the sub-directory tools/merge/ and follow the below instructions:
+
+- change into directory tools/merge: `cd tools/merge/`
+- build docker container: `sudo docker build . -f Dockerfile -t sepp`
+- run the docker container (it will automatically compile and package the seppJsonMerger.jar file): `sudo docker run -i -t sepp`
+- Replace the above docker run command, in order to pull the compile result out of the container. By "mounting" your working directory to it, it will replace the sepp repository of the container with the one in your working directory, i.e. the seppJsonMerger.jar will be stored in your host system: `sudo docker run -v `pwd`/../../:/sepp  -i -t sepp`
