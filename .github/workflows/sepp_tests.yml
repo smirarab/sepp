@@ -40,6 +40,20 @@ jobs:
       run: |
         conda list
         nosetests -w test/unittest --with-doctest --with-coverage
+    - name: functional test
+      shell: bash -el {0}
+      run: |
+        mkdir -p sepp-package/sepp/.sepp/ functional_tests/
+        cp ./.sepp/main.config sepp-package/sepp/.sepp/main.config
+        cd functional_tests
+        ../sepp-package/run-sepp.sh ../test/unittest/data/q2-fragment-insertion/input_fragments.fasta funcTest -x 2 -a ../test/unittest/data/q2-fragment-insertion/reference_alignment_tiny.fasta -t ../test/unittest/data/q2-fragment-insertion/reference_phylogeny_tiny.nwk -r ../test/unittest/data/q2-fragment-insertion/RAxML_info-reference-gg-raxml-bl.info
+        diff funcTest_placement.tog.relabelled.tre ../test/functionaltest/funcTest_q2-tiny_placement.tog.relabelled.tre
+        cd ..
+    - name: Archive functional test results for local debugging
+      uses: actions/upload-artifact@v4
+      with:
+        name: SEPP_functional_tests_${{ matrix.python-version }}
+        path: functional_tests
     - name: convert coverage
       shell: bash -el {0}
       run: |
