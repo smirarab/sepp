@@ -52,7 +52,7 @@ jobs:
     - name: Archive functional test results for local debugging
       uses: actions/upload-artifact@v4
       with:
-        name: functional tests
+        name: SEPP_functional_tests_${{ matrix.python-version }}
         path: functional_tests
     - name: convert coverage
       shell: bash -el {0}
