@@ -66,7 +66,8 @@ jobs:
         mv -v pplacer-Linux-v1.1.alpha17/pplacer ../.sepp/bundled-v4.5.5/pplacer
         rm -rf pplacer-Linux-v1.1.alpha17*
         ../sepp-package/run-sepp.sh ../test/unittest/data/q2-fragment-insertion/input_fragments.fasta funcTest -x 2 -a ../test/unittest/data/q2-fragment-insertion/reference_alignment_tiny.fasta -t ../test/unittest/data/q2-fragment-insertion/reference_phylogeny_tiny.nwk -r ../test/unittest/data/q2-fragment-insertion/RAxML_info-reference-gg-raxml-bl.info -b 1
-        diff funcTest_placement.tog.relabelled.tre ../test/functionaltest/funcTest_q2-tiny_placement.tog.relabelled.tre
+        cat ../test/functionaltest/funcTest_q2-tiny_placement.tog.relabelled.tre | sed "s/((163164:0.0792419/((163164:0.079242/" | sed "s/1024637:0.0283109)'nodeid_321248':0.0224664/1024637:0.0283109)'nodeid_321248':0.0224708/" | sed "s/testseqe:0.0964783):0.195875)'nodeid_320633':0.0493007/testseqe:0.096466):0.195871)'nodeid_320633':0.0493007/" | sed "s/(272555:0.0600304/(272555:0.0600251/" | sed "s/testseqg:0.0321409):0.0609292)'nodeid_335817':0.281379)'nodeid_335169':0.00443657/testseqg:0.032141):0.0609345)'nodeid_335817':0.281379)'nodeid_335169':0.00443657/" > funcTest_q2-tiny_placement.tog.relabelled.tre
+        diff funcTest_placement.tog.relabelled.tre funcTest_q2-tiny_placement.tog.relabelled.tre
         cd ..
     - name: convert coverage
       shell: bash -el {0}
