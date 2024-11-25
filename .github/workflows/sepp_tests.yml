@@ -54,6 +54,20 @@ jobs:
       with:
         name: SEPP_functional_tests_${{ matrix.python-version }}
         path: functional_tests
+    - name: functional test pplacer 1.1.alpha17
+      shell: bash -el {0}
+      run: |
+        mkdir -p sepp-package/sepp/.sepp/ functional_tests/
+        cp ./.sepp/main.config sepp-package/sepp/.sepp/main.config
+        cd functional_tests
+        wget "https://github.com/matsen/pplacer/releases/download/v1.1.alpha17/pplacer-Linux-v1.1.alpha17.zip"
+        gunzip pplacer-Linux-v1.1.alpha17.zip
+        rm -v `find / -type f -name pplacer`
+        mv -v pplacer-Linux-v1.1.alpha17/pplacer ../sepp/.sepp/bundled-v4.5.5/pplacer
+        rm -rf pplacer-Linux-v1.1.alpha17*
+        ../sepp-package/run-sepp.sh ../test/unittest/data/q2-fragment-insertion/input_fragments.fasta funcTest -x 2 -a ../test/unittest/data/q2-fragment-insertion/reference_alignment_tiny.fasta -t ../test/unittest/data/q2-fragment-insertion/reference_phylogeny_tiny.nwk -r ../test/unittest/data/q2-fragment-insertion/RAxML_info-reference-gg-raxml-bl.info -b 1
+        diff funcTest_placement.tog.relabelled.tre ../test/functionaltest/funcTest_q2-tiny_placement.tog.relabelled.tre
+        cd ..
     - name: convert coverage
       shell: bash -el {0}
       run: |
