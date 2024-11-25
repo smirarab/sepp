@@ -175,12 +175,12 @@ public class PPlacerJSONMerger {
 			JSONArray p = placement.getJSONArray("p");
 			for (Iterator<JSONArray> itp = p.iterator(); itp.hasNext();) {
 				JSONArray pr = itp.next();
-                String newLab = (String) labelMap.get(pr.getString(fieldPositions.get("edge_num")));
-                pr.set(fieldPositions.get("edge_num"), new Integer(newLab));
+				String newLab = (String) labelMap.get(pr.getString(fieldPositions.get("edge_num")));
+				pr.set(fieldPositions.get("edge_num"), new Integer(newLab));
 
-                if (pr.getDouble(fieldPositions.get("distal_length")) > ((Double) mainEdgeLen.get(newLab))
+				if (pr.getDouble(fieldPositions.get("distal_length")) > ((Double) mainEdgeLen.get(newLab))
 						.doubleValue())
-                        pr.set(fieldPositions.get("distal_length"), Double.valueOf(((Double) mainEdgeLen.get(newLab))
+					pr.set(fieldPositions.get("distal_length"), Double.valueOf(((Double) mainEdgeLen.get(newLab))
 							.doubleValue() * 0.99D));
 			}
 		}
