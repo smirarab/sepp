@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - flake8
-  - nose
+  - nosetests
   - coverage >= 6  # to ensure lcov option is available
   - java-jdk
   - pep8
