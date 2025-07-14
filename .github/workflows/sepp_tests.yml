@@ -54,7 +54,7 @@ jobs:
   linting:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.13"]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
