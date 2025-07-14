@@ -40,11 +40,7 @@ jobs:
       shell: bash -el {0}
       run: |
         conda list
-        nosetests -w test/unittest --with-doctest --with-coverage
-    - name: convert coverage
-      shell: bash -el {0}
-      run: |
-        coverage lcov
+        pytest test/unittest/* --cov=sepp --cov-report=lcov
     - name: send coverage report.
       uses: coverallsapp/github-action@master
       with:
