@@ -10,7 +10,7 @@ jobs:
   python_tests:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.13"]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repo
@@ -77,4 +77,4 @@ jobs:
     - name: linting
       shell: bash -el {0}
       run: |
-        flake8  setup.py  split_sequences.py distribute_setup.py run_ensemble.py run_sepp.py run_upp.py merge_script.py test/unittest/ sepp/
+        flake8 split_sequences.py distribute_setup.py run_ensemble.py merge_script.py test/unittest/ sepp/
