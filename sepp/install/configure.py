@@ -98,7 +98,7 @@ class ConfigUPP(ConfigSepp):
     """setuptools Command"""
     def initialize_options(self, contained=None):
         """init options"""
-        self.initopts()
+        self.initopts(contained=contained)
 
     def finalize_options(self):
         """finalize options"""
