@@ -33,8 +33,9 @@ jobs:
     - name: install sepp
       shell: bash -el {0}
       run: |
-        python setup.py config -c
-        python setup.py install
+        pip install -e .
+        config_sepp -c
+        config_upp -c
     - name: run tests
       shell: bash -el {0}
       run: |
