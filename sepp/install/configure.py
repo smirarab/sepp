@@ -28,12 +28,6 @@ def get_tool_name(tool, bits):
 
 class ConfigSepp(Command):
     """setuptools Command"""
-    description = "Configures Sepp for the current user"
-    user_options = [(
-        'contained', 'c',
-        ("Whether SEPP should be installed in a self-contained "
-         "manner or on user's home"))]
-
     def initopts(self, contained=None):
         self.contained = contained
         self.configfile = None
@@ -102,11 +96,6 @@ class ConfigSepp(Command):
 
 class ConfigUPP(ConfigSepp):
     """setuptools Command"""
-    description = "Configures UPP for the current user"
-    user_options = [('contained', 'c',
-                     ("Whether SEPP should be installed in a self-contained "
-                      "manner or on user's home"))]
-
     def initialize_options(self, contained=None):
         """init options"""
         self.initopts()
