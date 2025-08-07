@@ -80,13 +80,7 @@ SEPP is distributed as Python source code. Once you have the above required soft
 
 1. Obtain the latest SEPP distribution from git repository (using `git clone` or by simply downloading the Zip file). If you downloaded the zip file, uncompress the distribution file.
 2. Go to the distribution directory
-3. Configure: run
-    ```pip install . && \
-		   config_sepp```
-    or to avoid using the home directory:
-    ```pip install . && \
-		   config_sepp -c```
-4. Install: run `python setup.py install`.
+3. Configure: run `pip install . && config_sepp` or to avoid using the home directory `pip install . && config_sepp -c`
 
 The third step creates a `~/.sepp/` directory, puts the default config file under `~/.sepp/main.config`, and puts all the binary executables under it as well.
 
@@ -94,12 +88,12 @@ The third step creates a `~/.sepp/` directory, puts the default config file unde
 * To have a self-contained install instead of using the home directory, you should run step 3 with the `-c` option.
 With `-c`, the main config file and the binary files are kept under the place where you have downloaded SEPP. Therefore that
 directory should not be removed later if `-c` is used.
-* To use any other location for the config file and the binary files, change the file `home.path` after step 3 and before step 4.
-You need to also update the paths inside the `.sepp/main.config` file after step 3 and before step 4.
+* To use any other location for the config file and the binary files, change the file `home.path` before step 3.
+You need to also update the paths inside the `.sepp/main.config` file after step 3.
 
 #### Common Problems:
 
-1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: `python setup.py install --prefix=/some/path/on/your/system`, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
+1. The last step by default requires root access to the system. If you do not have root access, invoke the setup script as follows: `pip install --prefix=/some/path/on/your/system .`, where `/some/path/on/your/system` is the path to a directory on your system to which you do have read and write access. If you use the `--prefix` option, you must ensure that the `lib/python2.x/site-packages` subdirectory (where `x` denotes the minor version number of your Python install) of the directory you specify following `--prefix=` is on Python's search path. To add a directory to Python's search path, modify your PYTHONPATH environment variable.
 
 2. SEPP relies on pplacer and HMMER for alignment and placement steps. These tools are packaged with SEPP. If for some reason the packaged version of HMMER and pplacer do not run in your environment, you need to download and build those programs for your system (see below for links), and point SEPP to them. To point sepp to your installation of hmmer and placer modify `~/.sepp/main.config`.
    * pplacer: <http://matsen.fhcrc.org/pplacer/>
