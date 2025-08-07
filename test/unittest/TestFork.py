@@ -14,7 +14,7 @@ import unittest
 set_start_method('fork')
 
 
-class TestJob(Job):
+class SchedulerTestJob(Job):
     def __init__(self, jobname):
         Job.__init__(self)
         global s
@@ -26,7 +26,7 @@ class TestJob(Job):
 
         def add_a_child(parent):
             # print("Adding a child job for %s" % (parent), file=sys.stderr)
-            JobPool().enqueue_job(TestJob("%s.child" % parent))
+            JobPool().enqueue_job(SchedulerTestJob("%s.child" % parent))
             # print "Added a child for: ",parent
 
         def a_very_bad_callback():
@@ -88,7 +88,7 @@ def run():
     pool = JobPool()
     jobs = []
     for j in range(1, 20):
-        job = TestJob(str(j))
+        job = SchedulerTestJob(str(j))
         jobs.append(job)
         pool.enqueue_job(job)
 

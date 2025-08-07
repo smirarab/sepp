@@ -9,7 +9,7 @@ from sepp.scheduler import JobPool, JobError
 from multiprocessing import cpu_count
 
 
-class TestExternalJob(ExternalSeppJob):
+class SchedulerTestExternalJob(ExternalSeppJob):
     def tearDown(self):
         # clean up JobPool for other unit tests
         JobPool().terminate()
@@ -67,7 +67,7 @@ class Test(unittest.TestCase):
         JobPool().__init__(cpu_count())
 
     def testSuccess(self):
-        find_job = TestExternalJob()
+        find_job = SchedulerTestExternalJob()
         find_job.pattern = "."
         find_job.options = "-name test*.py"
         JobPool().enqueue_job(find_job)
@@ -78,7 +78,7 @@ class Test(unittest.TestCase):
 
         assert res0 != ""
 
-        find_job = TestExternalJob()
+        find_job = SchedulerTestExternalJob()
         find_job.pattern = ".."
         find_job.options = "-name %s" % res0.split('/')[-1]
         JobPool().enqueue_job(find_job)
@@ -92,7 +92,7 @@ class Test(unittest.TestCase):
         assert res1.endswith(res0[2:])
 
     def testError(self):
-        find_job = TestExternalJob()
+        find_job = SchedulerTestExternalJob()
         find_job.pattern = "somerandomdirectorywewillneverhavehere_ordowe"
         ''' Let's ignore this error in subsequent test cases. '''
         find_job.ignore_error = True
@@ -107,7 +107,7 @@ class Test(unittest.TestCase):
             False, "We expected the job to fail"
 
     def testNoPipe(self):
-        find_job = TestExternalJob(pipe=1)
+        find_job = SchedulerTestExternalJob(pipe=1)
         find_job.pattern = "."
         find_job.options = "-name *.py"
         JobPool().enqueue_job(find_job)
@@ -115,7 +115,7 @@ class Test(unittest.TestCase):
         res0 = find_job.result.split('\n')[0]
         assert res0 != ""
 
-        find_job = TestExternalJob(pipe=1)
+        find_job = SchedulerTestExternalJob(pipe=1)
         find_job.pattern = "somerandomdirectorywewillneverhavehere_ordowe"
         ''' Let's ignore this error in subsequent test cases. '''
         find_job.ignore_error = True

@@ -72,7 +72,7 @@ def save_checkpoint(checkpoint_manager):
         checkpoint_manager.timer = threading.Timer(
             options().checkpoint_interval, save_checkpoint,
             args=[checkpoint_manager])
-        checkpoint_manager.timer.setDaemon(True)
+        checkpoint_manager.timer.daemon = True
         checkpoint_manager.timer.start()
 
 

@@ -1,7 +1,10 @@
+* Version 4.5.6:
+     * Migrate the code base from python 3.10 (current) to more recent 3.13 
+          * replace the deprecated setup.py mechanism with a more recent pyproject.toml based mechanism. The configuration of SEPP and UPP therefore has to be slightly different, i.e. first install the python package, then run the config_sepp / config_upp script with or without the -c flag.
 * Version 4.5.5:
-  * Keep backwards compatible with dendropy < 4.5.2
+     * Keep backwards compatible with dendropy < 4.5.2
 * Version 4.5.4:
-  * Slight improvements in logging key information
+     * Slight improvements in logging key information
 * Version 4.5.3:
     * Make sure SEPP and HMMER version is outputted to log
     * Update documents to ask users to cite HMMER
