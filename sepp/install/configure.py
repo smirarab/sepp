@@ -47,7 +47,7 @@ class ConfigSepp(Command):
         with open(fp_home_path, 'w') as fo:
             fo.write(self.basepath)
             fo.close()
-        
+
         # copy created home.path file to site-packages directory
         target_dir = site.getsitepackages()[0]
         if not self.contained:
