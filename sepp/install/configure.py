@@ -1,6 +1,7 @@
 import os
 import platform
 import sys
+import site
 
 import shutil
 from setuptools import Command, Distribution
@@ -42,9 +43,16 @@ class ConfigSepp(Command):
         else:
             self.configfile = os.path.expanduser("~/.sepp/%s" % name)
             self.basepath = os.path.expanduser("~/.sepp")
-        with open('home.path', 'w') as fo:
+        fp_home_path = 'home.path'
+        with open(fp_home_path, 'w') as fo:
             fo.write(self.basepath)
             fo.close()
+
+        # copy created home.path file to site-packages directory
+        target_dir = site.getsitepackages()[0]
+        if not self.contained:
+            target_dir = site.getusersitepackages()
+        shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
 
     def get_tools_dest(self):
         return os.path.join(self.basepath, "bundled-v%s" % self.version)
