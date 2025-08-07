@@ -29,7 +29,7 @@ def trimstr(i):
     return s if len(s) < 101 else "%s ..." % (s[0:100])
 
 
-class TestProblem(Problem):
+class SchedulerTestProblem(Problem):
     def __init__(self, parent):
         Problem.__init__(self, parent)
         self.jobs = dict(buildmodel=None, searchfragment=None, applymodel=None,
@@ -307,14 +307,14 @@ class Join_tip_searchfragment(Join):
 def build_subproblems(problem=None):
     """ Makes a fully balanced problem (binary) tree upto level DEPTH"""
     if problem is None:
-        problem = TestProblem(None)
+        problem = SchedulerTestProblem(None)
         ''' Root problem needs to have fragments assigned to it'''
         problem.fragments = [int(random() * 1000000) for i in range(1, 2000)]
     if problem.level < DEPTH:
-        subproblem = TestProblem(problem)
+        subproblem = SchedulerTestProblem(problem)
         build_subproblems(subproblem)
         problem.add_child(subproblem)
-        subproblem = TestProblem(problem)
+        subproblem = SchedulerTestProblem(problem)
         build_subproblems(subproblem)
         problem.add_child(subproblem)
         # problem.ad
