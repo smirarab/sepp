@@ -52,6 +52,9 @@ class ConfigSepp(Command):
         dist = importlib.metadata.distribution("sepp")
         target_dir = dist._path
         shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
+        print(("\nCreating home.path file at %s to point to sepp original"
+               "installation path, which is at %s") % (
+                   os.path.join(target_dir, fp_home_path), self.basepath))
 
         # update the softlinks (run_sepp.py and run_upp.py) in
         # ./sepp-package/sepp/ such that they point to
