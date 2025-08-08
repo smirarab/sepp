@@ -54,6 +54,18 @@ class ConfigSepp(Command):
         target_dir = dist._path
         shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
 
+        # update the softlinks (run_sepp.py and run_upp.py) in
+        # ./sepp-package/sepp/ such that they point to
+        # the python "binaries" installed in PREFIX/bin/
+        for binname in ['run_sepp.py', 'run_upp.py']:
+            fp_link = os.path.abspath(os.path.join(
+                self.basepath, '..', 'sepp-package', 'sepp', binname))
+            fp_link_target = os.path.abspath(os.path.join(
+                sys.prefix, 'bin', binname))
+            if os.path.lexists(fp_link):
+                os.unlink(fp_link)
+            os.symlink(fp_link_target, fp_link)
+
     def get_tools_dest(self):
         return os.path.join(self.basepath, "bundled-v%s" % self.version)
 
