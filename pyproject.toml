@@ -35,7 +35,7 @@ Repository = "https://github.com/smirarab/sepp"
 Issues = "https://github.com/smirarab/sepp/issues"
 
 [project.scripts]
-"run_sepp.py" = "sepp.exhaustive.ExhaustiveAlgorithm:run"
+"run_sepp.py" = "sepp.exhaustive:main"
 "run_upp.py" = "sepp.exhaustive_upp:main"
 "split_sequences.py" = "split_sequences:main"
 config_sepp = "sepp.install.configure:config_sepp"
