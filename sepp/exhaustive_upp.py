@@ -8,6 +8,7 @@ import random
 import argparse
 import os
 import shutil
+import importlib.metadata
 from math import floor
 from sepp import get_logger
 from sepp.alignment import MutableAlignment, ExtendedAlignment, _write_fasta
