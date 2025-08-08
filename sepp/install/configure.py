@@ -1,10 +1,10 @@
 import os
 import platform
 import sys
-import site
 
 import shutil
 from setuptools import Command, Distribution
+import importlib.metadata
 import argparse
 from sepp import version
 
@@ -49,10 +49,21 @@ class ConfigSepp(Command):
             fo.close()
 
         # copy created home.path file to site-packages directory
-        target_dir = site.getsitepackages()[0]
-        if not self.contained:
-            target_dir = site.getusersitepackages()
+        dist = importlib.metadata.distribution("sepp")
+        target_dir = dist._path
         shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
+
+        # update the softlinks (run_sepp.py and run_upp.py) in
+        # ./sepp-package/sepp/ such that they point to
+        # the python "binaries" installed in PREFIX/bin/
+        for binname in ['run_sepp.py', 'run_upp.py']:
+            fp_link = os.path.abspath(os.path.join(
+                self.basepath, '..', 'sepp-package', 'sepp', binname))
+            fp_link_target = os.path.abspath(os.path.join(
+                sys.prefix, 'bin', binname))
+            if os.path.lexists(fp_link):
+                os.unlink(fp_link)
+            os.symlink(fp_link_target, fp_link)
 
     def get_tools_dest(self):
         return os.path.join(self.basepath, "bundled-v%s" % self.version)

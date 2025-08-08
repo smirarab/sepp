@@ -506,5 +506,9 @@ class ExhaustiveAlgorithm(AbstractAlgorithm):
                 JobPool().enqueue_job(ap.jobs["hmmbuild"])
 
 
-if __name__ == '__main__':
+def main():
     ExhaustiveAlgorithm().run()
+
+
+if __name__ == '__main__':
+    main()
