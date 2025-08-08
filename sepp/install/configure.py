@@ -5,6 +5,7 @@ import site
 
 import shutil
 from setuptools import Command, Distribution
+import importlib.metadata
 import argparse
 from sepp import version
 
@@ -49,9 +50,8 @@ class ConfigSepp(Command):
             fo.close()
 
         # copy created home.path file to site-packages directory
-        target_dir = site.getsitepackages()[0]
-        if not self.contained:
-            target_dir = site.getusersitepackages()
+        dist = importlib.metadata.distribution("sepp")
+        target_dir = dist._path
         shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
 
     def get_tools_dest(self):
