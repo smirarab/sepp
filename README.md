@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/smirarab/sepp.svg?branch=master)](https://travis-ci.org/smirarab/sepp) [![Coverage Status](https://coveralls.io/repos/github/smirarab/sepp/badge.svg?branch=master)](https://coveralls.io/github/smirarab/sepp?branch=master)
+[![SEPP_github_tests](https://github.com/smirarab/sepp/actions/workflows/sepp_tests.yml/badge.svg)](https://github.com/smirarab/sepp/actions/workflows/sepp_tests.yml) [![Coverage Status](https://coveralls.io/repos/github/smirarab/sepp/badge.svg?branch=master)](https://coveralls.io/github/smirarab/sepp?branch=master) [![Anaconda-Server Badge](https://anaconda.org/bioconda/sepp/badges/version.svg)](https://anaconda.org/bioconda/sepp)
 ------------------------------------
 Summary
 ------------------------------------
@@ -24,3 +24,4 @@ Each of these related tools has its own README file.
 Bugs and Errors
 ---------------------------------------------
 SEPP, TIPP, UPP, HIPPI are under active research development at UIUC by the Warnow Lab and former student Siavash Mirarab (now at UCSD). Please report any errors on the GitHub issues page. 
+
