@@ -247,9 +247,6 @@ class Join(object):
         self._lock.release()
 
 
-default_cpus = None
-
-
 '''
 JobPool is provided as a singleton class
 '''
@@ -265,9 +262,6 @@ def JobPool(cpus=None):
     from that of the original call, an error is raised.
     """
     global _jobPool
-    global default_cpus
-    if cpus is None:
-        cpus = default_cpus
     if _jobPool is None:
         _jobPool = _JobPool(cpus)
     if cpus is not None and cpus != _jobPool.cpus:

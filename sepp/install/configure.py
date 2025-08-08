@@ -1,35 +1,12 @@
-#!/usr/bin/env python
-
-# ##########################################################################
-#    Copyright 2012 Siavash Mirarab, Nam Nguyen, and Tandy Warnow.
-#    This file is part of SEPP.
-#
-#    SEPP is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    SEPP is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with SEPP.  If not, see <http://www.gnu.org/licenses/>.
-# ##########################################################################
-
 import os
 import platform
 import sys
+import site
 
-# from distutils.core import setup
-from distribute_setup import use_setuptools
 import shutil
-from setuptools import find_packages
-from distutils.core import setup, Command
-
-use_setuptools(version="0.6.24")
-version = "4.5.5"
+from setuptools import Command, Distribution
+import argparse
+from sepp import version
 
 
 def get_tools_dir(where):
@@ -52,16 +29,11 @@ def get_tool_name(tool, bits):
 
 class ConfigSepp(Command):
     """setuptools Command"""
-    description = "Configures Sepp for the current user"
-    user_options = [(
-        'contained', 'c',
-        ("Whether SEPP should be installed in a self-contained "
-         "manner or on user's home"))]
-
-    def initopts(self):
-        self.contained = None
+    def initopts(self, contained=None):
+        self.contained = contained
         self.configfile = None
         self.basepath = None
+        self.version = version
 
     def initpath(self, name):
         if self.contained:
@@ -71,21 +43,28 @@ class ConfigSepp(Command):
         else:
             self.configfile = os.path.expanduser("~/.sepp/%s" % name)
             self.basepath = os.path.expanduser("~/.sepp")
-        with open('home.path', 'w') as fo:
+        fp_home_path = 'home.path'
+        with open(fp_home_path, 'w') as fo:
             fo.write(self.basepath)
             fo.close()
 
+        # copy created home.path file to site-packages directory
+        target_dir = site.getsitepackages()[0]
+        if not self.contained:
+            target_dir = site.getusersitepackages()
+        shutil.copy(fp_home_path, os.path.join(target_dir, fp_home_path))
+
     def get_tools_dest(self):
-        return os.path.join(self.basepath, "bundled-v%s" % version)
+        return os.path.join(self.basepath, "bundled-v%s" % self.version)
 
     def copy_tool_to_lib(self, tool, where=None, bits=True):
         shutil.copy2(
             os.path.join(get_tools_dir(where), get_tool_name(tool, bits)),
             os.path.join(self.get_tools_dest(), tool))
 
-    def initialize_options(self):
+    def initialize_options(self, contained=None):
         """init options"""
-        self.initopts()
+        self.initopts(contained)
 
     def finalize_options(self):
         """finalize options"""
@@ -125,14 +104,9 @@ class ConfigSepp(Command):
 
 class ConfigUPP(ConfigSepp):
     """setuptools Command"""
-    description = "Configures UPP for the current user"
-    user_options = [('contained', 'c',
-                     ("Whether SEPP should be installed in a self-contained "
-                      "manner or on user's home"))]
-
-    def initialize_options(self):
+    def initialize_options(self, contained=None):
         """init options"""
-        self.initopts()
+        self.initopts(contained=contained)
 
     def finalize_options(self):
         """finalize options"""
@@ -152,28 +126,21 @@ class ConfigUPP(ConfigSepp):
         d.close()
 
 
-setup(name="sepp",
-      version=version,
-      description="SATe enabled phylogenetic placement.",
-      packages=find_packages(),
+def config_sepp(cmd=ConfigSepp, name="SEPP"):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-c", "--contained",
+        help=("Whether %s should be installed in a self-contained "
+              "manner or on user's home") % name,
+        action='store_true')
+    args = parser.parse_args()
 
-      url="https://github.com/smirarab/sepp",
-      author="Siavash Mirarab and Nam Nguyen",
-      author_email="smirarab@gmail.com, namphuon@cs.utah.edu",
+    dist = Distribution()
+    conf = cmd(dist)
+    conf.initialize_options(args.contained)
+    conf.finalize_options()
+    conf.run()
 
-      license="General Public License (GPL)",
-      install_requires=["dendropy >= 4.6.0"],
-      provides=["sepp"],
-      scripts=["run_sepp.py", 'run_upp.py', "split_sequences.py"],
-      cmdclass={"config": ConfigSepp, "upp": ConfigUPP},
-      data_files=[('', ['home.path'])],
 
-      classifiers=["Environment :: Console",
-                   "Intended Audience :: Developers",
-                   "Intended Audience :: Science/Research",
-                   ("License :: OSI Approved :: GNU General Public "
-                    "License (GPL)"),
-                   "Natural Language :: English",
-                   "Operating System :: OS Independent",
-                   "Programming Language :: Python",
-                   "Topic :: Scientific/Engineering :: Bio-Informatics"])
+def config_upp():
+    config_sepp(cmd=ConfigUPP, name="UPP")

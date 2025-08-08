@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sepp"
+version = "4.5.6"
+#dynamic = ["version"]
+dependencies = [
+  "dendropy >= 4.6.0"
+]
+requires-python = ">= 3.9"
+authors = [
+  {name="Siavash Mirarab", email="smirarab@ucsd.edu"},
+  {name="Nam Nguyen", email="namphuon@cs.utah.edu"},
+  {name="Tandy Warnow"},
+]
+maintainers = [
+  {name="Stefan Janssen", email="stefan.janssen@uni-giessen.de"}
+]
+description = "SATe enabled phylogenetic placement"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+classifiers=["Environment :: Console",
+             "Intended Audience :: Developers",
+             "Intended Audience :: Science/Research",
+             "Natural Language :: English",
+             "Operating System :: OS Independent",
+             "Programming Language :: Python",
+             "Topic :: Scientific/Engineering :: Bio-Informatics"]
+
+[project.urls]
+Repository = "https://github.com/smirarab/sepp"
+Issues = "https://github.com/smirarab/sepp/issues"
+
+[project.scripts]
+"run_sepp.py" = "sepp.exhaustive.ExhaustiveAlgorithm:run"
+"run_upp.py" = "sepp.exhaustive_upp:main"
+"split_sequences.py" = "split_sequences:main"
+config_sepp = "sepp.install.configure:config_sepp"
+config_upp = "sepp.install.configure:config_upp"
