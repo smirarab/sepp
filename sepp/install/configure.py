@@ -1,7 +1,6 @@
 import os
 import platform
 import sys
-import site
 
 import shutil
 from setuptools import Command, Distribution
