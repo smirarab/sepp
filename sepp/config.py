@@ -46,11 +46,16 @@ import os.path
 from multiprocessing import cpu_count
 from sepp import scheduler
 import random
+import importlib.metadata
 
 _LOG = get_logger(__name__)
 
-root_p = open(os.path.join(os.path.split(
-    os.path.split(__file__)[0])[0], "home.path")).readlines()[0].strip()
+# obtain filepath of original sepp source directory, which is
+# stored in a file "home.path", which is located in the site-package
+# installation
+fp_home = os.path.join(
+    importlib.metadata.distribution("sepp")._path, "home.path")
+root_p = open(fp_home).readlines()[0].strip()
 print("root_p='%s'" % root_p)
 main_config_path = os.path.join(root_p, "main.config")
 

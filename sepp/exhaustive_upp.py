@@ -382,8 +382,12 @@ class UPPExhaustiveAlgorithm(ExhaustiveAlgorithm):
 
 
 def augment_parser():
-    root_p = open(os.path.join(os.path.split(
-        os.path.split(__file__)[0])[0], "home.path")).readlines()[0].strip()
+    # obtain filepath of original sepp source directory, which is
+    # stored in a file "home.path", which is located in the site-package
+    # installation
+    fp_home = os.path.join(
+        importlib.metadata.distribution("sepp")._path, "home.path")
+    root_p = open(fp_home).readlines()[0].strip()
     upp_config_path = os.path.join(root_p, "upp.config")
     sepp.config.set_main_config_path(upp_config_path)
     parser = sepp.config.get_parser()
